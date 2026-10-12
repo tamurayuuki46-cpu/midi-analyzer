@@ -4,50 +4,36 @@
 更新日: 2026-10-12
 
 ### 【追加】
-- MIDI Analyzer 初期Repository構成を作成
-- 共通仕様書を `docs/` に分割
-- ChatGPT / Codex / Claude 共同開発ルールを定義
-- v0.1 MIDI Schema初版を定義
-- v0.1 Analysis仕様初版を定義
-- Android UI方針を定義
-- RipX / Demo Composer 将来連携境界を定義
-- 分離処理の将来interfaceを定義
-- `.mid` / `.midi` Import UIを追加
-- `midi-file@1.2.4` Parser Adapterを追加
-- Standard MIDI File → Song / Track / Note正規化を追加
-- Tempo Map / Time Signature正規化を追加
-- Track一覧表示を追加
-- Normalizer unit test 7件を追加
-- GitHub Actions CI（test + build）を追加
-- IndexedDB端末保存を追加（初期値OFF）
-- 元MIDI bytes + 正規化Song保存を追加
-- 保存済みMIDI一覧 / 削除を追加
-- IndexedDB unit test 4件を追加
-- `docs/STORAGE_SPEC.md` を追加
-- 読み取り専用Piano Rollを追加
-- Track切替 / 4段階横Zoom / 横・縦Scrollを追加
-- Piano Roll model unit test 7件を追加
-- `docs/PIANO_ROLL_SPEC.md` を追加
-- 固定binary MIDI fixtureによるParser integration regression test 2件を追加
-- Format 0 / Format 1、tempo change、time signature、Note On velocity 0を実Parser経由で検証
+- 初期Repository / 共通仕様書 / AI共同開発ルール
+- MIDI Import / `midi-file@1.2.4` Parser Adapter / Song正規化
+- Tempo Map / Time Signature / Track一覧 / Warning
+- Normalizer unit test 7件 / GitHub Actions CI
+- IndexedDB端末保存（初期OFF）/ 元MIDI + Song / 一覧 / 削除
+- IndexedDB unit test 4件 / STORAGE_SPEC
+- 読み取り専用Piano Roll / Track切替 / Zoom / Scroll
+- Piano Roll model unit test 7件 / PIANO_ROLL_SPEC
+- 固定binary MIDI Parser integration regression test 2件
+- Key / Scale Analyzer（major/minor 24候補 → Top 3）
+- durationTick × velocityによるPitch Class重み
+- Key Analyzer Drum除外 / confidence / 拮抗時補助hint
+- Key候補のユーザー選択UI
+- Key Analyzer unit test 6件
+- `docs/KEY_ANALYZER_SPEC.md`
 
 ### 【変更】
-- Motifをv0.1から外し、v0.2以降へ移動
-- 6/8拍子で内部Gridと音楽的Beatを区別する方針に修正
-- Trackは単一channel前提にせず `channels[]` を使用
-- Drum除外はNoteのMIDI Channel 10（0-based index 9）を基本判定とする
-- Chord分析対象Trackをユーザーが選択できる方針を追加
-- v0.1 UIから一般Exportを外し、Import / 保存 / 削除を中心に整理
-- 保存失敗とImport失敗を分離して扱う
+- Motifはv0.2以降
+- Trackは `channels[]`、DrumはNote.channel === 9を基本判定
+- 6/8ではanalysisGridとmusicalBeatを分離
+- 保存失敗とImport失敗を分離
+- Key confidenceは確率ではなくprofile一致度として表示
 
 ### 【修正】
-- Claude引き継ぎ案と既存仕様の矛盾を整理
-- Track内に複数Channelがある場合のDrum表示を修正
-- PWA manifest pathを相対path化
+- Claude引き継ぎ案と既存仕様の矛盾整理
+- mixed Channel TrackのDrum表示
+- PWA manifest path
 
 ### 【未対応】
-- Key / Scale Analyzer
-- Chord Analyzer
+- Chord Analyzer + Degree
 - Melody / Bass / Rhythm Analyzer
 - 最小簡易再生
-- 実MIDIによる係数調整
+- 実MIDIによるKey / Chord係数調整

@@ -14,7 +14,7 @@ v0.1-dev
 ## 1. Key / Scale
 
 ### 対象
-Drum Noteを除外。
+MIDI Channel 10（0-based channel 9）のDrum Noteを除外。
 
 ### 分布
 Pitch Classごとに、
@@ -25,14 +25,17 @@ Pitch Classごとに、
 
 ### 候補
 12根音 × major/minor = 24候補。
+固定Key profileとのCosine Similarityで比較し、上位3候補を表示する。
+confidenceは0〜1の一致度であり確率ではない。
 
-上位3候補を表示。
+### selected
+解析直後は `null`。
+ユーザーが選択した場合だけ選択状態を持つ。
 
 ### 拮抗時
-上位2候補の差が10%以内を暫定基準とし、
-最初 / 最後の和音をヒントとして表示する。
-
+上位2候補の差が第1候補scoreの10%以内を暫定基準とし、始まり / 終わり付近のmajor / minor三和音を補助ヒントとして表示する。
 このヒントは順位・confidenceを変更しない。
+詳細は `KEY_ANALYZER_SPEC.md`。
 
 ---
 
@@ -146,7 +149,6 @@ v0.1:
 ## 7. Chord Tone
 
 Chord Tone / Non-Chord Toneは特徴量。
-
 Non-Chord Toneを誤り扱いしない。
 
 ---
@@ -154,9 +156,9 @@ Non-Chord Toneを誤り扱いしない。
 ## 8. 調整対象パラメータ
 
 実MIDIテストで決める:
+- Key拮抗閾値（仮10%）
 - Bass Bonus（仮1.5）
 - Non-Chord Penalty（仮0.5）
-- Key拮抗閾値（仮10%）
 - Chord切替閾値（仮10%）
 
 固定値として仕様化するのはテスト後。
