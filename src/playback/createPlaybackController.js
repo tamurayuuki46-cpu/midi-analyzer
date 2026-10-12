@@ -82,6 +82,7 @@ export function createPlaybackController(song, options = {}) {
   let nextIndex = 0;
   let startAudioTime = 0;
   let playing = false;
+  let starting = false;
   let sessionId = 0;
   const activeNodes = new Set();
 
@@ -118,6 +119,7 @@ export function createPlaybackController(song, options = {}) {
     const currentContext = context;
     sessionId += 1;
     playing = false;
+    starting = false;
     nextIndex = 0;
     clearTimer();
 
@@ -151,23 +153,42 @@ export function createPlaybackController(song, options = {}) {
   }
 
   async function play() {
-    if (playing) return;
+    if (playing || starting) return;
     if (!AudioContextCtor) throw new Error('このブラウザはWeb Audio再生に対応していません。');
     if (!schedule.length) throw new Error('再生できるNoteがありません。');
 
     const activeSessionId = sessionId + 1;
     sessionId = activeSessionId;
-    context = new AudioContextCtor();
-    if (context.state === 'suspended') await context.resume?.();
-    masterGain = createMasterGain(context);
-    nextIndex = 0;
-    startAudioTime = context.currentTime + START_DELAY_SECONDS;
-    playing = true;
-    emit('playing', { durationSeconds });
-    scheduler(activeSessionId);
+    starting = true;
+    const nextContext = new AudioContextCtor();
+    context = nextContext;
 
-    if (setIntervalFn) {
-      timerId = setIntervalFn(() => scheduler(activeSessionId), intervalMs);
+    try {
+      if (nextContext.state === 'suspended') await nextContext.resume?.();
+      if (activeSessionId !== sessionId || context !== nextContext) {
+        await closeContext(nextContext);
+        return;
+      }
+
+      masterGain = createMasterGain(nextContext);
+      nextIndex = 0;
+      startAudioTime = nextContext.currentTime + START_DELAY_SECONDS;
+      playing = true;
+      emit('playing', { durationSeconds });
+      scheduler(activeSessionId);
+
+      if (setIntervalFn) {
+        timerId = setIntervalFn(() => scheduler(activeSessionId), intervalMs);
+      }
+    } catch (error) {
+      if (context === nextContext) {
+        context = null;
+        masterGain = null;
+      }
+      await closeContext(nextContext);
+      throw error;
+    } finally {
+      if (activeSessionId === sessionId) starting = false;
     }
   }
 
