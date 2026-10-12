@@ -11,15 +11,24 @@
 6. SMPTE time division拒否
 7. 不正origin拒否
 
-## IndexedDB unit test
+## Storage unit test
 
 実装済み:
-1. IndexedDB利用可否判定
-2. 元MIDI bytes + Songの保存record生成
-3. save / get / list / delete
-4. 保存一覧の新しい順sort
+- IndexedDB保存
+- 一覧取得
+- 削除
+- 保存record構造
 
-Node testでは `fake-indexeddb@6.2.5` を使用する。
+## Piano Roll model unit test
+
+実装済み:
+1. Track Note抽出 / sort
+2. 初期Track選択（非Drum優先）
+3. Pitch Range padding / minimum span
+4. MIDI Pitch境界 0〜127
+5. 4/4 bar / beat marker
+6. MIDI Note名表示
+7. 拍子変更時のbar再開
 
 実行:
 
@@ -51,13 +60,15 @@ raw parsed objectだけでなく、固定 `.mid` binary fixtureを `midi-file` �
 - noteOn velocity 0
 - Format 0 / 1
 
-## Browser manual test
-Android Chromeで以下を確認する。
-- 保存OFFが初期値
-- 保存OFFで一覧が増えない
-- 保存ONで再読み込み後も一覧に残る
-- 保存済みMIDIを削除できる
-- IndexedDB保存失敗時もImport結果が表示される
+## Manual UI test
+
+Android Chromeで確認:
+- Track selectorが44px以上の操作領域で使える
+- − / ＋ Zoomが片手で押せる
+- 横 / 縦スクロールが競合しない
+- 長いMIDIでページ全体が破綻しない
+- Drum Trackも表示できる
+- Import / IndexedDB保存 / 削除がPiano Roll追加後も動く
 
 ## Regression
 Analysis Engine変更前後で固定MIDIを再解析し、意図しない結果変化がないか確認する。

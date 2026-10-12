@@ -1,5 +1,6 @@
 import './styles.css';
 import { importMidiFile } from './midi/index.js';
+import { mountPianoRoll } from './piano-roll/index.js';
 import {
   deleteSavedMidi,
   isIndexedDbAvailable,
@@ -59,6 +60,7 @@ form.addEventListener('submit', async (event) => {
   try {
     const result = await importMidiFile(file, { origin: originSelect.value });
     renderSongSummary(resultRoot, result);
+    mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
 
     if (saveCheckbox.checked) {
       try {

@@ -61,6 +61,17 @@ export function renderSongSummary(root, result) {
       </div>
     </section>
 
+    <section class="panel piano-roll-panel" aria-labelledby="piano-roll-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">PIANO ROLL</p>
+          <h2 id="piano-roll-title">Noteを確認</h2>
+        </div>
+        <span class="status-pill">表示専用</span>
+      </div>
+      <div data-piano-roll-root></div>
+    </section>
+
     ${warnings.length ? `
       <section class="panel warning-panel" aria-labelledby="warnings-title">
         <h2 id="warnings-title">読み込み時の注意</h2>
