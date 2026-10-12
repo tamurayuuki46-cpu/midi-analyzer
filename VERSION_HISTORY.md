@@ -1,7 +1,29 @@
 # VERSION_HISTORY
 
+## v0.5-dev — 2026-10-13
+状態: Visualization Scope実装完了 / Unit Test・Production Build確認済み
+
+主な内容:
+- Tonal Center Timeline
+- Chord Timeline
+- Melody / Bass Contour
+- Rhythm Density / Energy Curve
+- Section Map
+- Note / Velocity Heatmap
+- Visual Tab
+- Visualization model unit test 2件
+
+設計方針:
+- 既存Analyzerの候補順位を変更しない
+- VisualizationはNormalized SongとAnalyzer結果の表示Layerに限定する
+- Energyはaudio loudnessではなくMIDI onset密度 × average velocityの簡易指標
+- HeatmapはAndroid負荷を考慮して先頭16小節へ制限する
+
+復元ポイント:
+- `chatgpt/v0.4.1-feature-complete-milestone`
+
 ## v0.4.1-dev — 2026-10-13
-状態: カテゴリ別Tab UI実装 / 自動テスト・Production Build確認中
+状態: カテゴリ別Tab UI実装完了 / Unit Test・Production Build確認済み
 
 主な内容:
 - 解析結果を「概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Parts」に分割
@@ -24,6 +46,7 @@
 
 復元ポイント:
 - `chatgpt/v0.4-before-tabbed-ui`
+- `chatgpt/v0.4.1-feature-complete-milestone`
 
 ## v0.4-dev — 2026-10-13
 状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み / GitHub Pages公開済み
