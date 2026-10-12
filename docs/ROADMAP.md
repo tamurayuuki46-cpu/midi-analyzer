@@ -31,10 +31,10 @@
 - [x] 自作MIDI複数保存から作曲傾向集計
 
 ## v0.4 — Part Deep Analysis
-- [ ] 裏メロ分析（反行 / 並行 / 隙間 / 衝突候補）
-- [ ] Bass詳細分析
-- [ ] Drum詳細分析 / GM Drum Map / Fill候補
-- [ ] MIDI内パート分離候補
+- [x] 裏メロ分析（反行 / 並行 / 隙間 / 衝突候補）
+- [x] Bass詳細分析
+- [x] Drum詳細分析 / GM Drum Map / Fill候補
+- [x] MIDI内パート分離候補
 
 ## v0.5 — Visualization
 - [ ] Tonal Center Timeline
