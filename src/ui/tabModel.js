@@ -5,6 +5,7 @@ export const ANALYSIS_TABS = Object.freeze([
   'bass',
   'rhythm',
   'structure',
+  'visual',
   'compare',
   'library',
   'ai',
