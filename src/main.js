@@ -18,6 +18,7 @@ import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
 import { mountPartDeepAnalysis } from './ui/renderPartDeepAnalysis.js';
 import { mountPlayback } from './ui/renderPlayback.js';
+import { mountPostV07FeatureTabs } from './ui/postV07FeatureTabs.js';
 import { mountRecorderTab } from './ui/recorderTabShell.js';
 import {
   renderSavedMidiList,
@@ -102,6 +103,7 @@ form.addEventListener('submit', async (event) => {
     savedRoot.replaceChildren();
     const tabsRoot = resultRoot.querySelector('[data-analysis-tabs]');
     activeRecorderTabController = mountRecorderTab(tabsRoot, result.song);
+    mountPostV07FeatureTabs(tabsRoot, result.song);
     mountAnalysisTabs(tabsRoot);
     activePlaybackController = mountPlayback(resultRoot.querySelector('[data-playback-root]'), result.song);
 
