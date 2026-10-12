@@ -8,6 +8,7 @@ import {
   listSavedMidis,
   saveImportedMidi,
 } from './storage/index.js';
+import { mountAdvancedAnalysis } from './ui/renderAdvancedAnalysis.js';
 import { mountBasicAnalysis } from './ui/renderBasicAnalysis.js';
 import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
@@ -94,6 +95,8 @@ form.addEventListener('submit', async (event) => {
         getChordSegments: chordController?.getEffectiveSegments,
       },
     );
+
+    mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-analysis-root]'), result.song);
 
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
     chordRoot?.addEventListener('chord-selection-change', () => basicController?.refreshChordContext());
