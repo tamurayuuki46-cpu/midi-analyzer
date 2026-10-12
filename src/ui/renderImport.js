@@ -116,6 +116,17 @@ export function renderSongSummary(root, result) {
       <div data-advanced-analysis-root></div>
     </section>
 
+    <section class="panel" aria-labelledby="compare-analysis-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">V0.3 COMPARE / PERSONAL TREND</p>
+          <h2 id="compare-analysis-title">比較・自分の傾向</h2>
+        </div>
+        <span class="status-pill">比較</span>
+      </div>
+      <div data-compare-analysis-root></div>
+    </section>
+
     <section class="panel piano-roll-panel" aria-labelledby="piano-roll-title">
       <div class="panel-heading">
         <div>
