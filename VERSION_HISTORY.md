@@ -1,5 +1,31 @@
 # VERSION_HISTORY
 
+## v0.9-dev — 2026-10-13
+状態: v0.7 Integration / v0.8 Explainability / v0.9 Metrics実装完了 / 最終CI確認中
+
+主な内容:
+- Demo Composer Schema 3 Export Adapter
+- JSON / CSV / Markdown / Chord-Degree Text Export
+- Android共有メニュー
+- RipX Bridge Prototype / PC→Android LAN転送
+- 端末内Explainability / この曲から学べること
+- 外部AI Prompt Export（自動送信なし）
+- Floating / Chorus-likeness / Surprise / Repetition-Variation / Counter Presence / Arrangement Density
+- Export / AI / Metrics Tab
+- Analysis Bundle共通Read Model
+- v0.7〜v0.9 regression tests
+
+設計方針:
+- v1.0統合前にv0.2〜v0.9の機能Scopeを埋める
+- Demo Composer Schemaを改変せずAdapterで変換する
+- Analyzer Section候補をVerse / Chorusへ自動確定しない
+- Explainabilityは端末内の候補説明であり、外部AIへ自動送信しない
+- v0.9 Scoreは品質・人気・正解の採点ではない
+- 元MIDI / Normalized Song / 既存Analyzer候補順位を変更しない
+
+復元ポイント:
+- `chatgpt/v0.7-before-integration-export`
+
 ## v0.7-dev — 2026-10-13
 状態: Part Recording Scope実装完了 / 96 tests pass / Production Build確認済み
 
