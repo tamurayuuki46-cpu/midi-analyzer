@@ -25,7 +25,7 @@ v0.1-dev
 - GitHub Actions CI（test + build）設定
 
 開発中:
-- `chatgpt/v0.1-midi-import` でMIDI Import基盤を検証中
+- MIDI Import基盤は実装済み。次の実装単位はIndexedDB保存
 
 次に実装:
 1. IndexedDB保存（保存する / しない、初期値は保存しない）
