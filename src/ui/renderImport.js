@@ -38,6 +38,17 @@ export function renderSongSummary(root, result) {
       </dl>
     </section>
 
+    <section class="panel" aria-labelledby="playback-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">PREVIEW</p>
+          <h2 id="playback-title">簡易再生</h2>
+        </div>
+        <span class="status-pill">Play / Stop</span>
+      </div>
+      <div data-playback-root></div>
+    </section>
+
     <section class="panel" aria-labelledby="tracks-title">
       <div class="panel-heading">
         <div>
