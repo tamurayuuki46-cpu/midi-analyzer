@@ -23,10 +23,17 @@
 4. GM Drum NoteをKick / Snare / Tom等へ分類し、Tom集中小節をFill候補化
 5. roleHint付きTrackをMelody / Chord / Bass / Drums候補として維持
 
-### v0.4.1 Tab UI
-1. Tab順序が `overview → harmony → melody → bass → rhythm → structure → compare → library → ai → parts`
+### v0.4.1 / v0.5 Tab UI
+1. Tab順序が `overview → harmony → melody → bass → rhythm → structure → visual → compare → library → ai → parts`
 2. ArrowLeft / ArrowRightで循環移動する
 3. Homeで先頭、Endで末尾へ移動する
+
+### v0.5 Visualization
+1. 8小節Songから8本のMelody / Bass ContourとRhythm barを生成する
+2. Chord Timeline / Tonal Center Timelineを既存Analyzerから生成する
+3. Energy値が0..1へ正規化される
+4. Heatmapが12 Pitch Class × 表示小節数のCellを返す
+5. Heatmapは非Drum Noteだけを集計する
 
 実行:
 ```bash
@@ -45,6 +52,7 @@ npm run build
 - roleHintが曖昧または欠落した複数Track MIDI
 - 参考曲 / 自作曲比較用の2 MIDI
 - 保存済み3曲以上のPersonal Trend
+- 16小節超のMIDIでHeatmap先頭16小節制限
 
 ## Android Manual
 - Import / Storage / Play / Stop / Piano Roll
@@ -52,10 +60,11 @@ npm run build
 - v0.2発展分析
 - v0.3比較File picker / Compare cards / Personal Trend
 - v0.4 Part Deep Panelが320px幅で崩れない
-- v0.4.1 Tab列が320px幅で横スクロールできる
-- 概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Partsを片手で切替できる
+- Tab列が320px幅で横スクロールできる
+- 概要 / Harmony / Melody / Bass / Rhythm / Structure / Visual / Compare / Library / AI / Partsを片手で切替できる
 - 選択中Tabが視覚的に分かる
 - Tab切替後に各Analyzer内容が欠落しない
+- Visual Timeline / Contour / Chart / Heatmapが横スクロールで読める
 - Melody / BassのChord Tone系指標がChord選択変更後に再計算される
 - Library Tab内で保存済みMIDI一覧と削除が動く
 - Import前の保存済みMIDI一覧とImport後のLibraryが二重表示されない
@@ -68,5 +77,5 @@ npm run build
 
 ## Regression
 Analysis Engine / Playback変更前後で固定MIDIを再解析し、既存結果の意図しない変化がないか確認する。
-UI分割時もAnalyzerの候補順位・Normalized Song・保存Schemaを変更しない。
+UI / Visualization変更時もAnalyzerの候補順位・Normalized Song・保存Schemaを変更しない。
 アルゴリズム結果変更はCHANGELOGへ記録する。
