@@ -1,7 +1,7 @@
 # VERSION_HISTORY
 
 ## v0.4-dev — 2026-10-13
-状態: Part Deep Analysis最小Scope実装 / 自動テスト中
+状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み
 
 主な内容:
 - 裏メロ候補: 反行 / 並行 / 斜行 / 隙間 / 2度衝突候補 / Register
@@ -10,6 +10,7 @@
 - Track役割候補: Melody / Chord / Bass / Drums / Other
 - Android-first Part Deep Analysis Panel
 - Part Deep unit test 5件
+- v0.1〜v0.3を含む全76 tests pass
 
 設計方針:
 - 解析結果は候補であり、良し悪しや役割を自動確定しない
