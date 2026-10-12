@@ -1,9 +1,9 @@
 # MIDI Analyzer
 
-Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細 / 可視化を作曲判断へ応用するためのアプリです。
+Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細 / 可視化 / Clip Libraryを作曲判断へ応用するためのアプリです。
 
 ## 現在Version
-`v0.5-dev`
+`v0.6-dev`
 
 公開中Version: `v0.4-dev`
 
@@ -22,8 +22,8 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Structure: Motif / Section / 区間Key / 転調候補
 - Visual: Tonal Center / Chord Timeline / Melody・Bass Contour / Rhythm Density / Energy Curve / Section Map / Heatmap
 - Compare: 2 MIDI比較 / Personal Trend
-- Library: 端末内に保存したMIDI一覧
-- AI: 将来の説明機能用。v0.5時点では自動AI解析を実行しない
+- Library: 保存済みMIDI + 4小節Clip Library / タグ検索
+- AI: 将来の説明機能用。v0.6時点では自動AI解析を実行しない
 - Parts: Track役割候補
 
 タブは横スクロール可能で、クリック/タップに加えてキーボードの左右矢印・Home・Endでも移動できます。
@@ -51,12 +51,23 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Melody / Bass Contour
 - Rhythm Density / Energy Curve
 - Section Map / Note・Velocity Heatmap
+- Chord / Melody / Bass / Drum / Motifの4小節Clip保存
+- ClipのGenre / Mood / BPM / Key / custom tag
+- Chord進行context保存・検索
+- IndexedDB v2 migration（既存`savedMidis`を維持して`savedClips`追加）
 - GitHub Actions CI / GitHub Pages
 
 ## v0.5 Visualization
 既存AnalyzerとNormalized Songの結果を、曲全体の流れとして見やすくするVisual Tabを追加しています。表示は候補の可視化であり、Key / Chord / Section等を新たに確定しません。
 
 詳細: `docs/VISUALIZATION_SPEC.md`
+
+## v0.6 Clip / Library
+読み込んだMIDIから連続4小節を選び、Chord / Melody / Bass / Drum / Motif Clipとして端末内へ保存できます。Clip保存時にBPM / Key / Top 1 Chord progressionを自動contextとして持たせ、Genre / Mood / custom tagを追加できます。
+
+Library検索はClip名・種類・source・Genre・Mood・BPM・Key・custom tag・Chord名を対象にします。元MIDI / Normalized Songは変更しません。
+
+詳細: `docs/CLIP_LIBRARY_SPEC.md`
 
 ## 既存分析仕様
 - Key / Scale: `docs/KEY_ANALYZER_SPEC.md`
@@ -68,9 +79,10 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Compare: `docs/COMPARE_SPEC.md`
 - Part Deep: `docs/PART_DEEP_ANALYSIS_SPEC.md`
 - Visualization: `docs/VISUALIZATION_SPEC.md`
+- Clip Library: `docs/CLIP_LIBRARY_SPEC.md`
 
 ## 保存方針
-「この端末に保存する」は初期OFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへ自動送信しません。
+「この端末に保存する」は初期OFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。ClipはLibraryでユーザーが明示的に保存ボタンを押した時だけ保存します。クラウドへ自動送信しません。
 
 ## 開発
 ```bash
@@ -90,7 +102,8 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 - v0.4: 裏メロ / Bass / Drum / Track役割の詳細分析
 - v0.4.1: 解析結果をカテゴリ別Tabへ分割
 - v0.5: Visualization
-- v0.6以降: Clip / Library → Integration / Export → Explanation → Higher-level Metrics → v1.0統合
+- v0.6: 4小節Clip / Library / Tag Search / Chord進行DB
+- v0.7以降: Integration / Export → Explanation → Higher-level Metrics → v1.0統合
 
 詳細は `docs/ROADMAP.md`。
 
@@ -103,9 +116,11 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 6. `docs/COMPARE_SPEC.md`
 7. `docs/PART_DEEP_ANALYSIS_SPEC.md`
 8. `docs/VISUALIZATION_SPEC.md`
-9. `docs/MIDI_SCHEMA.md`
-10. `docs/ARCHITECTURE.md`
-11. `docs/ROADMAP.md`
-12. `CHANGELOG.md`
+9. `docs/CLIP_LIBRARY_SPEC.md`
+10. `docs/STORAGE_SPEC.md`
+11. `docs/MIDI_SCHEMA.md`
+12. `docs/ARCHITECTURE.md`
+13. `docs/ROADMAP.md`
+14. `CHANGELOG.md`
 
 重要仕様は `docs/` を正本とします。
