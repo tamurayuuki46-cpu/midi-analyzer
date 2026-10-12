@@ -10,15 +10,15 @@ function hasMidiExtension(name = '') {
 
 export async function importMidiFile(file, options = {}) {
   if (!file || typeof file.arrayBuffer !== 'function') {
-    throw new TypeError('A File-like object with arrayBuffer() is required.');
+    throw new TypeError('File.arrayBuffer()を利用できるMIDIファイルが必要です。');
   }
 
   if (!hasMidiExtension(file.name || '')) {
-    throw new InvalidMidiDataError('Please choose a .mid or .midi file.');
+    throw new InvalidMidiDataError('.mid または .midi ファイルを選んでください。');
   }
 
   if (file.size === 0) {
-    throw new InvalidMidiDataError('The MIDI file is empty.');
+    throw new InvalidMidiDataError('MIDIファイルが空です。');
   }
 
   let parsedMidi;
@@ -26,7 +26,7 @@ export async function importMidiFile(file, options = {}) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     parsedMidi = parseMidi(bytes);
   } catch (error) {
-    throw new InvalidMidiDataError(`Could not read this MIDI file: ${error.message}`);
+    throw new InvalidMidiDataError(`MIDIファイルを読み込めませんでした: ${error.message}`);
   }
 
   return normalizeMidi(parsedMidi, {

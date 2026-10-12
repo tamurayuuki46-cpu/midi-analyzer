@@ -5,7 +5,7 @@ const DEFAULT_TEMPO_US_PER_BEAT = 500000;
 const DEFAULT_TIME_SIGNATURE = Object.freeze({ numerator: 4, denominator: 4 });
 
 export class UnsupportedMidiTimingError extends Error {
-  constructor(message = 'SMPTE time division is not supported in v0.1.') {
+  constructor(message = 'SMPTE方式のMIDI時間分割はv0.1では未対応です。') {
     super(message);
     this.name = 'UnsupportedMidiTimingError';
   }
@@ -20,7 +20,7 @@ export class InvalidMidiDataError extends Error {
 
 function normalizeOrigin(origin) {
   if (!VALID_ORIGINS.has(origin)) {
-    throw new InvalidMidiDataError(`Unsupported origin: ${origin}`);
+    throw new InvalidMidiDataError(`未対応のoriginです: ${origin}`);
   }
   return origin;
 }
@@ -34,7 +34,7 @@ function getPpq(header = {}) {
     throw new UnsupportedMidiTimingError();
   }
 
-  throw new InvalidMidiDataError('MIDI header does not contain a valid ticksPerBeat value.');
+  throw new InvalidMidiDataError('MIDIヘッダーに有効なticksPerBeatがありません。');
 }
 
 function toBpm(microsecondsPerBeat) {
@@ -88,7 +88,7 @@ function isNoteOn(event) {
 
 export function normalizeMidi(parsedMidi, options = {}) {
   if (!parsedMidi || !parsedMidi.header || !Array.isArray(parsedMidi.tracks)) {
-    throw new InvalidMidiDataError('Parsed MIDI data is missing header or tracks.');
+    throw new InvalidMidiDataError('MIDIデータにheaderまたはtracksがありません。');
   }
 
   const origin = normalizeOrigin(options.origin ?? 'midi');
@@ -201,7 +201,7 @@ export function normalizeMidi(parsedMidi, options = {}) {
     }
 
     const channelList = [...channels].sort((a, b) => a - b);
-    const isDrums = trackNotes.length > 0 && trackNotes.every((note) => note.channel === 9);
+    const isDrums = trackNotes.length > 0 && channelList.length === 1 && channelList[0] === 9;
     const displayName = trackName || `Track ${trackIndex + 1}`;
 
     tracks.push(Object.freeze({

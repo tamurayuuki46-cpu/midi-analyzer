@@ -22,7 +22,7 @@ v0.1-dev
 - RipX origin記録
 - 不完全Note Warning処理
 - Normalizer unit test 7件
-- GitHub Actions CI（test + build）
+- GitHub Actions CI（test + build）設定
 
 開発中:
 - `chatgpt/v0.1-midi-import` でMIDI Import基盤を検証中
@@ -39,6 +39,7 @@ v0.1-dev
 - Key / Chordの各閾値は仮値
 - 6/8等の複合拍子のmusicalBeat表示ルールは実データで検証が必要
 - Import時のroleHintは補助候補であり確定ではない
+- CI workflowは設定済み。初回remote build結果は未確認
 
 触らない部分:
 - mainを開発用にしない
@@ -53,6 +54,7 @@ v0.1-dev
 - Motifはv0.2以降
 - Track.channel単一前提を廃止し channels[] を採用
 - Drum判定はNote.channel === 9を基本とする
+- Track内に複数Channelがある場合はTrack.isDrumsをtrueにしない
 - Chord分析対象Trackはユーザーが選択可能
 - 6/8ではanalysisGridとmusicalBeatを分離
 - v0.1 UIに一般Exportを置かない
