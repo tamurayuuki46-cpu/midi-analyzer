@@ -12,7 +12,7 @@
 - [x] 保存選択
 - [x] Play / Stop
 - [x] Android実機確認（Android Chrome: Import / Storage / Playback / Piano Roll / Key / Chord / Basic Analysis）
-- [ ] 実MIDIで係数 / heuristic / playback音量調整
+- [ ] 実MIDIで係数 / heuristic / playback音量調整（検証・チューニング項目）
 
 ## v0.2 — Structure / Motif
 - [x] 移調非依存Motif反復候補
@@ -65,26 +65,32 @@
 - [x] Take A/B比較
 - [x] Browser対応Audio形式で書き出し
 - [x] IndexedDB v2→v3非破壊Migration / savedTakes追加
-- [ ] Android実機でMediaRecorder / Audio書き出し確認
-- [ ] Demo Composer Export Adapter
-- [ ] JSON / CSV / Markdown Report
-- [ ] Chord / Degree text export
-- [ ] RipX Bridge Prototype
-- [ ] PC → Android転送
+- [x] Demo Composer Schema 3 Export Adapter
+- [x] JSON / CSV / Markdown Report
+- [x] Chord / Degree text export
+- [x] Android共有メニューへのDemo Composer project.json受け渡し
+- [x] RipX Bridge Prototype（PC上の指定MIDIをLAN配信）
+- [x] PC → Android転送（BridgeページからMIDI Download → Analyzer起動）
+- [ ] Android実機でMediaRecorder / Audio書き出し / Bridge最終確認（実機検証項目）
 
 ## v0.8 — Explanation
-- [ ] AI自然言語分析レポート
-- [ ] なぜこのKey / Chord / 転調なのか説明
-- [ ] 参考曲から学べるポイント
-- [ ] 作曲へ応用する候補提案
+- [x] 端末内自然言語Explainability Report
+- [x] なぜこのKey / Chord / 転調候補なのか説明
+- [x] 「この曲から学べること」
+- [x] 作曲へ応用する候補提案
+- [x] 外部AIへ渡すPrompt packageの明示Export
+- [x] 外部AIへ自動送信しないPrivacy設計
 
 ## v0.9 — Higher-level Metrics
-- [ ] 浮遊感候補Score
-- [ ] サビらしさ候補Score
-- [ ] 驚き度 / 転調Impact
-- [ ] 反復と変化のBalance
-- [ ] 裏メロ存在感 / 編曲密度
-- [ ] 指標の根拠表示と実MIDI検証
+- [x] 浮遊感候補Score
+- [x] サビらしさ候補Score / Section ranking
+- [x] 驚き度 / 転調Impact候補
+- [x] 反復と変化のBalance候補
+- [x] 裏メロ存在感候補
+- [x] 編曲密度候補
+- [x] 全Scoreの根拠表示
+- [x] 0〜100の候補Scoreとして意味を固定し、品質評価にしない
+- [ ] 実MIDIでの閾値検証・係数チューニング（検証項目）
 
 ## v1.0
 - [ ] 全機能統合

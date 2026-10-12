@@ -8,77 +8,117 @@ File Input
 src/midi/ Parser Adapter
   ↓
 Normalized Song / Note
-  ├─→ src/storage/ IndexedDB
+  ├─→ src/storage/ IndexedDB v3
   ├─→ src/piano-roll/ Read-only visualization
   ├─→ src/playback/ Web Audio preview
+  ├─→ src/recording/ Part Recorder
   ↓
 Analysis Engines
-  ├─ Key ← implemented
-  ├─ Chord + Degree ← implemented
-  └─ Melody / Bass / Rhythm ← implemented
+  ├─ key
+  ├─ chord / degree
+  ├─ basic melody / bass / rhythm
+  ├─ motif / structure / modulation / harmony detail
+  ├─ compare / personal trend
+  ├─ deep counter / bass / drum / part candidates
+  ├─ visualization
+  └─ higher-level metrics
   ↓
-Analysis Result Layer
+Analysis Bundle
+  ├─→ Explainability
+  ├─→ JSON / CSV / Markdown / Text Export
+  └─→ Demo Composer Adapter
   ↓
-UI
+Tabbed UI
+```
+
+PC側:
+```text
+RipX / MIDI export
+  ↓
+bridge/server.mjs
+  ↓ same LAN
+Android Browser → MIDI Download → MIDI Analyzer Import
 ```
 
 ## 原則
-- Parserライブラリは `src/midi/` の内部だけで使用する
-- Analysis Engineは外部ライブラリ形式に直接依存しない
-- Noteは分析エンジンの唯一の音符入力
-- Songは分析・表示・再生によって変更しない
+- Parserライブラリは`src/midi/`内部だけで使用する
+- Analysis Engineはraw MIDI library形式へ依存しない
+- Normalized Song / Noteを解析の正本にする
+- Analysis / Visualization / Export / Explainability / MetricsはSongを変更しない
 - 分析結果はSongの外に持つ
-- `selected` は人が選択したときだけ設定する
-- 将来連携はAdapter経由にする
-- Piano RollはNormalized Songだけを読み、MIDI編集責任を持たない
-- PlaybackもNormalized Songだけを読み、元MIDI event modelへ依存しない
+- Candidateを自動確定しない
+- 外部連携はAdapter境界に閉じ込める
+- 外部AI / Cloudへ自動送信しない
 
 ## Parser Boundary
 Browser File → `src/midi/parseMidiFile.js` → `midi-file` raw event → `normalizeMidi.js` → `{ song, warnings }`
 
-`midi-file` raw event modelは `src/midi/` 外へ出さない。
+`midi-file` raw event modelは`src/midi/`外へ出さない。
 
-## Module
+## Modules
 
-### core
-共通型、時間計算、Pitch Class等。
+### src/midi
+SMF読み取りとNormalized Song化。
 
-### midi
-Standard MIDI File読み取りと正規化。
+### src/analysis/key / chord / basic
+Key / Chord / Degree / Melody / Bass / Rhythmの基礎解析。
 
-### analysis/key
-Normalized SongからKey / Scale候補を作る。Drum除外、24 profile比較、Top 3。
+### src/analysis/motif / structure / harmony
+Motif、固定4小節Section、区間Key、転調、Chord Detail。
 
-### analysis/chord
-Normalized Songと選択Track IDsからChord候補を作る。
-- `analyzeChords.js`: analysisGrid / overlap weight / Chord scoring / stabilization / Degree
-- `index.js`: public exports
-- Parser実装へ依存しない
-- Key Analyzerの選択状態はUIからDegree計算用に渡すだけで、Songを書き換えない
+### src/analysis/compare / deep / visualization
+2曲比較、Personal Trend、Counter/Bass/Drum/Part候補、曲全体可視化。
 
-### analysis/basic
-Normalized SongとChord ResultからMelody / Bass / Rhythmのv0.1特徴量を作る。
-- Melody: 音域 / 跳躍 / 同音連打 / 密度 / Chord Tone
-- Bass: 最低音移動 / Root・3rd・5th・Other / リズム型
-- Rhythm: 拍位置 / シンコペーション候補 / 密度 / 16分Grid
+### src/analysis/summary
+`buildAnalysisBundle(song)`。
+既存Analyzer結果をExport / Explainability / Metrics用の共通Read Modelへまとめる。
+Analyzer順位を変更しない。
 
-### piano-roll
-読み取り専用。1度に選択Trackだけ描画し、元Song / Noteは変更しない。
+### src/analysis/metrics
+v0.9 Higher-level candidate Metrics。
+0〜100 Score + Evidence。品質評価ではない。
 
-### playback
-Normalized SongからTempo Mapを反映した再生scheduleを作り、Web Audioで簡易プレビューする。
-- `buildPlaybackSchedule.js`: Tick→seconds / Tempo区間 / Note schedule
-- `createPlaybackController.js`: lookahead scheduler / Play / Stop / AudioContext lifecycle
-- 元音色再現は責務外
+### src/analysis/explanation
+v0.8 local Explainability。
+既存候補を自然言語化し、必要に応じて外部AI用Promptを生成する。
+Network通信は責務外。
 
-### storage
-IndexedDB。保存選択と削除。
+### src/export
+- Analysis JSON / CSV / Markdown / Text
+- Demo Composer Schema 3 Adapter
 
-### ui
-Android向け画面。Key / Chord候補の選択状態はUI stateで持つ。PlaybackはユーザーのPlay操作からAudioContextを開始する。
+Demo ComposerのSchemaをMIDI Analyzer側へコピーして独自改変せず、変換Adapterで吸収する。
 
-### adapters
-RipX / Demo Composer等との境界。
+### src/recording
+選択Part SongをWeb Audioで鳴らし、MediaRecorderへ録音する。
+PlaybackとはControllerを分離する。
+
+### src/storage
+IndexedDB v3。
+- savedMidis
+- savedClips
+- savedTakes
+
+Migrationは非破壊。
+
+### src/piano-roll / playback
+Normalized SongのRead-only表示 / 簡易再生。
+
+### src/ui
+14カテゴリTab。UI stateはSongへ書き戻さない。
+Export / AI / Metricsも表示・書き出しLayerとして扱う。
+
+### bridge
+PC側Node Prototype。指定した1個のMIDIだけをLAN配信する。
+MIDI Analyzer本体とは独立プロセス。
+
+## Dependency方向
+原則:
+
+`midi → normalized song → analysis → summary → metrics/explanation/export → UI`
+
+逆方向依存を作らない。
+Export / UIからAnalyzer内部状態を変更しない。
 
 ## Build Tool
 ViteをBuild / Dev Server用途だけに使用。React / TypeScript等のFrameworkは導入しない。

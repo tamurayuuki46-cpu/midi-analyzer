@@ -1,6 +1,6 @@
 {
   "name": "midi-analyzer",
-  "version": "0.7.0-dev",
+  "version": "0.9.0-dev",
   "private": true,
   "description": "Android-first MIDI analysis PWA for composition learning and decision support",
   "type": "module",
@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test && node --check bridge/server.mjs",
+    "bridge": "node bridge/server.mjs"
   },
   "dependencies": {
     "midi-file": "1.2.4"

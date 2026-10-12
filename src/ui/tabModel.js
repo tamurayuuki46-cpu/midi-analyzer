@@ -9,7 +9,9 @@ export const ANALYSIS_TABS = Object.freeze([
   'compare',
   'library',
   'recorder',
+  'export',
   'ai',
+  'metrics',
   'parts',
 ]);
 
