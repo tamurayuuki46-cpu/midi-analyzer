@@ -23,8 +23,8 @@
 4. GM Drum NoteをKick / Snare / Tom等へ分類し、Tom集中小節をFill候補化
 5. roleHint付きTrackをMelody / Chord / Bass / Drums候補として維持
 
-### v0.4.1 / v0.5 Tab UI
-1. Tab順序が `overview → harmony → melody → bass → rhythm → structure → visual → compare → library → ai → parts`
+### v0.4.1 / v0.5 / v0.7 Tab UI
+1. Tab順序が `overview → harmony → melody → bass → rhythm → structure → visual → compare → library → recorder → ai → parts`
 2. ArrowLeft / ArrowRightで循環移動する
 3. Homeで先頭、Endで末尾へ移動する
 
@@ -47,6 +47,18 @@
 9. Clip save / get / list / deleteが動作する
 10. 従来のsaved MIDI CRUDがv2でも回帰しない
 
+### v0.7 Part Recording
+1. roleHintがある場合にMelody / Chord / Bass / Drumの既定Trackを維持する
+2. Part Song生成で選択Track以外を除外し、元Songを変更しない
+3. MediaRecorder BlobからTake Record / audioBytesを生成する
+4. mimeTypeに応じてAudio書き出し拡張子を選ぶ
+5. Web Audio / MediaRecorder supportをfeature detectionする
+6. Recorder Controllerがstart→stopでAudio Blobを返す
+7. IndexedDB version 3で`savedTakes` Storeを作成する
+8. v1→v3 migrationでsavedMidisを保持する
+9. v2→v3 migrationでsavedMidis / savedClipsを保持する
+10. Take save / get / list / deleteが動作する
+
 実行:
 ```bash
 npm test
@@ -67,7 +79,9 @@ npm run build
 - 16小節超のMIDIでHeatmap先頭16小節制限
 - 8小節以上のMIDIで複数4小節Clip保存
 - Noteが4小節Range境界を跨ぐMIDI
-- v1で保存済みMIDIがある端末からv2へのUpgrade
+- v1 / v2保存データがある端末からv3へのUpgrade
+- Melody / Chord / Bass / Drumが別TrackのMIDIで各Part録音
+- 長めのMIDIで録音途中STOP
 
 ## Android Manual
 - Import / Storage / Play / Stop / Piano Roll
@@ -76,7 +90,7 @@ npm run build
 - v0.3比較File picker / Compare cards / Personal Trend
 - v0.4 Part Deep Panelが320px幅で崩れない
 - Tab列が320px幅で横スクロールできる
-- 概要 / Harmony / Melody / Bass / Rhythm / Structure / Visual / Compare / Library / AI / Partsを片手で切替できる
+- 概要 / Harmony / Melody / Bass / Rhythm / Structure / Visual / Compare / Library / Recorder / AI / Partsを片手で切替できる
 - 選択中Tabが視覚的に分かる
 - Tab切替後に各Analyzer内容が欠落しない
 - Visual Timeline / Contour / Chart / Heatmapが横スクロールで読める
@@ -86,7 +100,13 @@ npm run build
 - 保存したClipにBPM / Key / Chord progressionが表示される
 - Clip検索で複数tagを絞り込める
 - Clip削除confirmが動作する
-- 320px幅でClip Formが1columnになり、Cardがはみ出さない
+- RecorderでPart選択すると既定Track checkboxが切り替わる
+- RecorderでTrack手動選択→REC→STOP→Take保存ができる
+- Monitor OFFでもTakeが保存され、録音中speakerが鳴らない
+- 保存TakeをPreview / A / Bへセットして再生できる
+- Audio書き出しがAndroid Chromeで保存できる
+- Take削除confirmが動作する
+- 320px幅でRecorder UIがはみ出さない
 - Import前の保存済みMIDI一覧とImport後のLibraryが二重表示されない
 - AI Tabが「準備中」と表示され、未実装AI解析を実行したように見せない
 - 保存 / 削除後にPersonal Trendが再集計される
@@ -94,6 +114,6 @@ npm run build
 
 ## Regression
 Analysis Engine / Playback変更前後で固定MIDIを再解析し、既存結果の意図しない変化がないか確認する。
-UI / Visualization / Library変更時もAnalyzerの候補順位・Normalized Songを変更しない。
+UI / Visualization / Library / Recorder変更時もAnalyzerの候補順位・Normalized Songを変更しない。
 IndexedDB version変更時は既存Store / record保持をmigration testで確認する。
 アルゴリズム結果変更はCHANGELOGへ記録する。
