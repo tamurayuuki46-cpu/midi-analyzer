@@ -12,6 +12,7 @@ import {
 import { mountAdvancedAnalysis } from './ui/renderAdvancedAnalysis.js';
 import { mountBasicAnalysis } from './ui/renderBasicAnalysis.js';
 import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
+import { mountClipLibrary } from './ui/renderClipLibrary.js';
 import { mountCompareAnalysis } from './ui/renderCompareAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
@@ -43,7 +44,7 @@ function setStorageStatus(message, tone = 'neutral') {
 }
 
 function storageTargets() {
-  const libraryRoot = resultRoot.querySelector('[data-library-root]');
+  const libraryRoot = resultRoot.querySelector('[data-library-midi-root]');
   return libraryRoot ? [libraryRoot] : [savedRoot];
 }
 
@@ -116,6 +117,7 @@ form.addEventListener('submit', async (event) => {
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-bass-root]'), result.song, { section: 'bass' });
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-rhythm-root]'), result.song, { section: 'rhythm' });
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-parts-root]'), result.song, { section: 'parts' });
+    mountClipLibrary(resultRoot.querySelector('[data-clip-library-root]'), result.song);
 
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
     chordRoot?.addEventListener('chord-selection-change', () => {
