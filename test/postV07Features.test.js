@@ -66,9 +66,29 @@ test('Demo Composer adapter emits schema 3 project with PPQ 480 and analyzable p
   assert.equal(project.basic.ppq, 480);
   assert.equal(project.basic.timeSignature, '4/4');
   assert.ok(project.chords.length > 0);
+  assert.ok(project.chords.every((chord) => typeof chord.degree === 'string' && chord.degree.length > 0));
   assert.ok(project.tracks.some((track) => track.role === 'melody'));
   assert.ok(project.tracks.some((track) => track.role === 'bass'));
   assert.ok(project.tracks.some((track) => track.role === 'drums'));
+});
+
+test('Demo Composer adapter converts analyzer flat key spelling to accepted sharp spelling', () => {
+  const song = makeSong();
+  const bundle = buildAnalysisBundle(song);
+  const fakeBundle = { ...bundle, key: { ...bundle.key, candidates: [{ value: 'E♭ major', confidence: 0.9 }] } };
+  const { project } = buildDemoComposerProject(song, fakeBundle);
+  assert.equal(project.basic.key, 'D#');
+  assert.equal(project.basic.scale, 'major');
+});
+
+test('Demo Composer adapter fallback keeps chord degree non-empty when key candidate is absent', () => {
+  const song = makeSong();
+  const bundle = buildAnalysisBundle(song);
+  const fakeBundle = { ...bundle, key: { ...bundle.key, candidates: [] } };
+  const { project, warnings } = buildDemoComposerProject(song, fakeBundle);
+  assert.equal(project.basic.key, 'C');
+  assert.ok(project.chords.every((chord) => chord.degree.length > 0));
+  assert.ok(warnings.length > 0);
 });
 
 test('JSON CSV Markdown and Chord/Degree text exporters produce useful output', () => {
