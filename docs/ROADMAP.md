@@ -9,7 +9,7 @@
 - [x] Melody / Bass / Rhythm基本分析
 - [x] 保存選択
 - [x] Play / Stop
-- [ ] Android実機確認
+- [x] Android実機確認（Android Chrome: Import / Storage / Playback / Piano Roll / Key / Chord / Basic Analysis）
 - [ ] 実MIDIで係数 / heuristic / playback音量調整
 
 ## v0.2
