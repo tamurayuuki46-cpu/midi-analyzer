@@ -30,7 +30,10 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 - Rhythm基本分析（拍位置 / シンコペーション候補 / 密度 / 16分Grid）
 - Melody / Bass / Rhythm対象Track選択UI
 - Chord選択・Chord分析Track変更に連動したMelody / Bass再計算
-- Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis tests
+- 最小Play / Stop簡易再生
+- Tempo Map対応のTick→秒変換 / lookahead Web Audio scheduler
+- 再Import時の旧再生停止 / Channel 10簡易click
+- Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis / Playback tests
 
 ## Key / Scale
 Drums以外のNoteを `durationTick × velocity` で重み付けし、major/minor 24候補から上位3つを表示します。confidenceは確率ではなくprofile一致度です。解析直後には確定せず、ユーザーが選んだときだけ選択状態にします。
@@ -50,6 +53,13 @@ Melodyは音域・跳躍・同音連打・密度・Chord Tone / Non-Chord Tone�
 Melody / BassはTrackをユーザーが変更できます。Rhythmは複数Trackを選択できます。Chord Tone系の指標は選択済みChordを優先し、未選択区間では第1Chord候補を仮使用したことを画面に明示します。
 
 詳細: `docs/BASIC_ANALYSIS_SPEC.md`
+
+## 簡易再生
+ImportしたNormalized Songを曲頭からPlay / Stopできます。Tempo Mapを反映し、通常Noteは簡易triangle oscillator、Channel 10は短いclickとしてWeb Audioでプレビューします。
+
+元MIDIの楽器音色を再現する機能ではありません。Pause / Seek / Loop / Tempo変更 / 音色選択はv0.1対象外です。
+
+詳細: `docs/PLAYBACK_SPEC.md`
 
 ## 保存方針
 「この端末に保存する」は初期状態でOFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへの自動送信はありません。
@@ -72,6 +82,8 @@ Viteはplain HTML/CSS/JavaScriptとnpm依存をbundleするためだけに使用
 - Chord分析 + Degree
 - Melody / Bass / Rhythm 基本分析
 - 最小簡易再生（Play / Stop）
+
+実装済み。v0.1安定化前にAndroid実機確認と実MIDI調整を行う。
 
 入れない:
 - 音声→音符 / Stem分離 / MIDI編集
