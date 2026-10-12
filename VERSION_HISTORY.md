@@ -1,7 +1,7 @@
 # VERSION_HISTORY
 
 ## v0.7-dev — 2026-10-13
-状態: Part Recording Scope実装完了 / Unit Test・Production Build確認中
+状態: Part Recording Scope実装完了 / 96 tests pass / Production Build確認済み
 
 主な内容:
 - Recorder Tab
