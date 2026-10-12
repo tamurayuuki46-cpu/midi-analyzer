@@ -126,6 +126,17 @@ export function mountCompareAnalysis(root, currentSong, options = {}) {
     `;
   }
 
+  async function refreshTrend() {
+    try {
+      const songs = await options.loadSavedSongs?.();
+      trend = analyzePersonalTrend(Array.isArray(songs) ? songs : []);
+    } catch (error) {
+      trend = Object.freeze({ count: 0, trend: null, note: `保存済みMIDIの傾向を読めませんでした: ${error.message}` });
+    }
+    render();
+    return trend;
+  }
+
   root.addEventListener('change', async (event) => {
     const input = event.target.closest('[data-compare-file]');
     if (!input) return;
@@ -145,18 +156,10 @@ export function mountCompareAnalysis(root, currentSong, options = {}) {
   });
 
   render();
-
-  Promise.resolve(options.loadSavedSongs?.())
-    .then((songs) => {
-      trend = analyzePersonalTrend(Array.isArray(songs) ? songs : []);
-      render();
-    })
-    .catch((error) => {
-      trend = Object.freeze({ count: 0, trend: null, note: `保存済みMIDIの傾向を読めませんでした: ${error.message}` });
-      render();
-    });
+  refreshTrend();
 
   return Object.freeze({
+    refreshTrend,
     getComparison: () => comparison,
     getTrend: () => trend,
   });
