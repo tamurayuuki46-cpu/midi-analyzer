@@ -30,6 +30,12 @@
 - Chord選択・Chord分析Track変更に連動したMelody / Bass再計算
 - Basic Analysis unit test 9件
 - `docs/BASIC_ANALYSIS_SPEC.md`
+- 曲頭からの最小Play / Stop簡易再生
+- Tempo Map対応Tick→seconds変換 / 50ms scheduler / 約180ms lookahead
+- 通常Noteのtriangle oscillator簡易音 / Channel 10の短いclick
+- Stop / 再Import時のAudioContext破棄
+- Playback timing unit test 9件 / controller lifecycle test 3件
+- `docs/PLAYBACK_SPEC.md`
 
 ### 【変更】
 - Motifはv0.2以降
@@ -40,15 +46,18 @@
 - Chordは全Trackを無条件に混ぜず、ユーザー選択Trackだけを分析
 - Chord Tone / Bass Chord Roleは選択Chordを優先し、未選択時は第1候補を仮使用して前提を表示
 - Rhythmのシンコペーションはv0.1では「musicalBeat拍頭以外」の簡易候補として扱う
+- Playbackは元音色再現ではなくTiming / Pitch / Rhythm確認用の簡易プレビューに限定
+- v0.1機能Scopeは実装完了。安定版化前にAndroid実機確認と実MIDI調整を行う
 
 ### 【修正】
 - Claude引き継ぎ案と既存仕様の矛盾整理
 - mixed Channel TrackのDrum表示
 - PWA manifest path
+- 再生開始中の二重Playを防止
+- AudioContext resume中のStop / 再Importで旧sessionが復帰しないようlifecycleを修正
 
 ### 【未対応】
-- 最小簡易再生（Play / Stop）
-- Android実機でStorage / Piano Roll / Key / Chord / Basic Analysis UI確認
-- 実MIDIによるKey / Chord係数・Basic Analysis heuristic調整
+- Android実機でImport / Storage / Playback / Piano Roll / Key / Chord / Basic Analysis UI確認
+- 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
 - 保存済みMIDIの「開く」
 - slash chord専用表記
