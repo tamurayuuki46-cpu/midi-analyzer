@@ -11,6 +11,16 @@
 6. SMPTE time division拒否
 7. 不正origin拒否
 
+## IndexedDB unit test
+
+実装済み:
+1. IndexedDB利用可否判定
+2. 元MIDI bytes + Songの保存record生成
+3. save / get / list / delete
+4. 保存一覧の新しい順sort
+
+Node testでは `fake-indexeddb@6.2.5` を使用する。
+
 実行:
 
 ```bash
@@ -40,6 +50,14 @@ raw parsed objectだけでなく、固定 `.mid` binary fixtureを `midi-file` �
 - time signature change
 - noteOn velocity 0
 - Format 0 / 1
+
+## Browser manual test
+Android Chromeで以下を確認する。
+- 保存OFFが初期値
+- 保存OFFで一覧が増えない
+- 保存ONで再読み込み後も一覧に残る
+- 保存済みMIDIを削除できる
+- IndexedDB保存失敗時もImport結果が表示される
 
 ## Regression
 Analysis Engine変更前後で固定MIDIを再解析し、意図しない結果変化がないか確認する。

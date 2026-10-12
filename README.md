@@ -32,7 +32,21 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 - 読み込み結果の概要・Track一覧表示
 - RipX由来MIDIのorigin記録
 - 不完全Noteイベントを勝手に補完しないWarning処理
-- Normalizer unit test
+- IndexedDB端末保存（初期OFF）
+- 元MIDI bytes + 正規化Songの端末内保存
+- 保存済みMIDI一覧 / 削除
+- Parser / Normalizer / Storage unit test
+
+## 保存方針
+
+「この端末に保存する」は初期状態でOFFです。
+
+- OFF: 元MIDIを永続保存しない
+- ON: 元MIDIと正規化結果を端末内IndexedDBへ保存
+- クラウドへの自動送信なし
+- v0.1では保存データの共有・Exportなし
+
+詳細は `docs/STORAGE_SPEC.md` を参照してください。
 
 ## 開発
 

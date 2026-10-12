@@ -23,23 +23,29 @@ v0.1-dev
 - 不完全Note Warning処理
 - Normalizer unit test 7件
 - GitHub Actions CI（test + build）設定
+- IndexedDB端末保存（初期OFF）
+- 元MIDI bytes + 正規化Song保存
+- 保存済みMIDI一覧 / 削除
+- IndexedDB unit test 4件
+- STORAGE_SPEC
 
 開発中:
-- MIDI Import基盤は実装済み。次の実装単位はIndexedDB保存
+- IndexedDB保存基盤は実装済み。次の実装単位は読み取り専用Piano Roll
 
 次に実装:
-1. IndexedDB保存（保存する / しない、初期値は保存しない）
-2. 保存済みMIDI一覧 / 削除
-3. 読み取り専用Piano Roll
-4. 固定binary MIDI fixtureによるParser integration regression test
-5. Key / Scale Analyzer
+1. 読み取り専用Piano Roll
+2. 固定binary MIDI fixtureによるParser integration regression test
+3. Key / Scale Analyzer
+4. Chord Analyzer + Degree
+5. Melody / Bass / Rhythm基本分析
 
 既知の問題:
 - SMPTE time divisionはv0.1未対応
 - Key / Chordの各閾値は仮値
 - 6/8等の複合拍子のmusicalBeat表示ルールは実データで検証が必要
 - Import時のroleHintは補助候補であり確定ではない
-- CI workflowは設定済み。初回remote build結果は未確認
+- 保存済みMIDIの「開く」は未実装（v0.1現在は一覧 / 削除のみ）
+- Browser実機でのIndexedDB manual testが必要
 
 触らない部分:
 - mainを開発用にしない
@@ -47,10 +53,16 @@ v0.1-dev
 - Demo Composerのproject.json Schema
 - 元MIDI由来Noteを分析処理で直接変更しない
 - `midi-file` raw event modelを `src/midi/` 外へ漏らさない
+- 保存OFF時に元MIDI binaryを永続化しない
 
 最近の重要な設計判断:
 - MIDI Parserは `midi-file@1.2.4` を採用し `src/midi/` に隔離
 - ViteをBuild Toolとしてのみ導入（Framework導入ではない）
+- Storageはnative IndexedDBを利用し本番storage libraryを追加しない
+- IndexedDB testのみ `fake-indexeddb@6.2.5` を利用
+- 保存checkbox初期値はOFF
+- 保存ON時のみ元MIDI bytes + Songを端末内へ保存
+- 保存失敗でもImport結果を破棄しない
 - Motifはv0.2以降
 - Track.channel単一前提を廃止し channels[] を採用
 - Drum判定はNote.channel === 9を基本とする
@@ -68,6 +80,10 @@ Track: id, name, channels[], noteCount, isDrums, roleHint
 Song: schemaVersion, source, ppq, tempoMap, timeSignatures, lengthTicks, tracks, notes
 Import Result: { song, warnings }
 Analysis ResultはSong外
+
+現在のStorage Schema:
+IndexedDB `midi-analyzer` / version 1 / store `savedMidis`
+record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 
 最終更新:
 2026-10-12
