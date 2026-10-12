@@ -25,10 +25,11 @@
 - IndexedDB unit test 4件を追加
 - `docs/STORAGE_SPEC.md` を追加
 - 読み取り専用Piano Rollを追加
-- Piano Roll Track切替 / 4段階Zoom / 横・縦Scrollを追加
-- 小節線 / 拍線 / C音Pitch labelを追加
+- Track切替 / 4段階横Zoom / 横・縦Scrollを追加
 - Piano Roll model unit test 7件を追加
 - `docs/PIANO_ROLL_SPEC.md` を追加
+- 固定binary MIDI fixtureによるParser integration regression test 2件を追加
+- Format 0 / Format 1、tempo change、time signature、Note On velocity 0を実Parser経由で検証
 
 ### 【変更】
 - Motifをv0.1から外し、v0.2以降へ移動
@@ -38,7 +39,6 @@
 - Chord分析対象Trackをユーザーが選択できる方針を追加
 - v0.1 UIから一般Exportを外し、Import / 保存 / 削除を中心に整理
 - 保存失敗とImport失敗を分離して扱う
-- Piano Rollは複数Track同時表示ではなく、スマホ負荷を抑えるため1 Track表示を基本とする
 
 ### 【修正】
 - Claude引き継ぎ案と既存仕様の矛盾を整理
@@ -46,7 +46,6 @@
 - PWA manifest pathを相対path化
 
 ### 【未対応】
-- 固定binary MIDI fixtureによるParser integration test
 - Key / Scale Analyzer
 - Chord Analyzer
 - Melody / Bass / Rhythm Analyzer

@@ -11,6 +11,25 @@
 6. SMPTE time division拒否
 7. 不正origin拒否
 
+## Parser integration regression test
+
+固定binary MIDI fixtureを実際に `midi-file` へ通し、Parser → Normalizer境界を確認する。
+
+実装済み:
+- Format 1 / 2 Track fixture
+- Format 0 / Drum fixture
+- deltaTime → absolute tick
+- trackName
+- tempo change
+- time signature
+- Note On velocity 0 → Note Off
+- Channel 10 Drum
+- origin保持
+- implicit 120 BPM
+
+FixtureはGitHubで差分確認しやすいよう、固定hexを `Uint8Array` へ復元して利用する。
+実MIDI Parserを通すため、raw parsed objectだけのUnit Testを補完するRegression Testとして扱う。
+
 ## Storage unit test
 
 実装済み:
@@ -49,16 +68,6 @@ npm test
 8. 6/8
 9. ループ曲
 10. イントロだけ別調
-
-## 次のParser integration test
-
-raw parsed objectだけでなく、固定 `.mid` binary fixtureを `midi-file` で実際にparseし、以下を確認する。
-- deltaTime → absolute tick
-- trackName
-- tempo change
-- time signature change
-- noteOn velocity 0
-- Format 0 / 1
 
 ## Manual UI test
 
