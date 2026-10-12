@@ -1,26 +1,5 @@
 import './tabbedLayout.css';
-
-export const ANALYSIS_TABS = Object.freeze([
-  'overview',
-  'harmony',
-  'melody',
-  'bass',
-  'rhythm',
-  'structure',
-  'compare',
-  'library',
-  'ai',
-  'parts',
-]);
-
-export function getTabIndexForKey(currentIndex, key, count) {
-  if (!Number.isInteger(currentIndex) || !Number.isInteger(count) || count <= 0) return currentIndex;
-  if (key === 'ArrowRight') return (currentIndex + 1) % count;
-  if (key === 'ArrowLeft') return (currentIndex - 1 + count) % count;
-  if (key === 'Home') return 0;
-  if (key === 'End') return count - 1;
-  return currentIndex;
-}
+import { ANALYSIS_TABS, getTabIndexForKey } from './tabModel.js';
 
 export function mountAnalysisTabs(root, initialTab = 'overview') {
   if (!root) return null;
@@ -62,5 +41,8 @@ export function mountAnalysisTabs(root, initialTab = 'overview') {
 
   const activeTab = ANALYSIS_TABS.includes(initialTab) ? initialTab : 'overview';
   activate(activeTab);
-  return Object.freeze({ activate, getActive: () => tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.dataset.tab ?? null });
+  return Object.freeze({
+    activate,
+    getActive: () => tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')?.dataset.tab ?? null,
+  });
 }
