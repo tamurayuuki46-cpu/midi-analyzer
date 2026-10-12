@@ -22,6 +22,7 @@ import {
   renderStorageError,
   renderStorageUnavailable,
 } from './ui/renderSavedMidis.js';
+import { mountAnalysisTabs } from './ui/tabbedLayout.js';
 
 const form = document.querySelector('#import-form');
 const fileInput = document.querySelector('#midi-file');
@@ -40,18 +41,23 @@ function setStorageStatus(message, tone = 'neutral') {
   storageStatus.dataset.tone = tone;
 }
 
+function storageTargets() {
+  return [savedRoot, resultRoot.querySelector('[data-library-root]')].filter(Boolean);
+}
+
 async function refreshSavedMidiList() {
+  const targets = storageTargets();
   if (!isIndexedDbAvailable()) {
     saveCheckbox.checked = false;
     saveCheckbox.disabled = true;
-    renderStorageUnavailable(savedRoot);
+    targets.forEach((root) => renderStorageUnavailable(root));
     return;
   }
   try {
     const items = await listSavedMidis();
-    renderSavedMidiList(savedRoot, items);
+    targets.forEach((root) => renderSavedMidiList(root, items));
   } catch (error) {
-    renderStorageError(savedRoot, error);
+    targets.forEach((root) => renderStorageError(root, error));
   }
 }
 
@@ -83,6 +89,8 @@ form.addEventListener('submit', async (event) => {
     const result = await importMidiFile(file, { origin: originSelect.value });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
+    savedRoot.hidden = true;
+    mountAnalysisTabs(resultRoot.querySelector('[data-analysis-tabs]'));
     activePlaybackController = mountPlayback(resultRoot.querySelector('[data-playback-root]'), result.song);
 
     const keyRoot = resultRoot.querySelector('[data-key-analysis-root]');
@@ -92,18 +100,30 @@ form.addEventListener('submit', async (event) => {
       getEffectiveKey: keyController?.getEffectiveKey,
       isKeyExplicit: () => Boolean(keyController?.getSelected()),
     });
-    const basicController = mountBasicAnalysis(resultRoot.querySelector('[data-basic-analysis-root]'), result.song, {
-      getChordSegments: chordController?.getEffectiveSegments,
-    });
+    const basicOptions = { getChordSegments: chordController?.getEffectiveSegments };
+    const melodyController = mountBasicAnalysis(resultRoot.querySelector('[data-basic-melody-root]'), result.song, { ...basicOptions, section: 'melody' });
+    const bassController = mountBasicAnalysis(resultRoot.querySelector('[data-basic-bass-root]'), result.song, { ...basicOptions, section: 'bass' });
+    mountBasicAnalysis(resultRoot.querySelector('[data-basic-rhythm-root]'), result.song, { ...basicOptions, section: 'rhythm' });
 
-    mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-analysis-root]'), result.song);
+    mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-harmony-root]'), result.song, { section: 'harmony' });
+    mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-structure-root]'), result.song, { section: 'structure' });
     activeCompareController = mountCompareAnalysis(resultRoot.querySelector('[data-compare-analysis-root]'), result.song, { loadSavedSongs });
-    mountPartDeepAnalysis(resultRoot.querySelector('[data-part-deep-analysis-root]'), result.song);
+    mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-melody-root]'), result.song, { section: 'melody' });
+    mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-bass-root]'), result.song, { section: 'bass' });
+    mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-rhythm-root]'), result.song, { section: 'rhythm' });
+    mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-parts-root]'), result.song, { section: 'parts' });
 
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
-    chordRoot?.addEventListener('chord-selection-change', () => basicController?.refreshChordContext());
-    chordRoot?.addEventListener('chord-analysis-change', () => basicController?.refreshChordContext());
+    chordRoot?.addEventListener('chord-selection-change', () => {
+      melodyController?.refreshChordContext();
+      bassController?.refreshChordContext();
+    });
+    chordRoot?.addEventListener('chord-analysis-change', () => {
+      melodyController?.refreshChordContext();
+      bassController?.refreshChordContext();
+    });
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
+    await refreshSavedMidiList();
 
     if (saveCheckbox.checked) {
       try {
@@ -118,6 +138,7 @@ form.addEventListener('submit', async (event) => {
       setStorageStatus('保存せずに読み込みました。ページを閉じると元MIDIデータは保持されません。', 'neutral');
     }
   } catch (error) {
+    savedRoot.hidden = false;
     renderImportError(resultRoot, error);
   } finally {
     submitButton.disabled = false;
@@ -125,7 +146,7 @@ form.addEventListener('submit', async (event) => {
   }
 });
 
-savedRoot.addEventListener('click', async (event) => {
+async function handleSavedMidiDelete(event) {
   const button = event.target.closest('[data-delete-midi]');
   if (!button) return;
   const id = button.dataset.deleteMidi;
@@ -141,6 +162,8 @@ savedRoot.addEventListener('click', async (event) => {
     setStorageStatus(`削除できませんでした: ${error.message}`, 'error');
     button.disabled = false;
   }
-});
+}
 
+savedRoot.addEventListener('click', handleSavedMidiDelete);
+resultRoot.addEventListener('click', handleSavedMidiDelete);
 refreshSavedMidiList();
