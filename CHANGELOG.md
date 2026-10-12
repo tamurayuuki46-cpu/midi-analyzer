@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## Version: v0.4.1-dev
+更新日: 2026-10-13
+
+### 【追加】
+- 解析結果を「概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Parts」へ分けるTab UI
+- Android向け横スクロールTab列
+- WAI-ARIA `tablist` / `tab` / `tabpanel`
+- 左右矢印 / Home / EndによるTabキーボード操作
+- `tabModel`純粋ロジックとunit test 3件
+
+### 【変更】
+- 概要へ基本情報 / Playback / Track一覧 / Piano Rollを集約
+- HarmonyへKey / Chord / Degree / Chord Detailを集約
+- Melodyへ主旋律基本分析 + 裏メロ候補を集約
+- Bassへ基本分析 + Bass詳細を集約
+- Rhythmへ基本分析 + Drum詳細を集約
+- StructureへMotif / Section / 区間Key / 転調候補を集約
+- Compare / Library / Partsを専用Tab化
+- Import後の保存済みMIDI一覧をLibrary Tabへ移動
+- AI Tabは将来機能用の準備中表示とし、自動AI解析は実行しない
+- Versionを`v0.4.1-dev`へ更新
+
+### 【修正】
+- Import後に保存済みMIDI一覧が画面上部とLibrary内で二重表示されないよう整理
+- カテゴリ分割後もChord選択変更時のMelody / Bass再計算を維持
+
+### 【未対応】
+- AI説明機能本体
+- 保存済みMIDIの「開く」
+- Libraryのタグ検索 / Clip管理
+- 実MIDIによる各解析閾値の調整
+- Android実機で全Tabの最終タップ/スクロール確認
+
 ## Version: v0.4-dev
 更新日: 2026-10-13
 
