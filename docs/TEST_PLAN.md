@@ -1,39 +1,42 @@
 # TEST_PLAN.md
 
-## Parser / Normalizer unit test
-実装済み: Normalizer 7件。
+## 実装済み自動テスト
 
-## Parser integration regression test
-実装済み: 固定Format 0 / Format 1 fixture 2件。
-- deltaTime → absolute tick
-- trackName / tempo change / time signature
-- Note On velocity 0
-- Channel 10 Drum / origin
+### Parser / Normalizer
+- 正規化 / Drum / 複数Channel / 既定Tempo拍子 / Warning / SMPTE拒否 / origin
+- 固定binary-like MIDI fixture Format 0 / Format 1を実Parser経由で検証
 
-## Storage unit test
-実装済み: IndexedDB 4件。
+### Storage
+- IndexedDB保存 / 一覧 / 削除 / record構造
 
-## Piano Roll model unit test
-実装済み: 7件。
+### Piano Roll
+- Track抽出 / 初期Track / Pitch Range / MIDI境界 / bar-beat marker / Note名 / 拍子変更
 
-## Key / Scale Analyzer unit test
-実装済み:
-1. durationTick × velocity重み
-2. Channel 10 Drum除外
-3. C major基本候補
-4. A minor基本候補
-5. confidence 0〜1
-6. Drums-only時の候補なし
-7. 拮抗時hintが順位変更を主張しないこと
+### Key Analyzer
+- major / minor基本判定
+- Drum除外
+- duration × velocity
+- confidence / 候補なし
+
+### Chord Analyzer
+1. C major triad → C
+2. A minor triad → Am
+3. C/E転回形 → C
+4. G7構成音あり → G7
+5. Track選択 / Channel 10除外
+6. 2音だけの候補はconfidenceを下げる
+7. 6/8: analysisGrid=8分 / musicalBeat=付点4分
+8. C major Degree: C=I / B♭=♭VII音階外
+9. A minor Degree: C=III / G♯=♯VII音階外
+10. 同一小節で同じChordが続くGridを1区間にまとめる
 
 実行:
-
 ```bash
 npm test
+npm run build
 ```
 
-## Parser / Analyzer用実MIDI
-今後のManual / Regression用:
+## 実MIDIテスト候補
 1. C–G–Am–F（各1小節）
 2. 1小節2コード
 3. 転回形 C/E
@@ -45,21 +48,14 @@ npm test
 9. ループ曲
 10. イントロだけ別調
 
-## Key Analyzer追加確認
-- C major / A minorの相対調が拮抗する例
-- 長く保持する音が結果へ反映されること
-- velocity差が結果へ反映されること
-- Drum Trackを含めても候補が変わらないこと
-- Chromatic Noteが少量混じるMIDI
-- Introだけ別調のMIDI（全曲Key推定の限界確認）
-
-## Manual UI test
-Android Chromeで確認:
-- Key候補ボタンが片手で押せる
-- 候補選択で見た目が変わる
-- Piano Roll / Import / Storageと競合しない
-- 長いMIDIでページ全体が破綻しない
+## Android Manual
+- Chord Track checkboxが片手で押せる
+- Chord候補3つが縦スクロールで読みやすい
+- Key選択を変えるとDegreeが即時更新される
+- Chord候補選択が区間ごとに保持される
+- 長いMIDIでChord区間数が多くてもページが破綻しない
+- Import / Storage / Piano Roll / Key機能が回帰していない
 
 ## Regression
 Analysis Engine変更前後で固定MIDIを再解析し、意図しない結果変化がないか確認する。
-アルゴリズムによる結果変更はCHANGELOGへ記録。
+アルゴリズム結果変更はCHANGELOGへ記録する。

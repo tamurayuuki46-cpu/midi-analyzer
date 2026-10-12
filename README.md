@@ -2,7 +2,7 @@
 
 Androidスマートフォン中心の作曲支援PWA。
 
-MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Chord Tone / Non-Chord Tone などを見える化して、「なぜこう聞こえるのか」を理解して自分の作曲へ応用するためのアプリです。
+MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Chord Tone / Non-Chord Toneなどを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
 
 ## 現在Version
 `v0.1-dev`
@@ -20,15 +20,24 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 - IndexedDB端末保存（初期OFF）/ 一覧 / 削除
 - 読み取り専用Piano Roll
 - 固定binary MIDI Parser regression fixture
-- Key / Scale Analyzer（major / minor 上位3候補）
+- Key / Scale Analyzer（major / minor Top 3）
 - Key候補のユーザー選択UI
-- Parser / Normalizer / Storage / Piano Roll / Key Analyzer tests
+- Chord Analyzer（10 templates × 12 roots / Top 3）
+- Chord分析対象Track選択
+- Degree表示 / 音階外表示
+- Parser / Normalizer / Storage / Piano Roll / Key / Chord tests
 
 ## Key / Scale
-Drums以外のNoteを `durationTick × velocity` で重み付けし、major/minor 24候補から上位3つを表示します。
-一致度は確率ではなくKey profileとの類似度です。解析直後に自動確定せず、ユーザーが選んだときだけ選択状態にします。
+Drums以外のNoteを `durationTick × velocity` で重み付けし、major/minor 24候補から上位3つを表示します。confidenceは確率ではなくprofile一致度です。解析直後には確定せず、ユーザーが選んだときだけ選択状態にします。
 
 詳細: `docs/KEY_ANALYZER_SPEC.md`
+
+## Chord / Degree
+ユーザーがChord分析対象Trackを選び、時間Grid内の重なりNoteを `overlapDurationTick × velocity` で重み付けしてChord候補Top 3を表示します。
+
+Degreeは選択済みKeyを基準にし、Key未選択時は第1Key候補を仮基準として「Key候補 X の場合」と明記します。音階外Chordは誤り扱いせず、♭VII等のDegreeと「音階外」を表示します。
+
+詳細: `docs/CHORD_ANALYZER_SPEC.md`
 
 ## 保存方針
 「この端末に保存する」は初期状態でOFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへの自動送信はありません。

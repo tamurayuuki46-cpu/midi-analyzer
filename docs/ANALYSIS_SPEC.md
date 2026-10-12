@@ -5,160 +5,91 @@ v0.1-dev
 
 ## 共通思想
 - 分析結果は候補として表示
-- Candidate / Confidence / Alternative を基本とする
+- Candidate / Confidence / Alternativeを基本とする
 - 良い / 悪いの採点をしない
 - 数値には初心者向けの短い説明を添える
-
----
+- `selected`は人が選択したときだけ設定する
 
 ## 1. Key / Scale
-
 ### 対象
-MIDI Channel 10（0-based channel 9）のDrum Noteを除外。
+Drum Noteを除外。
 
 ### 分布
-Pitch Classごとに、
-
-`durationTick × velocity`
-
-で重み付け。
+Pitch Classごとに `durationTick × velocity` で重み付け。
 
 ### 候補
-12根音 × major/minor = 24候補。
-固定Key profileとのCosine Similarityで比較し、上位3候補を表示する。
-confidenceは0〜1の一致度であり確率ではない。
-
-### selected
-解析直後は `null`。
-ユーザーが選択した場合だけ選択状態を持つ。
+12根音 × major/minor = 24候補。上位3候補。
 
 ### 拮抗時
-上位2候補の差が第1候補scoreの10%以内を暫定基準とし、始まり / 終わり付近のmajor / minor三和音を補助ヒントとして表示する。
-このヒントは順位・confidenceを変更しない。
-詳細は `KEY_ANALYZER_SPEC.md`。
-
----
+上位2候補の差10%以内を暫定基準。始まり / 終わり付近の簡易三和音を補助hintとして表示するが順位は変えない。
 
 ## 2. Chord
-
 ### 分析対象Track
-v0.1ではユーザーが分析対象Trackを選べる。
-
-例:
-- Piano: ON
-- Guitar: ON
-- Melody: OFF
-- Drums: OFF
-
-全Trackを無条件に混ぜない。
+ユーザーが分析対象Trackを選ぶ。全Trackを無条件に混ぜない。Channel 10 Drumは除外。
 
 ### 時間Grid
-tickを正本とする。
+`analysisGrid = ppq × 4 / denominator`
 
-単純Grid:
-`ppq × 4 / denominator`
-
-ただし6/8等の複合拍子では、
-- `analysisGrid`: 8分音符等の内部Grid
-- `musicalBeat`: 付点4分音符等の音楽的拍
+6/8等では:
+- analysisGrid: 8分音符
+- musicalBeat: 付点4分音符
 を区別する。
 
-### 拍ごとのPitch Class重み
-`window内の重なりduration × velocity`
+画面では同じChordが連続するGridを同一小節内でまとめる。
 
-最低音Pitch ClassにBass Bonusを与える。
-初期候補値: 1.5（実データで調整）。
+### 重み
+Window内の `overlapDurationTick × velocity`。
 
-非構成音Penalty係数:
-初期候補値: 0.5（実データで調整）。
+最低音Pitch ClassにBass Bonus。初期値1.5。
+Non-Chord Penalty初期値0.5。
 
 ### Template
-- major
-- minor
-- dim
-- aug
-- sus2
-- sus4
-- 7
-- maj7
-- m7
-- m7b5
+- major / minor / dim / aug / sus2 / sus4 / 7 / maj7 / m7 / m7b5
 
-上位3候補。
+各区間Top 3候補。
+構成音3音未満ではconfidenceを下げる。
+4音Chordで欠けた構成音も軽くPenaltyする。
 
-構成音が3音未満の場合はconfidenceを下げる。
-
-### 小節集約
-隣接拍の第1候補が同じならまとめる。
-Chord切替は新候補が旧候補を十分上回った場合のみ。
-暫定閾値10%。
-
----
+### Chord切替
+新候補が旧候補を約10%以上上回った場合に切替。閾値は仮値。
 
 ## 3. Degree
-
 選択中Keyを使用。
-Key未選択なら第1候補を仮使用し、
+Key未選択なら第1Key候補を仮使用し「Key候補: C major の場合」のように前提を明示。
 
-「Key候補: C major の場合」
-
-のように前提を明示する。
-
-音階外Chordは悪いと評価せず、
-`♭VII` 等の変化記号 + 「音階外」を表示。
-
----
+Chord rootがKey scale外なら `♭VII` 等 + 「音階外」。悪いと評価しない。
+Chord qualityの正誤判定はDegreeでは行わない。
 
 ## 4. Melody
-
 v0.1:
 - 音域
-- 最大跳躍
-- 平均跳躍
+- 最大跳躍 / 平均跳躍
 - 同音連打
 - リズム密度
 - Chord Tone / Non-Chord Tone割合
 
-数値・グラフ中心。
-評価文は出さない。
-
 Motifはv0.2以降。
 
----
-
 ## 5. Bass
-
 v0.1:
 - 最低音の動き
 - Chord Rootとの一致
 - 3rd / 5th / Other
 - リズムの型
 
----
-
 ## 6. Rhythm
-
 v0.1:
 - 拍内発音位置
 - シンコペーション候補
 - Density
 - 16分Grid表示
 
----
-
 ## 7. Chord Tone
-
-Chord Tone / Non-Chord Toneは特徴量。
-Non-Chord Toneを誤り扱いしない。
-
----
+Chord Tone / Non-Chord Toneは特徴量。Non-Chord Toneを誤り扱いしない。
 
 ## 8. 調整対象パラメータ
-
-実MIDIテストで決める:
-- Key拮抗閾値（仮10%）
+実MIDIで調整:
 - Bass Bonus（仮1.5）
 - Non-Chord Penalty（仮0.5）
+- Key拮抗閾値（仮10%）
 - Chord切替閾値（仮10%）
-
-固定値として仕様化するのはテスト後。
