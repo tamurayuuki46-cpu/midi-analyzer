@@ -1,6 +1,15 @@
 import './playback.css';
 import { createPlaybackController, isWebAudioSupported } from '../playback/index.js';
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
   const rounded = Math.ceil(seconds);
@@ -22,24 +31,27 @@ export function mountPlayback(root, song) {
     const eventCount = controller?.getEventCount?.() ?? 0;
     const playable = supported && eventCount > 0;
     const playing = state === 'playing';
+    const starting = state === 'starting';
     const status = !supported
       ? 'このブラウザはWeb Audio再生に対応していません。'
       : eventCount === 0
         ? '再生できるNoteがありません。'
-        : playing
-          ? `再生中 · ${formatDuration(duration)}`
-          : message || `準備完了 · ${formatDuration(duration)} · ${eventCount} notes`;
+        : starting
+          ? '再生を開始しています…'
+          : playing
+            ? `再生中 · ${formatDuration(duration)}`
+            : message || `準備完了 · ${formatDuration(duration)} · ${eventCount} notes`;
 
     root.innerHTML = `
       <div class="playback-controls">
-        <button type="button" class="playback-button playback-button-primary" data-playback-play ${!playable || playing ? 'disabled' : ''}>
+        <button type="button" class="playback-button playback-button-primary" data-playback-play ${!playable || playing || starting ? 'disabled' : ''}>
           ▶ Play
         </button>
         <button type="button" class="playback-button" data-playback-stop ${!playing ? 'disabled' : ''}>
           ■ Stop
         </button>
       </div>
-      <p class="playback-status" role="status" aria-live="polite">${status}</p>
+      <p class="playback-status" role="status" aria-live="polite">${escapeHtml(status)}</p>
       <p class="playback-note">v0.1は曲頭からの簡易プレビューです。Tempo Mapは反映します。通常Noteは簡易シンセ音、Channel 10は短いクリック音で、元の楽器音色は再現しません。</p>
     `;
   }
@@ -57,8 +69,8 @@ export function mountPlayback(root, song) {
   root.addEventListener('click', async (event) => {
     const playButton = event.target.closest('[data-playback-play]');
     if (playButton) {
-      playButton.disabled = true;
-      message = '再生を開始しています…';
+      state = 'starting';
+      message = '';
       render();
       try {
         await controller.play();
