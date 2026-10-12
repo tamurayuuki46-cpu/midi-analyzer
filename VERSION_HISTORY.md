@@ -1,7 +1,32 @@
 # VERSION_HISTORY
 
+## v0.4.1-dev — 2026-10-13
+状態: カテゴリ別Tab UI実装 / 自動テスト・Production Build確認中
+
+主な内容:
+- 解析結果を「概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Parts」に分割
+- 概要へ基本情報 / Playback / Track一覧 / Piano Rollを集約
+- HarmonyへKey / Chord / Degree / Chord Detailを集約
+- Melodyへ主旋律基本分析 + 裏メロ候補を集約
+- Bassへ基本分析 + 詳細分析を集約
+- Rhythmへ基本分析 + Drum詳細を集約
+- StructureへMotif / Section / 区間Key / 転調候補を集約
+- Compare / Library / Partsを専用Tab化
+- AI Tabは将来機能用の準備中表示とし、v0.4.1ではAI解析を自動実行しない
+- Android向け横スクロールTab列
+- WAI-ARIA tablist / tab / tabpanel + Arrow / Home / End操作
+- Tab navigation unit test 3件
+
+設計方針:
+- Analyzerロジック・候補順位・Normalized Songは変更しない
+- 既存UI componentをカテゴリ別にmountできるよう分割し、解析結果の意味を維持する
+- Import前の保存済みMIDI一覧は従来表示、Import後はLibrary Tabへ表示する
+
+復元ポイント:
+- `chatgpt/v0.4-before-tabbed-ui`
+
 ## v0.4-dev — 2026-10-13
-状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み
+状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み / GitHub Pages公開済み
 
 主な内容:
 - 裏メロ候補: 反行 / 並行 / 斜行 / 隙間 / 2度衝突候補 / Register
@@ -19,6 +44,8 @@
 
 復元ポイント:
 - `chatgpt/v0.4-before-part-deep`
+- `chatgpt/v0.4-feature-complete-milestone`
+- `chatgpt/v0.4-published-milestone`
 
 ## v0.3-dev — 2026-10-13
 状態: Compare / Personal Trend最小Scope実装完了 / CI・Production Build確認済み
