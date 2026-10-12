@@ -42,7 +42,8 @@ function setStorageStatus(message, tone = 'neutral') {
 }
 
 function storageTargets() {
-  return [savedRoot, resultRoot.querySelector('[data-library-root]')].filter(Boolean);
+  const libraryRoot = resultRoot.querySelector('[data-library-root]');
+  return libraryRoot ? [libraryRoot] : [savedRoot];
 }
 
 async function refreshSavedMidiList() {
@@ -90,6 +91,7 @@ form.addEventListener('submit', async (event) => {
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
     savedRoot.hidden = true;
+    savedRoot.replaceChildren();
     mountAnalysisTabs(resultRoot.querySelector('[data-analysis-tabs]'));
     activePlaybackController = mountPlayback(resultRoot.querySelector('[data-playback-root]'), result.song);
 
@@ -140,6 +142,7 @@ form.addEventListener('submit', async (event) => {
   } catch (error) {
     savedRoot.hidden = false;
     renderImportError(resultRoot, error);
+    await refreshSavedMidiList();
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = 'MIDIを読み込む';
