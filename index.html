@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f4f5" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="description" content="MIDIをスマホで読み込み、作曲上の特徴を理解するためのMIDI Analyzer" />
+    <title>MIDI Analyzer v0.1-dev</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <p class="eyebrow">MIDI ANALYZER · v0.1-dev</p>
+        <h1>MIDIを読み込む</h1>
+        <p>まず元データをそのまま読み込みます。QuantizeやNote修正は自動では行いません。</p>
+      </header>
+
+      <section class="panel" aria-labelledby="import-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">STEP 1</p>
+            <h2 id="import-title">MIDI Import</h2>
+          </div>
+        </div>
+
+        <form id="import-form" class="form-stack">
+          <div class="field">
+            <label for="midi-file">MIDIファイル</label>
+            <input id="midi-file" name="midi-file" type="file" accept=".mid,.midi,audio/midi,audio/x-midi" required />
+            <small>.mid / .midi を読み取ります。</small>
+          </div>
+
+          <div class="field">
+            <label for="midi-origin">取り込み元</label>
+            <select id="midi-origin" name="midi-origin">
+              <option value="midi">通常のMIDI</option>
+              <option value="ripx">RipXから書き出したMIDI</option>
+            </select>
+            <small>解析結果の出所を記録するためだけに使い、Note自体は変更しません。</small>
+          </div>
+
+          <button id="import-button" class="primary-button" type="submit">MIDIを読み込む</button>
+        </form>
+
+        <p class="helper-note">端末への保存は次の実装で追加します。現在は読み込んだデータをブラウザのメモリ上だけで扱います。</p>
+      </section>
+
+      <div id="result" aria-live="polite"></div>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

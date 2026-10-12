@@ -1,0 +1,10 @@
+{
+  "name": "MIDI Analyzer",
+  "short_name": "MIDI Analyzer",
+  "description": "MIDIをスマホで読み込み、作曲上の特徴を理解するための分析PWA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f4f5",
+  "theme_color": "#f4f4f5",
+  "lang": "ja"
+}
