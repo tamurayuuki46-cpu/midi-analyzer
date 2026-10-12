@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## Version: v0.1-dev
-更新日: 2026-10-12
+更新日: 2026-10-13
 
 ### 【追加】
 - 初期Repository / 共通仕様書 / AI共同開発ルール
@@ -50,8 +50,9 @@
 - Chord Tone / Bass Chord Roleは選択Chordを優先し、未選択時は第1候補を仮使用して前提を表示
 - Rhythmのシンコペーションはv0.1では「musicalBeat拍頭以外」の簡易候補として扱う
 - Playbackは元音色再現ではなくTiming / Pitch / Rhythm確認用の簡易プレビューに限定
-- v0.1機能Scopeは実装完了。安定版化前にAndroid実機確認と実MIDI調整を行う
+- v0.1機能Scopeは実装完了
 - 標準公開先をVercel必須構成からGitHub Pages単独で運用可能な構成へ変更
+- Android ChromeでImport / Storage / Playback / Piano Roll / Key / Chord / Basic Analysisの基本実機確認を完了
 
 ### 【修正】
 - Claude引き継ぎ案と既存仕様の矛盾整理
@@ -63,7 +64,6 @@
 - GitHub Pagesの`develop`公開が環境保護設定でjob開始前に失敗する構成を避けるため、deploy jobのEnvironment依存を除去
 
 ### 【未対応】
-- Android実機でImport / Storage / Playback / Piano Roll / Key / Chord / Basic Analysis UI確認
 - 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
 - 保存済みMIDIの「開く」
 - slash chord専用表記

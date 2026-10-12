@@ -81,6 +81,17 @@ npm run build
 15. Channel 10 Drumを含むMIDI
 
 ## Android Manual
+2026-10-13: GitHub Pages公開版をAndroid Chrome実機で確認し、以下の基本Smoke Testを通過。
+- MIDI Import
+- 端末保存 / 再読込
+- Play / Stop
+- Piano Roll
+- Key / Scale
+- Chord / Degree
+- Melody / Bass / Rhythm Basic Analysis
+- スマートフォン幅での主要操作・スクロール
+
+実MIDI安定化時の追加回帰確認:
 - Import後にPlayで初回から音が鳴る
 - Stopで即座に音が止まる
 - 再Import時に旧MIDIの音が残らない
