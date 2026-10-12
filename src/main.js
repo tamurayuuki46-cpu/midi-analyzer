@@ -8,6 +8,7 @@ import {
   listSavedMidis,
   saveImportedMidi,
 } from './storage/index.js';
+import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
 import {
@@ -63,7 +64,19 @@ form.addEventListener('submit', async (event) => {
     const result = await importMidiFile(file, { origin: originSelect.value });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
-    mountKeyAnalysis(resultRoot.querySelector('[data-key-analysis-root]'), keyAnalysis);
+
+    const keyRoot = resultRoot.querySelector('[data-key-analysis-root]');
+    const keyController = mountKeyAnalysis(keyRoot, keyAnalysis);
+    const chordController = mountChordAnalysis(
+      resultRoot.querySelector('[data-chord-analysis-root]'),
+      result.song,
+      {
+        getEffectiveKey: keyController?.getEffectiveKey,
+        isKeyExplicit: () => Boolean(keyController?.getSelected()),
+      },
+    );
+    keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
+
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
 
     if (saveCheckbox.checked) {
