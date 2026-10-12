@@ -4,6 +4,7 @@ import { importMidiFile } from './midi/index.js';
 import { mountPianoRoll } from './piano-roll/index.js';
 import {
   deleteSavedMidi,
+  getSavedMidi,
   isIndexedDbAvailable,
   listSavedMidis,
   saveImportedMidi,
@@ -11,6 +12,7 @@ import {
 import { mountAdvancedAnalysis } from './ui/renderAdvancedAnalysis.js';
 import { mountBasicAnalysis } from './ui/renderBasicAnalysis.js';
 import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
+import { mountCompareAnalysis } from './ui/renderCompareAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
 import { mountPlayback } from './ui/renderPlayback.js';
@@ -50,6 +52,13 @@ async function refreshSavedMidiList() {
   } catch (error) {
     renderStorageError(savedRoot, error);
   }
+}
+
+async function loadSavedSongs() {
+  if (!isIndexedDbAvailable()) return [];
+  const items = await listSavedMidis();
+  const records = await Promise.all(items.map((item) => getSavedMidi(item.id)));
+  return records.map((record) => record?.song).filter(Boolean);
 }
 
 form.addEventListener('submit', async (event) => {
@@ -97,6 +106,11 @@ form.addEventListener('submit', async (event) => {
     );
 
     mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-analysis-root]'), result.song);
+    const compareController = mountCompareAnalysis(
+      resultRoot.querySelector('[data-compare-analysis-root]'),
+      result.song,
+      { loadSavedSongs },
+    );
 
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
     chordRoot?.addEventListener('chord-selection-change', () => basicController?.refreshChordContext());
@@ -113,6 +127,7 @@ form.addEventListener('submit', async (event) => {
         });
         setStorageStatus('この端末に保存しました。クラウドや外部サービスには送信していません。', 'success');
         await refreshSavedMidiList();
+        await compareController?.refreshTrend();
       } catch (storageError) {
         setStorageStatus(`MIDIは読み込めましたが、端末保存に失敗しました: ${storageError.message}`, 'error');
       }
