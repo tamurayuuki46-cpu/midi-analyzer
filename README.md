@@ -2,10 +2,10 @@
 
 Androidスマートフォン中心の作曲支援PWA。
 
-MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Chord Tone / Non-Chord Toneなどを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
+MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Motif、Section、転調候補、Chord Detailなどを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
 
 ## 現在Version
-`v0.1-dev`
+`v0.2-dev`
 
 最新安定版: 未作成
 
@@ -17,8 +17,6 @@ Vercelに依存せず、GitHub Pagesだけで公開できる構成です。
 - 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 - `develop`更新時に Unit Test → Production Build → GitHub Pages Deploy を自動実行
 - Viteのasset pathは相対化しているため、GitHub Pagesのproject path配下でも動作します
-
-初回のみRepositoryの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** に設定する必要があります。以後は`develop`更新時に自動公開されます。
 
 詳細: `docs/DEPLOYMENT.md`
 
@@ -46,7 +44,13 @@ Vercelに依存せず、GitHub Pagesだけで公開できる構成です。
 - 最小Play / Stop簡易再生
 - Tempo Map対応のTick→秒変換 / lookahead Web Audio scheduler
 - 再Import時の旧再生停止 / Channel 10簡易click
-- Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis / Playback tests
+- Motif反復候補（移調非依存）
+- 4小節BlockのSection候補
+- 区間Key Timeline / 転調候補 / Key関係表示
+- 転回形 / Slash Chord候補
+- add9 / 11 / 6・13のChord色付け候補
+- v0.2発展分析Panel
+- Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis / Playback / Motif / Structure / Harmony Detail tests
 - GitHub Pages自動公開
 
 ## Key / Scale
@@ -68,10 +72,25 @@ Melody / BassはTrackをユーザーが変更できます。Rhythmは複数Track
 
 詳細: `docs/BASIC_ANALYSIS_SPEC.md`
 
+## v0.2 発展分析
+### Motif
+標準4Noteの音程差とリズム間隔を比較し、移調されていても同じ形なら反復Motif候補として検出します。
+
+### Section
+4小節BlockごとにPitch Class分布、Note密度、平均Pitch、平均Velocityを比較し、似たBlockへA/B/C等の候補labelを付けます。
+
+### 区間Key / 転調
+4小節ごとにKey候補を計算し、隣接Blockで第1候補が切り替わった位置を転調候補として表示します。同主調、平行調、属調方向、下属調方向、半音・全音移動も補助表示します。
+
+### Chord Detail
+v0.1のChord候補順位は変更せず、その上に最低音から転回形 / Slash Chord候補を追加し、add9 / 11 / 6・13に相当する色付け音の候補も表示します。
+
+詳細: `docs/ADVANCED_ANALYSIS_SPEC.md`
+
 ## 簡易再生
 ImportしたNormalized Songを曲頭からPlay / Stopできます。Tempo Mapを反映し、通常Noteは簡易triangle oscillator、Channel 10は短いclickとしてWeb Audioでプレビューします。
 
-元MIDIの楽器音色を再現する機能ではありません。Pause / Seek / Loop / Tempo変更 / 音色選択はv0.1対象外です。
+元MIDIの楽器音色を再現する機能ではありません。
 
 詳細: `docs/PLAYBACK_SPEC.md`
 
@@ -88,21 +107,14 @@ npm run build
 
 Viteはplain HTML/CSS/JavaScriptとnpm依存をbundleするためだけに使用し、React等のFrameworkは導入していません。
 
-## v0.1 Scope
-入れる:
-- MIDI Import / 保存選択 / Track一覧
-- 読み取り専用Piano Roll
-- Key / Scale候補
-- Chord分析 + Degree
-- Melody / Bass / Rhythm 基本分析
-- 最小簡易再生（Play / Stop）
+## Version Scope
+### v0.1
+MIDI Import / Storage / Piano Roll / Key / Chord / Degree / Melody / Bass / Rhythm / Play・Stopの基礎を構築。
 
-実装済み。v0.1安定化前にAndroid実機確認と実MIDI調整を行う。
+### v0.2
+Motif / Section / 区間Key / 転調 / Slash Chord / Chord Detailを追加。
 
-入れない:
-- 音声→音符 / Stem分離 / MIDI編集
-- MIDI内パート分離 / Motif / MIDI比較
-- Demo Composer Export Adapter / RipX Bridge
+以降は `docs/ROADMAP.md` に従い、比較、裏メロ・Drum・Bass詳細、可視化、素材Library、Demo Composer / RipX連携、AI説明、高度Scoreを段階追加します。
 
 ## 開発開始時に読む順番
 1. `README.md`
@@ -110,8 +122,10 @@ Viteはplain HTML/CSS/JavaScriptとnpm依存をbundleするためだけに使用
 3. `docs/AI_HANDOFF.md`
 4. `docs/PRODUCT_SPEC.md`
 5. `docs/ANALYSIS_SPEC.md`
-6. `docs/MIDI_SCHEMA.md`
-7. `docs/ARCHITECTURE.md`
-8. `CHANGELOG.md`
+6. `docs/ADVANCED_ANALYSIS_SPEC.md`
+7. `docs/MIDI_SCHEMA.md`
+8. `docs/ARCHITECTURE.md`
+9. `docs/ROADMAP.md`
+10. `CHANGELOG.md`
 
 重要仕様は `docs/` を正本とします。
