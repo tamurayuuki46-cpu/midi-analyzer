@@ -1,6 +1,7 @@
 import { degreeForPitchClass } from '../analysis/chord/index.js';
 
-const DEMO_KEY_NAMES = Object.freeze(['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
+const ANALYZER_KEY_NAMES = Object.freeze(['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B']);
+const DEMO_KEY_NAMES = Object.freeze(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']);
 const QUALITY_MAP = Object.freeze({
   major: 'major',
   minor: 'minor',
@@ -26,10 +27,14 @@ function fileTitle(fileName) {
 function parseKeyCandidate(value) {
   const match = typeof value === 'string' ? value.match(/^(.+?)\s+(major|minor)$/) : null;
   if (!match) return null;
-  const analyzerNames = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
-  const index = analyzerNames.indexOf(match[1]);
+  const index = ANALYZER_KEY_NAMES.indexOf(match[1]);
   if (index < 0) return null;
-  return { pitchClass: index, key: DEMO_KEY_NAMES[index], scale: match[2] };
+  return {
+    pitchClass: index,
+    key: DEMO_KEY_NAMES[index],
+    scale: match[2],
+    analyzerValue: `${ANALYZER_KEY_NAMES[index]} ${match[2]}`,
+  };
 }
 
 function scaleTick(value, ratio, minimum = 0) {
@@ -75,7 +80,7 @@ export function buildDemoComposerProject(song, bundle, options = {}) {
   const ppq = Number(song?.ppq) || 480;
   const ratio = 480 / ppq;
   const topKey = parseKeyCandidate(bundle?.key?.candidates?.[0]?.value);
-  const effectiveKey = topKey ?? { pitchClass: 0, key: 'C', scale: 'major' };
+  const effectiveKey = topKey ?? { pitchClass: 0, key: 'C', scale: 'major', analyzerValue: 'C major' };
   const sourceMeter = bundle?.song?.timeSignature ?? '4/4';
   const warnings = [];
   if (!topKey) warnings.push('Key候補を取得できなかったため、Demo Composer側はC majorで初期化しています。');
@@ -87,11 +92,11 @@ export function buildDemoComposerProject(song, bundle, options = {}) {
     if (!candidate || !Number.isInteger(candidate.root)) return [];
     const quality = QUALITY_MAP[candidate.quality];
     if (!quality) return [];
-    const degreeInfo = degreeForPitchClass(candidate.root, bundle?.key?.candidates?.[0]?.value ?? '');
+    const degreeInfo = degreeForPitchClass(candidate.root, effectiveKey.analyzerValue);
     return [{
       root: candidate.root,
       quality,
-      degree: degreeInfo?.value ?? '',
+      degree: degreeInfo?.value ?? 'I',
       startTick: scaleTick(segment.startTick, ratio),
       durationTick: scaleTick(segment.endTick - segment.startTick, ratio, 1),
     }];
@@ -118,7 +123,7 @@ export function buildDemoComposerProject(song, bundle, options = {}) {
 
   const project = {
     schemaVersion: 3,
-    appVersion: 'v0.9-dev',
+    appVersion: 'v0.3-dev',
     id: options.id ?? `midi-analyzer-${Date.now()}`,
     revision: 1,
     metadata: {
