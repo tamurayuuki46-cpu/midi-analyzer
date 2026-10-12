@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## Version: v0.2-dev
+更新日: 2026-10-13
+
+### 【追加】
+- 移調に依存しない4Note Motif反復候補
+- Motif occurrence位置 / 回数 / 代表Pitch表示
+- 4小節Block単位のSection候補
+- Pitch Class分布 / Note密度 / 平均Pitch / 平均VelocityによるSection類似度
+- 4小節BlockごとのKey Timeline
+- 隣接BlockのKey変化から転調候補を表示
+- 同主調 / 平行調 / 属調方向 / 下属調方向 / 半音 / 全音のKey関係表示
+- 既存Chord候補に対する転回形 / Slash Chord候補
+- add9 / 11 / 6・13のChord色付け候補
+- 「発展分析」Panel
+- `docs/ADVANCED_ANALYSIS_SPEC.md`
+- Motif unit test 2件
+- Structure / Modulation unit test 2件
+- Harmony Detail unit test 2件
+
+### 【変更】
+- Versionを`v0.2-dev`へ更新
+- 最終方針を「全部入りを段階追加する作曲分析Platform」へ更新
+- ROADMAPをv0.3〜v1.0までCompare / Part Deep Analysis / Visualization / Library / Integration / AI Explanation / Higher-level Metricsへ再編
+- v0.1 Chord Analyzerの候補順位は変更せず、v0.2 Chord Detailを上位Layerとして追加
+
+### 【修正】
+- 既存v0.1機能との互換性を維持したまま発展分析を追加
+
+### 【未対応】
+- 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
+- 保存済みMIDIの「開く」
+- Slash Chordをv0.1 Chord選択値そのものとして確定する機能（v0.2ではDetail候補表示）
+- Motifの反転 / augmentation / diminution / 曖昧一致
+- Section境界の可変長推定（v0.2は4小節Block）
+- pivot chord / common toneによる転調理由推定
+- 2 MIDI比較以降の機能はROADMAPに従い段階実装
+
 ## Version: v0.1-dev
 更新日: 2026-10-13
 
@@ -66,4 +103,3 @@
 ### 【未対応】
 - 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
 - 保存済みMIDIの「開く」
-- slash chord専用表記
