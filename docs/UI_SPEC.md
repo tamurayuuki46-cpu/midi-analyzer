@@ -14,10 +14,11 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 4. Bass
 5. Rhythm
 6. Structure
-7. Compare
-8. Library
-9. AI
-10. Parts
+7. Visual
+8. Compare
+9. Library
+10. AI
+11. Parts
 
 ## Tab構成
 ### 概要
@@ -63,6 +64,17 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 - 区間Key Timeline
 - 転調候補
 
+### Visual
+- Tonal Center Timeline
+- Chord Timeline
+- Melody / Bass Contour
+- Rhythm Density
+- Energy Curve
+- Section Map
+- Note / Velocity Heatmap
+- Timeline / Contour / Chart / Heatmapは必要に応じて横スクロール
+- Analyzer候補順位や元Noteを変更しない表示専用Layer
+
 ### Compare
 - 2 MIDI比較
 - 参考曲 vs 現在曲
@@ -74,7 +86,7 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 - Import前は従来どおり保存済みMIDI一覧を表示し、Import後はLibraryタブ内へ表示する
 
 ### AI
-- v0.4.1では自動AI解析を実行しない
+- v0.5では自動AI解析を実行しない
 - 「準備中」と表示する
 - 将来、Key / Chord / 転調の理由説明、参考曲から学べる点、作曲への応用候補を配置する
 
@@ -141,6 +153,6 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 - タップ領域を広く
 - 小さすぎる文字を避ける
 - 長押し / ピンチ必須にしない
-- タブ列とPiano Rollは必要に応じて横スクロール
+- タブ列とPiano RollとVisualの長いTimelineは必要に応じて横スクロール
 - 各タブ内は縦スクロール中心
 - 1タブ内へ無関係な解析を詰め込みすぎない
