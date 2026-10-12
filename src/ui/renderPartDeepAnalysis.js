@@ -93,28 +93,48 @@ function renderParts(result) {
   `;
 }
 
-export function mountPartDeepAnalysis(root, song) {
+export function mountPartDeepAnalysis(root, song, options = {}) {
   if (!root) return null;
+  const section = options.section ?? 'all';
   const result = analyzePartDeep(song);
-  root.innerHTML = `
-    <div class="part-deep-stack">
+  const blocks = [];
+
+  if (section === 'all' || section === 'melody') {
+    blocks.push(`
       <section class="part-deep-section">
         <div class="part-deep-heading"><h3>裏メロ候補</h3><span class="status-pill">Motion / Gap</span></div>
         ${renderCounter(result.counterMelody)}
       </section>
+    `);
+  }
+
+  if (section === 'all' || section === 'bass') {
+    blocks.push(`
       <section class="part-deep-section">
         <div class="part-deep-heading"><h3>Bass詳細</h3><span class="status-pill">Movement</span></div>
         ${renderBass(result.bass)}
       </section>
+    `);
+  }
+
+  if (section === 'all' || section === 'rhythm') {
+    blocks.push(`
       <section class="part-deep-section">
         <div class="part-deep-heading"><h3>Drum詳細</h3><span class="status-pill">GM / Fill</span></div>
         ${renderDrums(result.drums)}
       </section>
+    `);
+  }
+
+  if (section === 'all' || section === 'parts') {
+    blocks.push(`
       <section class="part-deep-section">
         <div class="part-deep-heading"><h3>Track役割候補</h3><span class="status-pill">Candidate</span></div>
         ${renderParts(result.parts)}
       </section>
-    </div>
-  `;
+    `);
+  }
+
+  root.innerHTML = `<div class="part-deep-stack">${blocks.join('')}</div>`;
   return result;
 }
