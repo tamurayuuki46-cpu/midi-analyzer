@@ -1,53 +1,30 @@
 # TEST_PLAN.md
 
 ## Parser / Normalizer unit test
-
-実装済み:
-1. Note / Track / Tempo / Time Signature正規化
-2. MIDI Channel 10 Drum判定
-3. 1 Track内の複数Channel保持
-4. Tempo / 拍子がない場合のStandard既定値
-5. 不完全Note On / Off Warning
-6. SMPTE time division拒否
-7. 不正origin拒否
+実装済み: Normalizer 7件。
 
 ## Parser integration regression test
-
-固定binary MIDI fixtureを実際に `midi-file` へ通し、Parser → Normalizer境界を確認する。
-
-実装済み:
-- Format 1 / 2 Track fixture
-- Format 0 / Drum fixture
+実装済み: 固定Format 0 / Format 1 fixture 2件。
 - deltaTime → absolute tick
-- trackName
-- tempo change
-- time signature
-- Note On velocity 0 → Note Off
-- Channel 10 Drum
-- origin保持
-- implicit 120 BPM
-
-FixtureはGitHubで差分確認しやすいよう、固定hexを `Uint8Array` へ復元して利用する。
-実MIDI Parserを通すため、raw parsed objectだけのUnit Testを補完するRegression Testとして扱う。
+- trackName / tempo change / time signature
+- Note On velocity 0
+- Channel 10 Drum / origin
 
 ## Storage unit test
-
-実装済み:
-- IndexedDB保存
-- 一覧取得
-- 削除
-- 保存record構造
+実装済み: IndexedDB 4件。
 
 ## Piano Roll model unit test
+実装済み: 7件。
 
+## Key / Scale Analyzer unit test
 実装済み:
-1. Track Note抽出 / sort
-2. 初期Track選択（非Drum優先）
-3. Pitch Range padding / minimum span
-4. MIDI Pitch境界 0〜127
-5. 4/4 bar / beat marker
-6. MIDI Note名表示
-7. 拍子変更時のbar再開
+1. durationTick × velocity重み
+2. Channel 10 Drum除外
+3. C major基本候補
+4. A minor基本候補
+5. confidence 0〜1
+6. Drums-only時の候補なし
+7. 拮抗時hintが順位変更を主張しないこと
 
 実行:
 
@@ -55,9 +32,8 @@ FixtureはGitHubで差分確認しやすいよう、固定hexを `Uint8Array` �
 npm test
 ```
 
-## Parser / Analyzer用MIDI
-
-最低限:
+## Parser / Analyzer用実MIDI
+今後のManual / Regression用:
 1. C–G–Am–F（各1小節）
 2. 1小節2コード
 3. 転回形 C/E
@@ -69,17 +45,21 @@ npm test
 9. ループ曲
 10. イントロだけ別調
 
-## Manual UI test
+## Key Analyzer追加確認
+- C major / A minorの相対調が拮抗する例
+- 長く保持する音が結果へ反映されること
+- velocity差が結果へ反映されること
+- Drum Trackを含めても候補が変わらないこと
+- Chromatic Noteが少量混じるMIDI
+- Introだけ別調のMIDI（全曲Key推定の限界確認）
 
+## Manual UI test
 Android Chromeで確認:
-- Track selectorが44px以上の操作領域で使える
-- − / ＋ Zoomが片手で押せる
-- 横 / 縦スクロールが競合しない
+- Key候補ボタンが片手で押せる
+- 候補選択で見た目が変わる
+- Piano Roll / Import / Storageと競合しない
 - 長いMIDIでページ全体が破綻しない
-- Drum Trackも表示できる
-- Import / IndexedDB保存 / 削除がPiano Roll追加後も動く
 
 ## Regression
 Analysis Engine変更前後で固定MIDIを再解析し、意図しない結果変化がないか確認する。
-
 アルゴリズムによる結果変更はCHANGELOGへ記録。

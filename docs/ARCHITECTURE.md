@@ -12,7 +12,7 @@ Normalized Song / Note
   ├─→ src/piano-roll/ Read-only visualization
   ↓
 Analysis Engines
-  ├─ Key
+  ├─ Key ← implemented
   ├─ Chord
   ├─ Melody
   ├─ Bass
@@ -29,6 +29,7 @@ UI
 - Noteは分析エンジンの唯一の音符入力
 - Songは分析・表示によって変更しない
 - 分析結果はSongの外に持つ
+- `selected` は人が選択したときだけ設定する
 - 分離結果も元Noteを書き換えず別Layerに持つ
 - 将来連携はAdapter経由にする
 - Piano RollはNormalized Songだけを読み、MIDI編集責任を持たない
@@ -60,8 +61,17 @@ Standard MIDI Fileの読み取りと正規化。
 - `normalizeMidi.js`: raw MIDI event → Song / Track / Note
 - `roleHint.js`: Track名とChannelからの補助hint
 
-### analysis
-理論分析。Parser実装を知らない。
+### analysis/key
+Normalized SongからKey / Scale候補を作る。
+
+実装済み:
+- `analyzeKeyScale.js`: Pitch Class重み / 24 Key profile比較 / Top 3
+- Drum Note除外
+- close候補時のedge harmony補助hint
+- Parser implementationへ依存しない
+
+### analysis/chord / melody / bass / rhythm
+未実装。Key Analyzerと同様にNormalized SongまたはAnalysis Resultだけへ依存させる。
 
 ### separation
 v0.2以降。MIDI内パート分離。
@@ -82,7 +92,7 @@ v0.2以降。MIDI内パート分離。
 IndexedDB。保存選択と削除。
 
 ### ui
-Android向け画面。
+Android向け画面。分析結果の候補選択はここで行い、Analyzer自身は確定しない。
 
 ### adapters
 RipX / Demo Composer等との境界。
@@ -90,25 +100,9 @@ RipX / Demo Composer等との境界。
 ## MIDI Parser
 
 v0.1では `midi-file@1.2.4` を採用する。
-
-採用理由:
-- Standard MIDI Fileのraw eventとdeltaTimeを直接扱える
-- tick / PPQ中心の内部設計へ変換しやすい
-- MIT License
-- Parser依存を `src/midi/` に閉じ込められる
-
-注意:
-- package自体は成熟しているが更新頻度は高くない
-- Analysis Engineから直接importしない
-- 将来差し替える場合でもNormalized Song Schemaは維持する
+Analysis Engineから直接importしない。
 
 ## Build Tool
 
 `Vite` をBuild / Dev Server用途だけに使用する。
-
-目的:
-- npm dependencyをAndroid Chrome向けにbundleする
-- CDN依存を避ける
-- plain HTML/CSS/JavaScript構成を維持する
-
 React / TypeScript等のFramework導入を意味しない。

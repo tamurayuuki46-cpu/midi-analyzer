@@ -61,6 +61,17 @@ export function renderSongSummary(root, result) {
       </div>
     </section>
 
+    <section class="panel" aria-labelledby="key-analysis-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">KEY / SCALE</p>
+          <h2 id="key-analysis-title">Key候補</h2>
+        </div>
+        <span class="status-pill">候補</span>
+      </div>
+      <div data-key-analysis-root></div>
+    </section>
+
     <section class="panel piano-roll-panel" aria-labelledby="piano-roll-title">
       <div class="panel-heading">
         <div>

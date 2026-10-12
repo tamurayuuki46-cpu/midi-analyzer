@@ -1,4 +1,5 @@
 import './styles.css';
+import { analyzeKeyScale } from './analysis/key/index.js';
 import { importMidiFile } from './midi/index.js';
 import { mountPianoRoll } from './piano-roll/index.js';
 import {
@@ -8,6 +9,7 @@ import {
   saveImportedMidi,
 } from './storage/index.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
+import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
 import {
   renderSavedMidiList,
   renderStorageError,
@@ -59,7 +61,9 @@ form.addEventListener('submit', async (event) => {
 
   try {
     const result = await importMidiFile(file, { origin: originSelect.value });
+    const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
+    mountKeyAnalysis(resultRoot.querySelector('[data-key-analysis-root]'), keyAnalysis);
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
 
     if (saveCheckbox.checked) {
