@@ -1,10 +1,10 @@
 # AI_HANDOFF.md
 
 現在Version:
-v0.4-dev
+v0.4.1-dev
 
 公開中Version:
-v0.2.1-dev
+v0.4-dev
 
 最新安定版:
 未作成
@@ -23,29 +23,30 @@ v0.2.1-dev
 - Slash Chord / add9 / 11 / 6・13候補
 - v0.3: 2 MIDI比較 / 参考曲 vs 自作曲 / Personal Trend
 - v0.4: 裏メロ候補 / Bass詳細 / Drum詳細 / Track役割候補
+- v0.4.1: 概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / PartsのTab UI
 - GitHub Actions test + build
 - GitHub Pages（develop公開）
 
-## v0.3設計
-- 現在のSongを自作曲、追加選択したSongを参考曲として比較
-- 比較用MIDIは自動保存しない
-- Key / BPM / Chord / Melody / Bass / Rhythm / 密度 / 転調を同じAnalyzerで集計
-- 差を優劣として評価しない
-- Personal Trendは明示保存済みIndexedDB Songのみ集計
-- 保存 / 削除後はTrend再集計
-
-## v0.4設計
-- 裏メロ候補は別の単音寄りTrackを主旋律と8分Gridで比較
-- 反行 / 並行 / 斜行 / 主旋律の隙間 / 2度衝突候補 / Registerを表示
-- Bass詳細はペダル / オクターブ / 半音 / 順次 / 次Chord Root接近候補
-- Drum詳細はGM大分類 / 使用GM Note / Tom集中・密度上昇によるFill候補
-- Track役割候補はroleHintを優先し、ない場合に平均Pitch・同時発音傾向を使用
-- roleHintやMIDI Noteを自動変更しない
+## v0.4.1 UI設計
+- Analyzerロジック・候補順位・Normalized Songは変更しない
+- Import後の解析結果をカテゴリ別Tabへ分離する
+- 概要: 基本情報 / Playback / Track一覧 / Piano Roll
+- Harmony: Key / Chord / Degree / Chord Detail
+- Melody: 主旋律基本分析 / 裏メロ候補
+- Bass: Bass基本分析 / Bass詳細
+- Rhythm: Rhythm基本分析 / Drum詳細
+- Structure: Motif / Section / 区間Key / 転調候補
+- Compare: 2 MIDI比較 / Personal Trend
+- Library: 保存済みMIDI一覧 / 削除
+- AI: 将来用の準備中表示。v0.4.1ではAI解析を自動実行しない
+- Parts: Track役割候補
+- AndroidではTab列を横スクロール可能にする
+- WAI-ARIA tablist / tab / tabpanel、Arrow / Home / End操作に対応
 
 ## 次に実施
-1. v0.4最終CI / Android表示確認
-2. RipX / Scaler / EZkeys等の実MIDIでv0.1〜v0.4 regression
-3. 裏メロ候補Trackの手動選択UIとheuristic調整
+1. v0.4.1最終CI / Production Build確認
+2. Android実機で全Tabのタップ・横スクロール・Library削除確認
+3. RipX / Scaler / EZkeys等の実MIDIでv0.1〜v0.4 regression
 4. v0.5 Visualizationへ進む
 
 ## 既知の問題 / 継続課題
@@ -58,6 +59,7 @@ v0.2.1-dev
 - CompareのTrack手動対応 / Section同期比較は未対応
 - 裏メロTrackの手動指定UIは未対応
 - Fill候補はrule-based簡易判定
+- AI Tabはplaceholderのみで説明機能本体は未実装
 - 実ファイルRegressionは継続必要
 
 ## 触らない部分
@@ -89,6 +91,8 @@ record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 - `chatgpt/v0.3-before-compare`
 - `chatgpt/v0.3-feature-complete-milestone`
 - `chatgpt/v0.4-before-part-deep`
+- `chatgpt/v0.4-published-milestone`
+- `chatgpt/v0.4-before-tabbed-ui`
 
 最終更新:
 2026-10-13
