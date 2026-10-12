@@ -13,18 +13,19 @@ test('analysis tab order matches the category navigation', () => {
     'visual',
     'compare',
     'library',
+    'recorder',
     'ai',
     'parts',
   ]);
 });
 
 test('ArrowRight and ArrowLeft wrap between tabs', () => {
-  assert.equal(getTabIndexForKey(0, 'ArrowLeft', 11), 10);
-  assert.equal(getTabIndexForKey(10, 'ArrowRight', 11), 0);
-  assert.equal(getTabIndexForKey(4, 'ArrowRight', 11), 5);
+  assert.equal(getTabIndexForKey(0, 'ArrowLeft', 12), 11);
+  assert.equal(getTabIndexForKey(11, 'ArrowRight', 12), 0);
+  assert.equal(getTabIndexForKey(4, 'ArrowRight', 12), 5);
 });
 
 test('Home and End jump to the first and last tab', () => {
-  assert.equal(getTabIndexForKey(5, 'Home', 11), 0);
-  assert.equal(getTabIndexForKey(2, 'End', 11), 10);
+  assert.equal(getTabIndexForKey(5, 'Home', 12), 0);
+  assert.equal(getTabIndexForKey(2, 'End', 12), 11);
 });
