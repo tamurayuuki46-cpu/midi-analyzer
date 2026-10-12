@@ -1,14 +1,16 @@
 # ROADMAP.md
 
 ## v0.1
-- MIDI Import
-- Track一覧
-- Piano Roll
-- Key / Scale候補
-- Chord + Degree
-- Melody / Bass / Rhythm基本分析
-- 保存選択
-- Play / Stop
+- [x] MIDI Import
+- [x] Track一覧
+- [x] Piano Roll
+- [x] Key / Scale候補
+- [x] Chord + Degree
+- [x] Melody / Bass / Rhythm基本分析
+- [x] 保存選択
+- [ ] Play / Stop
+- [ ] Android実機確認
+- [ ] 実MIDIで係数 / heuristic調整
 
 ## v0.2
 - Motif
