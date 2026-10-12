@@ -7,6 +7,8 @@ Android Chrome / スマートフォン。
 
 Import
 ↓
+保存選択（初期OFF）
+↓
 Track一覧
 ↓
 分析
@@ -19,12 +21,22 @@ Track一覧
 ## v0.1主要操作
 - Import
 - 保存する / しない
+- 保存済みMIDI一覧
 - 保存済みMIDI削除
 - Track選択
 - 分析対象Track選択
 - Candidate選択
 - Piano Roll表示
 - Play / Stop
+
+## 保存UI
+- 「この端末に保存する」はcheckbox
+- 初期値はOFF
+- ONの場合だけ元MIDIと正規化結果をIndexedDBへ保存
+- 保存先が端末内のみであることを明記
+- 保存失敗はImport失敗と混同しない
+- 保存済み一覧は新しい順
+- 削除前に確認する
 
 ## v0.1では置かない
 - 一般Export

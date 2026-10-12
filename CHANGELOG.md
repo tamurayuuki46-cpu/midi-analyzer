@@ -14,16 +14,16 @@
 - 分離処理の将来interfaceを定義
 - `.mid` / `.midi` Import UIを追加
 - `midi-file@1.2.4` Parser Adapterを追加
-- Standard MIDI Fileから共通Song / Track / Noteへ正規化する処理を追加
+- Standard MIDI File → Song / Track / Note正規化を追加
 - Tempo Map / Time Signature正規化を追加
-- Note On velocity 0をNote Offとして処理
-- 1 Track内複数Channelの保持を追加
-- RipX由来MIDIのorigin記録を追加
-- 不完全NoteイベントのWarning処理を追加
-- Import結果のOverview / Track一覧UIを追加
+- Track一覧表示を追加
 - Normalizer unit test 7件を追加
-- test / build用GitHub Actions CIを追加
-- `docs/MIDI_IMPORT.md` を追加
+- GitHub Actions CI（test + build）を追加
+- IndexedDB端末保存を追加（初期値OFF）
+- 元MIDI bytes + 正規化Song保存を追加
+- 保存済みMIDI一覧 / 削除を追加
+- IndexedDB unit test 4件を追加
+- `docs/STORAGE_SPEC.md` を追加
 
 ### 【変更】
 - Motifをv0.1から外し、v0.2以降へ移動
@@ -32,15 +32,17 @@
 - Drum除外はNoteのMIDI Channel 10（0-based index 9）を基本判定とする
 - Chord分析対象Trackをユーザーが選択できる方針を追加
 - v0.1 UIから一般Exportを外し、Import / 保存 / 削除を中心に整理
-- ViteをFrameworkではなくBuild Toolとして導入
-- tempo / 拍子eventがないMIDIではStandard既定値をimplicit値として保持する方針を明文化
+- 保存失敗とImport失敗を分離して扱う
 
 ### 【修正】
 - Claude引き継ぎ案と既存仕様の矛盾を整理
+- Track内に複数Channelがある場合のDrum表示を修正
+- PWA manifest pathを相対path化
 
 ### 【未対応】
-- IndexedDB保存
 - 読み取り専用Piano Roll
-- Key / Chord / Melody / Bass / Rhythm Analyzer
-- binary MIDI fixtureを使ったParser integration test
-- 実MIDIによる分析係数調整
+- 固定binary MIDI fixtureによるParser integration test
+- Key / Scale Analyzer
+- Chord Analyzer
+- Melody / Bass / Rhythm Analyzer
+- 実MIDIによる係数調整
