@@ -41,6 +41,22 @@
 8. 6/8: musicalBeatを付点4分として拍位置判定
 9. MIDI Pitch表記
 
+### Playback Schedule
+1. 120 BPMで4分音符=0.5秒
+2. Tempo Changeの累積時間
+3. tick 0 Tempoなし時の120 BPM fallback
+4. 同一tick Tempo eventは最後を使用
+5. Note start / endへTempo Mapを反映
+6. schedule順序 / Channel 10判定
+7. duration 0 Noteを除外
+8. 曲の再生長を最終Note endから算出
+9. MIDI A4 = 440 Hz
+
+### Playback Controller
+1. PlayでWeb Audio nodeをscheduleし、StopでAudioContext close
+2. NoteなしSongは再生error
+3. AudioContext resume中にStopしても旧sessionを開始しない
+
 実行:
 ```bash
 npm test
@@ -61,8 +77,16 @@ npm run build
 11. Melodyが和音化されたMIDI
 12. Bass Track名が曖昧なMIDI
 13. Drumなしで全TrackからRhythmを見るMIDI
+14. Tempo Changeを含むMIDI
+15. Channel 10 Drumを含むMIDI
 
 ## Android Manual
+- Import後にPlayで初回から音が鳴る
+- Stopで即座に音が止まる
+- 再Import時に旧MIDIの音が残らない
+- 曲末で自動停止し、再びPlayできる
+- 画面ロック / 復帰後に再Playできる
+- 端末speaker / Bluetoothで音量が過大でない
 - Chord Track checkboxが片手で押せる
 - Chord候補3つが縦スクロールで読みやすい
 - Key選択を変えるとDegreeが即時更新される
@@ -72,8 +96,8 @@ npm run build
 - Rhythmの複数Track checkboxが操作しやすい
 - 16分Gridが320px幅でも横にはみ出さない
 - 長いMIDIでChord区間数が多くてもページが破綻しない
-- Import / Storage / Piano Roll / Key / Chord機能が回帰していない
+- Import / Storage / Piano Roll / Key / Chord / Basic Analysis機能が回帰していない
 
 ## Regression
-Analysis Engine変更前後で固定MIDIを再解析し、意図しない結果変化がないか確認する。
+Analysis Engine / Playback変更前後で固定MIDIを再解析・再scheduleし、意図しない結果変化がないか確認する。
 アルゴリズム結果変更はCHANGELOGへ記録する。
