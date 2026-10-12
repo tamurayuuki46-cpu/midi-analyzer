@@ -8,6 +8,7 @@ import {
   listSavedMidis,
   saveImportedMidi,
 } from './storage/index.js';
+import { mountBasicAnalysis } from './ui/renderBasicAnalysis.js';
 import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
@@ -66,16 +67,27 @@ form.addEventListener('submit', async (event) => {
     renderSongSummary(resultRoot, result);
 
     const keyRoot = resultRoot.querySelector('[data-key-analysis-root]');
+    const chordRoot = resultRoot.querySelector('[data-chord-analysis-root]');
     const keyController = mountKeyAnalysis(keyRoot, keyAnalysis);
     const chordController = mountChordAnalysis(
-      resultRoot.querySelector('[data-chord-analysis-root]'),
+      chordRoot,
       result.song,
       {
         getEffectiveKey: keyController?.getEffectiveKey,
         isKeyExplicit: () => Boolean(keyController?.getSelected()),
       },
     );
+    const basicController = mountBasicAnalysis(
+      resultRoot.querySelector('[data-basic-analysis-root]'),
+      result.song,
+      {
+        getChordSegments: chordController?.getEffectiveSegments,
+      },
+    );
+
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
+    chordRoot?.addEventListener('chord-selection-change', () => basicController?.refreshChordContext());
+    chordRoot?.addEventListener('chord-analysis-change', () => basicController?.refreshChordContext());
 
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
 
