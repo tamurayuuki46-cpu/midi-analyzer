@@ -81,12 +81,42 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 - Personal Trend
 
 ### Library
-- IndexedDBにユーザーが明示保存したMIDI一覧
+Library Tabは2ブロックへ分ける。
+
+#### 保存済みMIDI
+- IndexedDB `savedMidis`の一覧
 - 削除
-- Import前は従来どおり保存済みMIDI一覧を表示し、Import後はLibraryタブ内へ表示する
+- Import前は従来どおり画面上に一覧表示
+- Import後はLibrary Tab内へ移す
+
+#### Clip Library
+- Chord / Melody / Bass / Drum / Motif type select
+- 連続4小節Range select
+- Clip名（任意）
+- Genre（任意）
+- Mood（任意）
+- custom tag（カンマ区切り）
+- `Clipを保存` Button
+- BPM / KeyはRangeから自動Tag
+- Top 1 Chord progressionをcontextとして保存
+- 検索Input
+- Clip Card一覧
+- Delete Button
+
+Clip Cardには以下を表示する。
+- type
+- name
+- source fileName
+- Range
+- Note数
+- Chord progression（存在する場合）
+- Genre / Mood / BPM / Key / custom tags
+
+検索は複数token AND。Chord名も検索対象。
+削除はconfirm後に実行する。
 
 ### AI
-- v0.5では自動AI解析を実行しない
+- v0.6では自動AI解析を実行しない
 - 「準備中」と表示する
 - 将来、Key / Chord / 転調の理由説明、参考曲から学べる点、作曲への応用候補を配置する
 
@@ -154,5 +184,7 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 - 小さすぎる文字を避ける
 - 長押し / ピンチ必須にしない
 - タブ列とPiano RollとVisualの長いTimelineは必要に応じて横スクロール
+- Clip Library Formは560px以下で1column
+- Clip Delete Buttonはmobile幅で押しやすくする
 - 各タブ内は縦スクロール中心
 - 1タブ内へ無関係な解析を詰め込みすぎない
