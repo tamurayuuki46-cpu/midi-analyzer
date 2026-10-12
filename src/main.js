@@ -23,6 +23,7 @@ import {
   renderStorageUnavailable,
 } from './ui/renderSavedMidis.js';
 import { mountAnalysisTabs } from './ui/tabbedLayout.js';
+import { mountVisualization } from './ui/renderVisualization.js';
 
 const form = document.querySelector('#import-form');
 const fileInput = document.querySelector('#midi-file');
@@ -109,6 +110,7 @@ form.addEventListener('submit', async (event) => {
 
     mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-harmony-root]'), result.song, { section: 'harmony' });
     mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-structure-root]'), result.song, { section: 'structure' });
+    mountVisualization(resultRoot.querySelector('[data-visualization-root]'), result.song);
     activeCompareController = mountCompareAnalysis(resultRoot.querySelector('[data-compare-analysis-root]'), result.song, { loadSavedSongs });
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-melody-root]'), result.song, { section: 'melody' });
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-bass-root]'), result.song, { section: 'bass' });
