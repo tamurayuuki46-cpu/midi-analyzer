@@ -8,9 +8,9 @@
 - [x] Chord + Degree
 - [x] Melody / Bass / Rhythm基本分析
 - [x] 保存選択
-- [ ] Play / Stop
+- [x] Play / Stop
 - [ ] Android実機確認
-- [ ] 実MIDIで係数 / heuristic調整
+- [ ] 実MIDIで係数 / heuristic / playback音量調整
 
 ## v0.2
 - Motif
