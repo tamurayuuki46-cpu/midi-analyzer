@@ -18,6 +18,7 @@ import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
 import { mountPartDeepAnalysis } from './ui/renderPartDeepAnalysis.js';
 import { mountPlayback } from './ui/renderPlayback.js';
+import { mountRecorderTab } from './ui/recorderTabShell.js';
 import {
   renderSavedMidiList,
   renderStorageError,
@@ -37,6 +38,7 @@ const submitButton = document.querySelector('#import-button');
 
 let activePlaybackController = null;
 let activeCompareController = null;
+let activeRecorderTabController = null;
 
 function setStorageStatus(message, tone = 'neutral') {
   storageStatus.textContent = message;
@@ -83,6 +85,10 @@ form.addEventListener('submit', async (event) => {
     await activePlaybackController.destroy();
     activePlaybackController = null;
   }
+  if (activeRecorderTabController) {
+    await activeRecorderTabController.destroy();
+    activeRecorderTabController = null;
+  }
   activeCompareController = null;
   submitButton.disabled = true;
   submitButton.textContent = '読み込み中…';
@@ -94,7 +100,9 @@ form.addEventListener('submit', async (event) => {
     renderSongSummary(resultRoot, result);
     savedRoot.hidden = true;
     savedRoot.replaceChildren();
-    mountAnalysisTabs(resultRoot.querySelector('[data-analysis-tabs]'));
+    const tabsRoot = resultRoot.querySelector('[data-analysis-tabs]');
+    activeRecorderTabController = mountRecorderTab(tabsRoot, result.song);
+    mountAnalysisTabs(tabsRoot);
     activePlaybackController = mountPlayback(resultRoot.querySelector('[data-playback-root]'), result.song);
 
     const keyRoot = resultRoot.querySelector('[data-key-analysis-root]');
