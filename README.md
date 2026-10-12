@@ -5,7 +5,7 @@ Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key
 ## 現在Version
 `v0.9-dev`
 
-公開中Version: `v0.7-dev`
+公開中Version: `v0.9-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
