@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## Version: v0.2.1-dev
+更新日: 2026-10-13
+
+### 【追加】
+- 各Chord表示区間のランキング1位だけを時間順に抽出する`buildTopChordProgression`
+- 「候補1位のコード進行」横スクロール表示
+- コード進行内に小節番号 / Chord名 / 一致度を表示
+- Top 1コード進行helper unit test 2件
+
+### 【変更】
+- Chord分析Trackを変更するとTop 1コード進行も自動再計算する
+- 手動Chord選択とは別に、ランキング1位専用の仮コード進行として表示する
+- Versionを`v0.2.1-dev`へ更新
+- `VERSION` / `package.json` / 画面title / headerのVersion表示を同期
+
+### 【修正】
+- 公開画面のheader/titleに`v0.1-dev`表記が残っていた不整合を修正
+
+### 【未対応】
+- 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
+- 保存済みMIDIの「開く」
+- Top 1コード進行のコピー / Export / Demo Composer送信
+- Slash Chordをv0.1 Chord選択値そのものとして確定する機能（v0.2ではDetail候補表示）
+- Motifの反転 / augmentation / diminution / 曖昧一致
+- Section境界の可変長推定（v0.2は4小節Block）
+- pivot chord / common toneによる転調理由推定
+- 2 MIDI比較以降の機能はROADMAPに従い段階実装
+
 ## Version: v0.2-dev
 更新日: 2026-10-13
 

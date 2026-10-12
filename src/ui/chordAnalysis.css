@@ -40,6 +40,76 @@
 .chord-key-context { font-weight: 700; }
 .chord-parameter-note { font-size: .86rem; }
 
+.chord-progression-summary {
+  margin: 12px 0 16px;
+  padding: 12px;
+  border: 1px solid #d4d4d8;
+  border-radius: 14px;
+  background: #fafafa;
+}
+.chord-progression-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.chord-progression-kicker {
+  margin: 0 0 3px;
+  color: #71717a;
+  font-size: .76rem;
+  font-weight: 800;
+}
+.chord-progression-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 8px;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+.chord-progression-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+.chord-progression-item {
+  min-width: 88px;
+  padding: 9px 10px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+}
+.chord-progression-item small,
+.chord-progression-item span {
+  display: block;
+  color: #71717a;
+}
+.chord-progression-item small {
+  margin-bottom: 3px;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.chord-progression-item strong {
+  display: block;
+  font-size: 1.08rem;
+}
+.chord-progression-item span {
+  margin-top: 3px;
+  font-size: .7rem;
+}
+.chord-progression-arrow {
+  color: #71717a;
+  font-weight: 900;
+}
+.chord-progression-summary .helper-note {
+  margin-bottom: 0;
+}
+
 .chord-segment-list { display: grid; gap: 12px; }
 .chord-segment-card {
   border: 1px solid #e4e4e7;
@@ -106,6 +176,8 @@
 .degree-chip.is-outside { border: 1px dashed #a1a1aa; }
 
 @media (max-width: 440px) {
+  .chord-progression-summary { padding: 10px; }
+  .chord-progression-item { min-width: 80px; }
   .chord-candidate-button {
     grid-template-columns: 1fr auto;
   }

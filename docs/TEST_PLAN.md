@@ -30,6 +30,10 @@
 9. A minor Degree: C=III / G♯=♯VII音階外
 10. 同一小節で同じChordが続くGridを1区間にまとめる
 
+### Top 1 Chord Progression
+1. 各Chord segmentの`candidates[0]`を時間順にC → G → Amのように保持する
+2. Candidateが空のsegmentは安全にskipする
+
 ### Melody / Bass / Rhythm Basic Analysis
 1. roleHintをMelody / Bass初期Trackとして優先
 2. roleHintなしでは平均Pitch最高/最低Trackをfallback
@@ -97,6 +101,7 @@ npm run build
 18. サビ前で半音または全音転調するMIDI
 19. Slash Chordを含むPiano MIDI
 20. add9 / 11 / 6・13が持続するChord MIDI
+21. 16小節以上でTop 1コード進行の横スクロールが長くなるMIDI
 
 ## Android Manual
 - Import後にPlayで初回から音が鳴る
@@ -107,6 +112,10 @@ npm run build
 - 端末speaker / Bluetoothで音量が過大でない
 - Chord Track checkboxが片手で押せる
 - Chord候補3つが縦スクロールで読みやすい
+- Top 1コード進行が時間順に表示される
+- Top 1コード進行が320px幅でも横スクロールで破綻しない
+- Chord Track変更でTop 1コード進行が更新される
+- 手動Chord選択を変えてもTop 1コード進行はランキング1位表示のまま変化しない
 - Key選択を変えるとDegreeが即時更新される
 - Chord候補選択が区間ごとに保持される
 - Chord候補選択でMelody Chord Tone / Bass Chord Roleが再計算される

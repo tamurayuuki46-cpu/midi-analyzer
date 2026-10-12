@@ -5,7 +5,7 @@ Androidスマートフォン中心の作曲支援PWA。
 MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Motif、Section、転調候補、Chord Detailなどを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
 
 ## 現在Version
-`v0.2-dev`
+`v0.2.1-dev`
 
 最新安定版: 未作成
 
@@ -35,6 +35,7 @@ Vercelに依存せず、GitHub Pagesだけで公開できる構成です。
 - Key候補のユーザー選択UI
 - Chord Analyzer（10 templates × 12 roots / Top 3）
 - Chord分析対象Track選択
+- 各Chord区間のランキング1位を時間順に並べる仮コード進行表示
 - Degree表示 / 音階外表示
 - Melody基本分析（音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率）
 - Bass基本分析（最低音移動 / Root・3rd・5th・Other / リズム型）
@@ -60,6 +61,8 @@ Drums以外のNoteを `durationTick × velocity` で重み付けし、major/mino
 
 ## Chord / Degree
 ユーザーがChord分析対象Trackを選び、時間Grid内の重なりNoteを `overlapDurationTick × velocity` で重み付けしてChord候補Top 3を表示します。
+
+各表示区間のランキング1位だけを時間順に抜き出した「候補1位のコード進行」も表示します。この進行は自動候補の一覧であり、下のTop 3から行うユーザー手動選択とは別管理です。Track選択を変更してChord分析を再計算すると自動で更新されます。
 
 Degreeは選択済みKeyを基準にし、Key未選択時は第1Key候補を仮基準として「Key候補 X の場合」と明記します。音階外Chordは誤り扱いせず、♭VII等のDegreeと「音階外」を表示します。
 
@@ -113,6 +116,9 @@ MIDI Import / Storage / Piano Roll / Key / Chord / Degree / Melody / Bass / Rhyt
 
 ### v0.2
 Motif / Section / 区間Key / 転調 / Slash Chord / Chord Detailを追加。
+
+### v0.2.1
+各Chord区間のランキング1位を時間順に並べ、仮コード進行としてすぐ確認できる表示を追加。
 
 以降は `docs/ROADMAP.md` に従い、比較、裏メロ・Drum・Bass詳細、可視化、素材Library、Demo Composer / RipX連携、AI説明、高度Scoreを段階追加します。
 
