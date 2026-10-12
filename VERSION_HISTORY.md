@@ -1,5 +1,24 @@
 # VERSION_HISTORY
 
+## v0.2.1-dev — 2026-10-13
+状態: Top 1コード進行表示追加 / CI・Production Build確認済み / 公開待ち
+
+主な内容:
+- 各Chord表示区間のランキング1位を時間順に抽出
+- Top 1コード進行を小節番号 / Chord名 / 一致度つきで横並び表示
+- Chord分析Track変更時にTop 1コード進行を自動再計算
+- 手動Chord選択とは独立した自動候補表示として維持
+- Top 1 progression helper unit test 2件追加
+- `VERSION` / `package.json` / 画面title / headerのVersion表示を`v0.2.1-dev`へ同期
+
+設計方針:
+- 既存Chordランキングの計算ロジックは変更しない
+- Top 1コード進行は各segmentの`candidates[0]`だけを時系列で表示する
+- Top 3候補とユーザー手動選択UIは従来どおり残す
+
+復元ポイント:
+- `chatgpt/v0.2-before-top1-progression`
+
 ## v0.2-dev — 2026-10-13
 状態: v0.2最小Scope実装完了 / 実MIDI安定化待ち
 
