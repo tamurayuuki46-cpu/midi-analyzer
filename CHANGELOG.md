@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## Version: v0.6-dev
+更新日: 2026-10-13
+
+### 【追加】
+- Chord / Melody / Bass / Drum / Motifの4小節Clip保存
+- 連続4小節Range選択（8小節なら1–4〜5–8）
+- Clip内NoteをRange先頭0tickへ相対化して保存
+- Genre / Mood / BPM / Key / custom tag
+- Top 1 Chord progressionをClip contextとして保存
+- Clip名・種類・source・Genre・Mood・BPM・Key・custom tag・Chord名のAND検索
+- Library Tab内のClip保存Form / Search / Card / Delete UI
+- IndexedDB `savedClips` Store
+- IndexedDB v1→v2 Migration test
+- Clip model / search unit test
+- `docs/CLIP_LIBRARY_SPEC.md`
+
+### 【変更】
+- IndexedDB Database versionを1→2へ更新
+- 既存`savedMidis` Storeは保持し、新しい`savedClips`だけ追加
+- Library Tabを「保存済みMIDI」と「Clip Library」に分離
+- BPM / Keyは保存Rangeから自動Tag、Genre / Mood / custom tagは任意入力
+- Chord進行DBをClip LibraryのChord contextとして統合
+- Versionを`v0.6-dev`へ更新
+
+### 【修正】
+- v1→v2 Migration時に既存保存済みMIDI recordを削除・変換しないことを自動テストで固定
+- Clip Range境界をまたぐNoteはClip側だけ切り詰め、元Songを変更しない
+
+### 【未対応】
+- ClipからMIDI binaryを書き出す機能
+- Clip編集 / Quantize
+- Clip Trackの手動対応付け
+- Cloud同期 / Demo Composer送信
+- 保存済みMIDIの「開く」
+- Android実機でClip保存 / 検索 / 削除の最終確認
+- 実MIDIによる各Analyzer閾値調整
+
 ## Version: v0.5-dev
 更新日: 2026-10-13
 
