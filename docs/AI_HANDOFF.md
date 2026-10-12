@@ -1,125 +1,82 @@
 # AI_HANDOFF.md
 
 現在Version:
-v0.1-dev
+v0.2-dev
 
 最新安定版:
 未作成
 
 現在実装済み:
-- 初期Repository / 共通仕様書
-- MIDI Schema v0.1 / Analysis仕様 v0.1
-- MIDI Import / Parser Adapter / Song正規化
+- MIDI Import / Parser Adapter / Normalized Song Schema
 - Tempo / 拍子 / Track / RipX origin / Warning
 - IndexedDB端末保存（初期OFF）/ 一覧 / 削除
 - 読み取り専用Piano Roll / Track切替 / Zoom / Scroll
-- 固定binary MIDI Parser integration regression test
-- Key / Scale Analyzer / major-minor 24候補 → Top 3
-- Key候補ユーザー選択UI
-- Chord Analyzer + Degree / Chord分析対象Track選択UI
-- 12 root × 10 Chord Template / Top 3候補
-- overlap duration × velocity重み
-- Bass Bonus / Non-Chord Penalty / sparse chord confidence reduction
-- Chord切替閾値10% / 同一小節内の連続Chord集約
-- 選択Keyまたは第1Key候補を基準にDegree表示 / 音階外Degree表示
-- Melody基本分析: 音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率
-- Bass基本分析: 最低音移動 / Root・3rd・5th・Other / リズム型
-- Rhythm基本分析: 拍位置 / シンコペーション候補 / 密度 / 16分Grid
-- Melody / Bass / Rhythm分析対象Track選択UI
-- Chord選択・Chord分析Track変更時のMelody / Bass再計算
-- 最小Play / Stop簡易再生
-- Tempo Map対応Tick→seconds変換
-- 50ms scheduler / 約180ms lookahead Web Audio scheduling
-- 通常Note triangle oscillator / Channel 10簡易click
-- Stop / 再Import時AudioContext破棄 / resume競合対策
-- GitHub Actionsでunit test + production buildを継続確認
+- Key / Scale Analyzer / major-minor 24候補 → Top 3 / ユーザー選択
+- Chord Analyzer + Degree / Track選択 / Top 3候補
+- Melody / Bass / Rhythm基本分析
+- Chord選択・Chord Track変更時のMelody / Bass再計算
+- 最小Play / Stop簡易再生 / Tempo Map対応Web Audio scheduler
+- GitHub Actions unit test + production build
 - GitHub Pagesでdevelopを自動公開
-- Android Chrome実機でImport / Storage / Play / Stop / Piano Roll / Key / Chord / Basic Analysisの基本動作確認済み（2026-10-13）
+- Android Chrome実機Smoke Test済み
+- v0.2 Motif反復候補（音程差 + 1/4拍単位onset、移調非依存）
+- v0.2 4小節Block Section候補
+- v0.2 区間Key Timeline / 転調候補 / Key relation
+- v0.2 Chord Detail（転回形 / Slash Chord候補 / add9 / 11 / 6・13色付け候補）
+- v0.2発展分析Panel
 
 開発中:
-- v0.1機能Scopeの実装は完了
-- Android実機の基本Smoke Testも完了
-- 実MIDIによる係数 / heuristic / playback音量調整を残す
+- v0.2 Scopeの最小実装は完了
+- 実MIDIでMotif / Section / 転調 / Chord Detailの閾値調整を残す
+- v0.1由来のKey / Chord / Basic Analysis / Playback実MIDI調整も継続課題
 
 次に実施:
-1. RipX / Scaler / EZkeys等の実MIDIでKey / Chord係数・Track heuristic・Beat toleranceを調整
-2. 実MIDIでTempo Change / Channel 10 Drum / 3/4 / 6/8 / 非Quantizeを回帰確認
-3. Playbackの端末speaker / Bluetooth音量を実MIDIで調整
-4. 上記が通ればv0.1-stable候補を作る
+1. RipX / Scaler / EZkeys等の実MIDIでv0.1/v0.2解析をRegression確認
+2. Motifの誤検出、Section similarity 0.82、Chord Detail weight 8%を調整
+3. 長いMIDIで発展分析のPerformance / Android表示を確認
+4. v0.3で2 MIDI比較 / 参考曲vs自作曲 / 自作曲傾向へ進む
 
 既知の問題:
-- SMPTE time divisionはv0.1未対応
-- Key拮抗閾値10%は仮値
-- Key profile / confidenceは実MIDIで調整が必要
-- Keyは全曲1候補でSection別Key未対応
-- Chord Bass Bonus 1.5 / Non-Chord Penalty 0.5 / 切替10%は仮値
-- slash chord専用表記は未対応
-- 6/8等のmusicalBeat accent表示は未対応
+- SMPTE time division未対応
+- Key / Chordの一部係数は暫定
 - 保存済みMIDIの「開く」は未実装
-- Melody / Bass fallback Track推定はroleHint + 平均Pitchの簡易heuristic
-- Melody同時発音の代表Note選択は簡易heuristic
-- Rhythmのシンコペーションは拍頭以外onsetの簡易候補
-- beat判定許容幅は暫定
+- 6/8等のmusicalBeat accent表示は未対応
 - PlaybackはGM / 元音色を再現しない簡易Web Audio preview
+- Motifは反転 / augmentation / diminution / fuzzy match未対応
+- Sectionは固定4小節Blockで可変長境界推定ではない
+- 転調は隣接BlockのKey第1候補切替を候補として表示する簡易方式
+- pivot chord / common toneによる転調理由推定は未対応
+- Slash Chordはv0.2 Chord Detail候補であり、v0.1 Chord選択値そのものは変更しない
+- Chord Detail extensionはadd9 / 11 / 6・13のみ
 - RipX / Scaler / EZkeys等の実ファイルRegressionは別途必要
 
 触らない部分:
 - mainを開発用にしない
 - 過去Version / 復元Branch
 - Demo Composerのproject.json Schema
-- 元MIDI由来Noteを分析処理 / Piano Roll / Playbackで直接変更しない
+- 元MIDI由来Noteを直接変更しない
 - `midi-file` raw event modelを `src/midi/` 外へ漏らさない
 - 保存OFF時に元MIDI binaryを永続化しない
-- v0.1 Piano RollへNote編集を追加しない
-- AnalyzerがKey / Chordを自動確定しない
-- v0.1 PlaybackへPause / Seek / Loop / Tempo変更 / 音色選択を追加しない
+- AnalyzerがKey / Chord / Section / Motif / 転調を自動確定しない
+- v0.1 Chord Analyzerをv0.2 Chord Detailのために破壊的変更しない
 
 最近の重要な設計判断:
-- MIDI Parserは `midi-file@1.2.4` を `src/midi/` に隔離
-- Storageはnative IndexedDB
-- Piano RollはNormalized Songだけを読む独立Module
-- Key Analyzer weight = durationTick × velocity / Channel 10除外
-- Chord AnalyzerはNormalized Songだけを読む
-- Chord分析対象Trackはユーザー選択
-- Chord weight = window overlapDurationTick × velocity
-- Bass Bonus 1.5 / Non-Chord Penalty 0.5 / 切替閾値10%は暫定
-- 6/8ではanalysisGridとmusicalBeatを分離
-- Chord候補Top 3を表示しselectedはUIで人が選択
-- Degreeは選択Key、未選択なら第1Key候補を仮基準にする
-- 音階外Degreeは表示するが評価しない
-- Melody初期TrackはroleHint melody優先、fallbackは平均Pitch最高
-- Bass初期TrackはroleHint bass優先、fallbackは平均Pitch最低
-- Rhythm初期TrackはDrum優先、なければNoteを持つ全Track
-- Chord Tone / Bass Chord Roleは選択Chord優先、未選択区間は第1候補を仮使用して前提表示
-- Chord分析Track変更 / Chord候補選択でBasic Analysisを再計算
-- Rhythm同一Tickは1 onsetとして扱う
-- 6/8等compound meterでは3 denominator unitを1 musicalBeatとして扱う
-- PlaybackはNormalized Song + Tempo Mapのみを読む
-- Playbackは長いMIDI対策としてlookahead schedulerを使用
-- Android Web Audio制約に合わせPlay操作でAudioContextを開始
-- 再Import前に旧Playback controllerをdestroyする
-- Motifはv0.2以降
-- v0.1 UIに一般Exportを置かない
+- v0.2以降もNormalized Songを解析入力の正本とする
+- Motifは絶対Pitchではなく音程差 + quantized onset intervalで比較する
+- SectionはPitch Class分布60% / 密度18% / Register14% / Velocity8%のSimilarityを使う
+- Section similarity thresholdは0.82の暫定値
+- Section / Key Timelineは4小節Blockを基本単位にする
+- 区間Keyは既存Key Analyzerを再利用する
+- 転調候補は隣接Blockの第1Key候補が変わる位置を表示する
+- Chord Detailは既存Chord Analyzerの上位Layerとして実装し、候補順位を変更しない
+- Slash Chordは最低音がChord構成音かつRoot以外のときのみ候補表示する
+- add9 / 11 / 6・13は区間weight 8%以上を候補表示する
+- v0.3以降はROADMAPに従って全部入りを段階追加する
 
-現在のMIDI Schema:
-schemaVersion "0.1"
-Note: id, pitch, startTick, durationTick, velocity, trackId, channel, origin
-Track: id, name, channels[], noteCount, isDrums, roleHint
-Song: schemaVersion, source, ppq, tempoMap, timeSignatures, lengthTicks, tracks, notes
-Import Result: { song, warnings }
-
-現在のAnalysis Result:
-Key: { candidates: [{ value, confidence }], selected: null, note, hint }
-Chord: { trackIds, segments: [{ id, startTick, endTick, barNumber, candidates, selected }], selected: null, note, parameters }
-Melody: { trackId, noteCount, range, leap, repeated, density, chordTone, note }
-Bass: { trackId, noteCount, movement, chordRole, rhythm, note }
-Rhythm: { trackIds, noteCount, onsetCount, beatPosition, density, meterGrids, note }
-selectedは人が選択した場合のみUI stateで設定。自動解析では確定しない。
-
-現在のPlayback:
-Normalized Song → tempo-aware playback schedule → Web Audio controller
-通常Note=triangle / Channel 10=短いsquare click
-Play / Stopのみ。Pause / Seek / Loopなし。
+現在のAnalysis Result追加分:
+Motif: { trackId, motifs: [{ id, noteLength, signature, occurrenceCount, occurrences, representativePitches }], note, parameters }
+Structure: { sections, keyTimeline, modulations, note, parameters }
+Harmony Detail: { trackIds, segments: [{ id, startTick, endTick, barNumber, baseCandidate, displayValue, inversion, extensions }], note }
 
 現在のStorage Schema:
 IndexedDB `midi-analyzer` / version 1 / store `savedMidis`
@@ -130,6 +87,8 @@ record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 - `chatgpt/v0.1-before-playback`
 - `chatgpt/v0.1-before-github-pages`
 - `chatgpt/v0.1-before-pages-deploy-fix`
+- `chatgpt/v0.1-android-verified-milestone`
+- `chatgpt/v0.2-before-structure-motif`
 
 最終更新:
 2026-10-13
