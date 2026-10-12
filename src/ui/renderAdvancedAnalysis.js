@@ -90,7 +90,7 @@ function renderKeyTimeline(result) {
 }
 
 function renderHarmony(result) {
-  const detailed = result.segments.filter((segment) => segment.detail !== null || segment.inversion || segment.extensions?.length);
+  const detailed = result.segments.filter((segment) => segment.inversion || segment.extensions?.length);
   const segments = detailed.length ? detailed : result.segments.slice(0, 6);
   if (!segments.length) return '<p class="empty-state">Chord Detail候補はありません。</p>';
   return `
