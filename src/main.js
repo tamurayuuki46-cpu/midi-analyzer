@@ -32,6 +32,7 @@ const storageStatus = document.querySelector('#storage-status');
 const submitButton = document.querySelector('#import-button');
 
 let activePlaybackController = null;
+let activeCompareController = null;
 
 function setStorageStatus(message, tone = 'neutral') {
   storageStatus.textContent = message;
@@ -74,6 +75,7 @@ form.addEventListener('submit', async (event) => {
     await activePlaybackController.destroy();
     activePlaybackController = null;
   }
+  activeCompareController = null;
 
   submitButton.disabled = true;
   submitButton.textContent = '読み込み中…';
@@ -106,7 +108,7 @@ form.addEventListener('submit', async (event) => {
     );
 
     mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-analysis-root]'), result.song);
-    const compareController = mountCompareAnalysis(
+    activeCompareController = mountCompareAnalysis(
       resultRoot.querySelector('[data-compare-analysis-root]'),
       result.song,
       { loadSavedSongs },
@@ -127,7 +129,7 @@ form.addEventListener('submit', async (event) => {
         });
         setStorageStatus('この端末に保存しました。クラウドや外部サービスには送信していません。', 'success');
         await refreshSavedMidiList();
-        await compareController?.refreshTrend();
+        await activeCompareController?.refreshTrend();
       } catch (storageError) {
         setStorageStatus(`MIDIは読み込めましたが、端末保存に失敗しました: ${storageError.message}`, 'error');
       }
@@ -155,6 +157,7 @@ savedRoot.addEventListener('click', async (event) => {
     await deleteSavedMidi(id);
     setStorageStatus('保存済みMIDIをこの端末から削除しました。', 'success');
     await refreshSavedMidiList();
+    await activeCompareController?.refreshTrend();
   } catch (error) {
     setStorageStatus(`削除できませんでした: ${error.message}`, 'error');
     button.disabled = false;
