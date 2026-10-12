@@ -1,104 +1,94 @@
 # AI_HANDOFF.md
 
 現在Version:
+v0.4-dev
+
+公開中Version:
 v0.2.1-dev
 
 最新安定版:
 未作成
 
-現在実装済み:
+## 現在実装済み
 - MIDI Import / Parser Adapter / Normalized Song Schema
 - Tempo / 拍子 / Track / RipX origin / Warning
-- IndexedDB端末保存（初期OFF）/ 一覧 / 削除
-- 読み取り専用Piano Roll / Track切替 / Zoom / Scroll
-- Key / Scale Analyzer / major-minor 24候補 → Top 3 / ユーザー選択
-- Chord Analyzer + Degree / Track選択 / Top 3候補
-- 各Chord区間のランキング1位を時間順に並べるTop 1コード進行表示
-- Top 1コード進行: 小節番号 / Chord名 / 一致度 / Android向け横スクロール
+- IndexedDB任意保存 / 一覧 / 削除
+- Piano Roll
+- Key / Scale Top 3 + ユーザー選択
+- Chord Top 3 + Degree / Track選択
+- 各Chord区間のランキング1位を並べるTop 1コード進行
 - Melody / Bass / Rhythm基本分析
-- Chord選択・Chord Track変更時のMelody / Bass再計算
-- 最小Play / Stop簡易再生 / Tempo Map対応Web Audio scheduler
-- GitHub Actions unit test + production build
-- GitHub Pagesでdevelopを自動公開
-- Android Chrome実機Smoke Test済み
-- v0.2 Motif反復候補（音程差 + 1/4拍単位onset、移調非依存）
-- v0.2 4小節Block Section候補
-- v0.2 区間Key Timeline / 転調候補 / Key relation
-- v0.2 Chord Detail（転回形 / Slash Chord候補 / add9 / 11 / 6・13色付け候補）
-- v0.2発展分析Panel
+- Play / Stop簡易再生 / Tempo Map対応Web Audio
+- Motif / 4小節Section / 区間Key / 転調候補
+- Slash Chord / add9 / 11 / 6・13候補
+- v0.3: 2 MIDI比較 / 参考曲 vs 自作曲 / Personal Trend
+- v0.4: 裏メロ候補 / Bass詳細 / Drum詳細 / Track役割候補
+- GitHub Actions test + build
+- GitHub Pages（develop公開）
 
-開発中:
-- v0.2.1 Top 1コード進行表示は実装・CI/Production Build確認済み
-- 公開はdevelop merge後にGitHub Pagesへ自動Deploy
-- 実MIDIでMotif / Section / 転調 / Chord Detailの閾値調整を残す
-- v0.1由来のKey / Chord / Basic Analysis / Playback実MIDI調整も継続課題
+## v0.3設計
+- 現在のSongを自作曲、追加選択したSongを参考曲として比較
+- 比較用MIDIは自動保存しない
+- Key / BPM / Chord / Melody / Bass / Rhythm / 密度 / 転調を同じAnalyzerで集計
+- 差を優劣として評価しない
+- Personal Trendは明示保存済みIndexedDB Songのみ集計
+- 保存 / 削除後はTrend再集計
 
-次に実施:
-1. v0.2.1をdevelopへ統合後、GitHub Pages公開とAndroid表示を確認
-2. RipX / Scaler / EZkeys等の実MIDIでv0.1/v0.2解析をRegression確認
-3. Motifの誤検出、Section similarity 0.82、Chord Detail weight 8%を調整
-4. 長いMIDIで発展分析とTop 1コード進行のPerformance / Android表示を確認
-5. v0.3で2 MIDI比較 / 参考曲vs自作曲 / 自作曲傾向へ進む
+## v0.4設計
+- 裏メロ候補は別の単音寄りTrackを主旋律と8分Gridで比較
+- 反行 / 並行 / 斜行 / 主旋律の隙間 / 2度衝突候補 / Registerを表示
+- Bass詳細はペダル / オクターブ / 半音 / 順次 / 次Chord Root接近候補
+- Drum詳細はGM大分類 / 使用GM Note / Tom集中・密度上昇によるFill候補
+- Track役割候補はroleHintを優先し、ない場合に平均Pitch・同時発音傾向を使用
+- roleHintやMIDI Noteを自動変更しない
 
-既知の問題:
+## 次に実施
+1. v0.4最終CI / Android表示確認
+2. RipX / Scaler / EZkeys等の実MIDIでv0.1〜v0.4 regression
+3. 裏メロ候補Trackの手動選択UIとheuristic調整
+4. v0.5 Visualizationへ進む
+
+## 既知の問題 / 継続課題
 - SMPTE time division未対応
-- Key / Chordの一部係数は暫定
+- Key / Chord / Section / Motif / Part Deepの一部閾値は暫定
 - 保存済みMIDIの「開く」は未実装
-- 6/8等のmusicalBeat accent表示は未対応
-- PlaybackはGM / 元音色を再現しない簡易Web Audio preview
-- Motifは反転 / augmentation / diminution / fuzzy match未対応
-- Sectionは固定4小節Blockで可変長境界推定ではない
-- 転調は隣接BlockのKey第1候補切替を候補として表示する簡易方式
-- pivot chord / common toneによる転調理由推定は未対応
-- Slash Chordはv0.2 Chord Detail候補であり、v0.1 Chord選択値そのものは変更しない
-- Chord Detail extensionはadd9 / 11 / 6・13のみ
-- Top 1コード進行は自動ランキング1位のみで、Copy / Export / Demo Composer送信は未実装
-- RipX / Scaler / EZkeys等の実ファイルRegressionは別途必要
+- PlaybackはGM / 元音色を再現しない簡易preview
+- Sectionは固定4小節Block
+- pivot chord / common tone転調理由は未対応
+- CompareのTrack手動対応 / Section同期比較は未対応
+- 裏メロTrackの手動指定UIは未対応
+- Fill候補はrule-based簡易判定
+- 実ファイルRegressionは継続必要
 
-触らない部分:
+## 触らない部分
 - mainを開発用にしない
-- 過去Version / 復元Branch
-- Demo Composerのproject.json Schema
-- 元MIDI由来Noteを直接変更しない
+- 過去Version / 復元Branchを削除・上書きしない
+- Demo Composer project.json Schema
+- 元MIDI由来Noteを自動変更しない
 - `midi-file` raw event modelを `src/midi/` 外へ漏らさない
 - 保存OFF時に元MIDI binaryを永続化しない
-- AnalyzerがKey / Chord / Section / Motif / 転調を自動確定しない
-- v0.1 Chord Analyzerをv0.2 Chord Detailのために破壊的変更しない
-- Top 1コード進行に手動選択Chordを混ぜない
+- AnalyzerがKey / Chord / Section / Motif / 転調 / Track役割を自動確定しない
 
-最近の重要な設計判断:
-- v0.2以降もNormalized Songを解析入力の正本とする
-- Motifは絶対Pitchではなく音程差 + quantized onset intervalで比較する
-- SectionはPitch Class分布60% / 密度18% / Register14% / Velocity8%のSimilarityを使う
-- Section similarity thresholdは0.82の暫定値
-- Section / Key Timelineは4小節Blockを基本単位にする
-- 区間Keyは既存Key Analyzerを再利用する
-- 転調候補は隣接Blockの第1Key候補が変わる位置を表示する
-- Chord Detailは既存Chord Analyzerの上位Layerとして実装し、候補順位を変更しない
-- Slash Chordは最低音がChord構成音かつRoot以外のときのみ候補表示する
-- add9 / 11 / 6・13は区間weight 8%以上を候補表示する
-- Top 1コード進行は各Chord segmentの`candidates[0]`のみを時間順に並べる
-- Chord分析Track変更時にはTop 1コード進行も再計算する
-- v0.3以降はROADMAPに従って全部入りを段階追加する
+## Analysis Result追加分
+- Compare Summary: `{ name, key, bpm, melodyRange, melodyDensity, bassAverageMovement, rhythmOnsetsPerQuarter, noteDensity, modulationCount, chordProgression, uniqueChords }`
+- Compare Result: `{ reference, own, metrics, sameTopKey, chordSimilarity, note }`
+- Personal Trend: `{ count, summaries, trend, note }`
+- Counter Melody: `{ melodyTrackId, counterTrackId, motion, gaps, collisions, register, note }`
+- Bass Detail: `{ trackId, pedal, movement, approach, note }`
+- Drum Detail: `{ categoryCounts, usedGmNotes, fills, averageOnsetsPerBar, note }`
+- Part Candidates: `{ candidates: [{ trackId, roleCandidate, confidence, reasons }], note }`
 
-現在のAnalysis Result追加分:
-Motif: { trackId, motifs: [{ id, noteLength, signature, occurrenceCount, occurrences, representativePitches }], note, parameters }
-Structure: { sections, keyTimeline, modulations, note, parameters }
-Harmony Detail: { trackIds, segments: [{ id, startTick, endTick, barNumber, baseCandidate, displayValue, inversion, extensions }], note }
-Top 1 Progression: [{ segmentId, barNumber, startTick, endTick, value, confidence }]
-
-現在のStorage Schema:
+## Storage Schema
 IndexedDB `midi-analyzer` / version 1 / store `savedMidis`
 record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 
-復元ポイント:
-- `chatgpt/v0.1-before-basic-analysis`
-- `chatgpt/v0.1-before-playback`
-- `chatgpt/v0.1-before-github-pages`
-- `chatgpt/v0.1-before-pages-deploy-fix`
+## 重要な復元ポイント
 - `chatgpt/v0.1-android-verified-milestone`
 - `chatgpt/v0.2-before-structure-motif`
-- `chatgpt/v0.2-before-top1-progression`
+- `chatgpt/v0.2.1-published-milestone`
+- `chatgpt/v0.3-before-compare`
+- `chatgpt/v0.3-feature-complete-milestone`
+- `chatgpt/v0.4-before-part-deep`
 
 最終更新:
 2026-10-13

@@ -1,5 +1,62 @@
 # CHANGELOG
 
+## Version: v0.4-dev
+更新日: 2026-10-13
+
+### 【追加】
+- 裏メロ候補分析: 反行 / 並行 / 斜行 / 主旋律の隙間 / 2度衝突候補 / 上下Register
+- Bass詳細分析: ペダル候補 / オクターブ移動 / 半音進行 / 順次進行 / 次Chord Root接近候補
+- Drum詳細分析: GM Drum大分類 / 使用GM Note / Fill候補
+- MIDI Track役割候補: Melody / Chord / Bass / Drums / Other
+- Android向けPart Deep Analysisパネル
+- `docs/PART_DEEP_ANALYSIS_SPEC.md`
+- Part Deep Analyzer unit test 5件
+
+### 【変更】
+- 裏メロの短2度/長2度同時発音は「衝突候補」として表示し、悪いとは評価しない
+- FillはTom集中または小節内onset密度上昇から候補化する
+- Track役割は候補表示のみで、Normalized SongのroleHintを自動書換しない
+- Versionを`v0.4-dev`へ更新
+
+### 【修正】
+- なし
+
+### 【未対応】
+- 裏メロTrackのユーザー手動指定UI
+- Voice Leadingの完全な和声学判定
+- Drum Fillの高度なpattern分類
+- Program Changeを使った楽器種別推定
+- 実MIDIによる各閾値の調整
+
+## Version: v0.3-dev
+更新日: 2026-10-13
+
+### 【追加】
+- 2 MIDI比較（参考曲 vs 現在のMIDI）
+- Key / BPM / Chord / Melody / Bass / Rhythm / Note密度 / 転調候補数の比較
+- Top 1コード進行の使用Chord共通度
+- IndexedDBに明示保存した複数MIDIから「自分の作曲傾向」を集計
+- よく使うKey / Chord、平均BPM、Melody音域・密度、Bass移動、Rhythm密度、転調候補の集計
+- `docs/COMPARE_SPEC.md`
+- Compare / Personal Trend unit test 5件
+
+### 【変更】
+- 比較用の2曲目MIDIは一時解析だけ行い、自動保存しない
+- 比較結果は差を表示するが、良し悪し・優劣として評価しない
+- 保存済みMIDIの追加・削除後にPersonal Trendを再集計する
+- 比率の差はpercentage pointで表示する
+- Versionを`v0.3-dev`へ更新
+
+### 【修正】
+- 保存済みMIDI削除後に作曲傾向表示が古いまま残る状態を解消
+
+### 【未対応】
+- 比較する2曲のTrack手動対応付け
+- Section単位の同期比較 / フレーズ時間伸縮比較
+- 実MIDIによるKey / Chord係数・各heuristicの調整
+- 保存済みMIDIの「開く」
+- v0.4以降のPart詳細分析
+
 ## Version: v0.2.1-dev
 更新日: 2026-10-13
 

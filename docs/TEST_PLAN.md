@@ -2,77 +2,26 @@
 
 ## 実装済み自動テスト
 
-### Parser / Normalizer
-- 正規化 / Drum / 複数Channel / 既定Tempo拍子 / Warning / SMPTE拒否 / origin
-- 固定binary-like MIDI fixture Format 0 / Format 1を実Parser経由で検証
+### 基礎Regression
+- Parser / Normalizer / Storage / Piano Roll
+- Key / Chord / Degree / Top 1 Chord Progression
+- Melody / Bass / Rhythm Basic Analysis
+- Playback Schedule / Controller
+- v0.2 Motif / Structure / Modulation / Harmony Detail
 
-### Storage
-- IndexedDB保存 / 一覧 / 削除 / record構造
+### v0.3 Compare / Personal Trend
+1. Song summaryがKey / Chord / Melody / Bass / Rhythm指標を返す
+2. 同一Song比較で主要delta=0 / Chord共通度=100%
+3. 移調した参考曲と自作曲を区別しつつ優劣評価しない
+4. 保存済み2曲からPersonal Trendを集計
+5. 0曲では空Trendを安全に返す
 
-### Piano Roll
-- Track抽出 / 初期Track / Pitch Range / MIDI境界 / bar-beat marker / Note名 / 拍子変更
-
-### Key Analyzer
-- major / minor基本判定
-- Drum除外
-- duration × velocity
-- confidence / 候補なし
-
-### Chord Analyzer
-1. C major triad → C
-2. A minor triad → Am
-3. C/E転回形のHarmony本体はCとして判定
-4. G7構成音あり → G7
-5. Track選択 / Channel 10除外
-6. 2音だけの候補はconfidenceを下げる
-7. 6/8: analysisGrid=8分 / musicalBeat=付点4分
-8. C major Degree: C=I / B♭=♭VII音階外
-9. A minor Degree: C=III / G♯=♯VII音階外
-10. 同一小節で同じChordが続くGridを1区間にまとめる
-
-### Top 1 Chord Progression
-1. 各Chord segmentの`candidates[0]`を時間順にC → G → Amのように保持する
-2. Candidateが空のsegmentは安全にskipする
-
-### Melody / Bass / Rhythm Basic Analysis
-1. roleHintをMelody / Bass初期Trackとして優先
-2. roleHintなしでは平均Pitch最高/最低Trackをfallback
-3. Melody: 音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率
-4. Melody: 同一Tick複数Noteを代表Noteへ集約
-5. Bass: Root / 3rd / 5th / Other分類
-6. Bass: 同一Tickでは最低Pitchを代表Noteとして移動量計算
-7. Rhythm: Drum Track優先 / 4/4密度 / 16分Grid
-8. 6/8: musicalBeatを付点4分として拍位置判定
-9. MIDI Pitch表記
-
-### Playback Schedule
-1. 120 BPMで4分音符=0.5秒
-2. Tempo Changeの累積時間
-3. tick 0 Tempoなし時の120 BPM fallback
-4. 同一tick Tempo eventは最後を使用
-5. Note start / endへTempo Mapを反映
-6. schedule順序 / Channel 10判定
-7. duration 0 Noteを除外
-8. 曲の再生長を最終Note endから算出
-9. MIDI A4 = 440 Hz
-
-### Playback Controller
-1. PlayでWeb Audio nodeをscheduleし、StopでAudioContext close
-2. NoteなしSongは再生error
-3. AudioContext resume中にStopしても旧sessionを開始しない
-
-### v0.2 Motif
-1. C-D-E-GとD-E-F♯-Aのような移調反復を同一Motifとして検出
-2. 2回分のNote数が足りない場合は候補なし
-
-### v0.2 Structure / Modulation
-1. C系4小節 → D系4小節 → C系4小節で第1/第3Blockを同一Section候補へ分類
-2. 隣接BlockのKey第1候補変化から転調候補を作る
-3. 解析可能な長さがないSongでは空Resultを返す
-
-### v0.2 Harmony Detail
-1. E-G-CのようにChord ToneがBassのC majorをC/E候補として表示
-2. C major区間にDが十分含まれる場合add9色付け候補を表示
+### v0.4 Part Deep Analysis
+1. 2つのmelodic Trackが逆方向に動く例で反行率100%
+2. 主旋律の休符区間を裏メロが埋める例と2度衝突候補を検出
+3. Bassでペダル傾向 / 12stオクターブ / 1st半音進行を検出
+4. GM Drum NoteをKick / Snare / Tom等へ分類し、Tom集中小節をFill候補化
+5. roleHint付きTrackをMelody / Chord / Bass / Drums候補として維持
 
 実行:
 ```bash
@@ -81,52 +30,29 @@ npm run build
 ```
 
 ## 実MIDIテスト候補
-1. C–G–Am–F（各1小節）
-2. 1小節2コード
-3. 転回形 C/E
-4. 音数が少ない伴奏
-5. RipX想定の非Quantize MIDI
-6. Scaler / EZkeys想定のQuantize MIDI
-7. 3/4
-8. 6/8
-9. ループ曲
-10. イントロだけ別調
-11. Melodyが和音化されたMIDI
-12. Bass Track名が曖昧なMIDI
-13. Drumなしで全TrackからRhythmを見るMIDI
-14. Tempo Changeを含むMIDI
-15. Channel 10 Drumを含むMIDI
-16. 同一Motifを別Keyへ移調して再登場させたMIDI
-17. A-B-A型でPitch / Densityが明確に違うMIDI
-18. サビ前で半音または全音転調するMIDI
-19. Slash Chordを含むPiano MIDI
-20. add9 / 11 / 6・13が持続するChord MIDI
-21. 16小節以上でTop 1コード進行の横スクロールが長くなるMIDI
+- RipX非Quantize / Scaler・EZkeys Quantize
+- 3/4 / 6/8 / Tempo Change
+- 主旋律 + 裏メロが別TrackのMIDI
+- 裏メロが主旋律の休符を埋めるMIDI
+- 半音/全音のBass approachを含むMIDI
+- ペダルBass / octave Bass MIDI
+- GM Channel 10 Drum / Tom Fill / Crashを含むMIDI
+- roleHintが曖昧または欠落した複数Track MIDI
+- 参考曲 / 自作曲比較用の2 MIDI
+- 保存済み3曲以上のPersonal Trend
 
 ## Android Manual
-- Import後にPlayで初回から音が鳴る
-- Stopで即座に音が止まる
-- 再Import時に旧MIDIの音が残らない
-- 曲末で自動停止し、再びPlayできる
-- 画面ロック / 復帰後に再Playできる
-- 端末speaker / Bluetoothで音量が過大でない
-- Chord Track checkboxが片手で押せる
-- Chord候補3つが縦スクロールで読みやすい
-- Top 1コード進行が時間順に表示される
-- Top 1コード進行が320px幅でも横スクロールで破綻しない
-- Chord Track変更でTop 1コード進行が更新される
-- 手動Chord選択を変えてもTop 1コード進行はランキング1位表示のまま変化しない
-- Key選択を変えるとDegreeが即時更新される
-- Chord候補選択が区間ごとに保持される
-- Chord候補選択でMelody Chord Tone / Bass Chord Roleが再計算される
-- Melody / Bass Track selectが片手で操作できる
-- Rhythmの複数Track checkboxが操作しやすい
-- 16分Gridが320px幅でも横にはみ出さない
-- 長いMIDIでChord区間数が多くてもページが破綻しない
-- v0.2発展分析Panelが320px幅で横崩れしない
-- Motif候補 / Section / Key Timeline / Chord Detailが縦スクロールで読める
-- Import / Storage / Piano Roll / Key / Chord / Basic Analysis機能が回帰していない
+- Import / Storage / Play / Stop / Piano Roll
+- Key / Chord / Top 1コード進行 / Basic Analysis
+- v0.2発展分析
+- v0.3比較File picker / Compare cards / Personal Trend
+- v0.4 Part Deep Panelが320px幅で崩れない
+- 裏メロ / Bass / Drum Metricが縦スクロールで読める
+- GM Drum Note chipが折り返す
+- Track役割候補の長いTrack名がはみ出さない
+- 保存 / 削除後にPersonal Trendが再集計される
+- 比較用MIDIが保存一覧へ勝手に追加されない
 
 ## Regression
-Analysis Engine / Playback変更前後で固定MIDIを再解析・再scheduleし、意図しない結果変化がないか確認する。
+Analysis Engine / Playback変更前後で固定MIDIを再解析し、既存結果の意図しない変化がないか確認する。
 アルゴリズム結果変更はCHANGELOGへ記録する。

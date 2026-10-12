@@ -1,7 +1,48 @@
 # VERSION_HISTORY
 
+## v0.4-dev — 2026-10-13
+状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み
+
+主な内容:
+- 裏メロ候補: 反行 / 並行 / 斜行 / 隙間 / 2度衝突候補 / Register
+- Bass詳細: ペダル / オクターブ / 半音 / 順次 / 次Chord Root接近
+- Drum詳細: GM Drum Map大分類 / 使用Note / Fill候補
+- Track役割候補: Melody / Chord / Bass / Drums / Other
+- Android-first Part Deep Analysis Panel
+- Part Deep unit test 5件
+- v0.1〜v0.3を含む全76 tests pass
+
+設計方針:
+- 解析結果は候補であり、良し悪しや役割を自動確定しない
+- v0.1/v0.2/v0.3のAnalyzer結果を破壊的変更しない
+- Normalized Songを入力の正本として維持する
+
+復元ポイント:
+- `chatgpt/v0.4-before-part-deep`
+
+## v0.3-dev — 2026-10-13
+状態: Compare / Personal Trend最小Scope実装完了 / CI・Production Build確認済み
+
+主な内容:
+- 参考曲MIDI vs 現在のMIDIの2曲比較
+- Key / BPM / Chord / Melody / Bass / Rhythm / 音域 / 密度 / 転調候補数を同一指標で比較
+- Top 1コード集合の共通度表示
+- IndexedDB保存済みMIDIからPersonal Trend集計
+- 保存 / 削除後のTrend再集計
+- Compare unit test 5件
+
+設計方針:
+- 比較値を優劣評価へ変換しない
+- 比較用MIDIは一時解析のみで自動保存しない
+- 既存Analyzerを再利用し、Compare機能からKey / Chord順位を変更しない
+- Personal Trendはユーザーが明示保存したSongだけを集計する
+
+復元ポイント:
+- `chatgpt/v0.3-before-compare`
+- `chatgpt/v0.3-feature-complete-milestone`
+
 ## v0.2.1-dev — 2026-10-13
-状態: Top 1コード進行表示追加 / CI・Production Build確認済み / 公開待ち
+状態: Top 1コード進行表示追加 / CI・Production Build確認済み / GitHub Pages公開済み
 
 主な内容:
 - 各Chord表示区間のランキング1位を時間順に抽出
@@ -18,6 +59,7 @@
 
 復元ポイント:
 - `chatgpt/v0.2-before-top1-progression`
+- `chatgpt/v0.2.1-published-milestone`
 
 ## v0.2-dev — 2026-10-13
 状態: v0.2最小Scope実装完了 / 実MIDI安定化待ち
