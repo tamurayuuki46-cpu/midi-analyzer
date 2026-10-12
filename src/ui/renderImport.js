@@ -97,7 +97,11 @@ export function renderSongSummary(root, result) {
       </section>
 
       ${panelStart('library')}
-        <section class="panel" aria-labelledby="library-title"><div class="panel-heading"><div><p class="eyebrow">LIBRARY</p><h2 id="library-title">保存済みMIDI</h2></div><span class="status-pill">端末内</span></div><div data-library-root></div></section>
+        <div data-library-midi-root></div>
+        <section class="panel" aria-labelledby="clip-library-title">
+          <div class="panel-heading"><div><p class="eyebrow">CLIP LIBRARY</p><h2 id="clip-library-title">4小節素材を保存・検索</h2></div><span class="status-pill">v0.6</span></div>
+          <div data-clip-library-root></div>
+        </section>
       </section>
 
       ${panelStart('ai')}
