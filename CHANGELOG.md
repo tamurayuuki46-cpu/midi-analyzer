@@ -60,10 +60,10 @@
 - 再生開始中の二重Playを防止
 - AudioContext resume中のStop / 再Importで旧sessionが復帰しないようlifecycleを修正
 - GitHub Pagesのproject path配下でbuild assetが404にならないようVite baseを相対化
+- GitHub Pagesの`develop`公開が環境保護設定でjob開始前に失敗する構成を避けるため、deploy jobのEnvironment依存を除去
 
 ### 【未対応】
 - Android実機でImport / Storage / Playback / Piano Roll / Key / Chord / Basic Analysis UI確認
 - 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
 - 保存済みMIDIの「開く」
 - slash chord専用表記
-- GitHub Pages初回有効化が未設定の場合はRepository SettingsでSourceをGitHub Actionsへ1回設定
