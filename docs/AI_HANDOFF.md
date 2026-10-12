@@ -33,15 +33,18 @@ v0.1-dev
 - 通常Note triangle oscillator / Channel 10簡易click
 - Stop / 再Import時AudioContext破棄 / resume競合対策
 - GitHub Actionsでunit test + production buildを継続確認
+- GitHub Pagesでdevelopを自動公開
+- Android Chrome実機でImport / Storage / Play / Stop / Piano Roll / Key / Chord / Basic Analysisの基本動作確認済み（2026-10-13）
 
 開発中:
 - v0.1機能Scopeの実装は完了
-- Android実機確認と実MIDIによる係数 / heuristic / playback音量調整を残す
+- Android実機の基本Smoke Testも完了
+- 実MIDIによる係数 / heuristic / playback音量調整を残す
 
 次に実施:
-1. Android Chrome実機でImport / Storage / Play / Stop / Piano Roll / Key / Chord / Basic Analysisを確認
-2. RipX / Scaler / EZkeys等の実MIDIでKey / Chord係数・Track heuristic・Beat toleranceを調整
-3. Playbackの端末speaker / Bluetooth音量とTempo Change再生を確認
+1. RipX / Scaler / EZkeys等の実MIDIでKey / Chord係数・Track heuristic・Beat toleranceを調整
+2. 実MIDIでTempo Change / Channel 10 Drum / 3/4 / 6/8 / 非Quantizeを回帰確認
+3. Playbackの端末speaker / Bluetooth音量を実MIDIで調整
 4. 上記が通ればv0.1-stable候補を作る
 
 既知の問題:
@@ -58,7 +61,6 @@ v0.1-dev
 - Rhythmのシンコペーションは拍頭以外onsetの簡易候補
 - beat判定許容幅は暫定
 - PlaybackはGM / 元音色を再現しない簡易Web Audio preview
-- Android実機でStorage / Playback / Piano Roll / Analysis UI manual testが必要
 - RipX / Scaler / EZkeys等の実ファイルRegressionは別途必要
 
 触らない部分:
@@ -126,6 +128,8 @@ record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 復元ポイント:
 - `chatgpt/v0.1-before-basic-analysis`
 - `chatgpt/v0.1-before-playback`
+- `chatgpt/v0.1-before-github-pages`
+- `chatgpt/v0.1-before-pages-deploy-fix`
 
 最終更新:
-2026-10-12
+2026-10-13
