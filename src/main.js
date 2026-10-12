@@ -12,6 +12,7 @@ import { mountBasicAnalysis } from './ui/renderBasicAnalysis.js';
 import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
+import { mountPlayback } from './ui/renderPlayback.js';
 import {
   renderSavedMidiList,
   renderStorageError,
@@ -26,6 +27,8 @@ const resultRoot = document.querySelector('#result');
 const savedRoot = document.querySelector('#saved-midi-list');
 const storageStatus = document.querySelector('#storage-status');
 const submitButton = document.querySelector('#import-button');
+
+let activePlaybackController = null;
 
 function setStorageStatus(message, tone = 'neutral') {
   storageStatus.textContent = message;
@@ -57,6 +60,11 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
+  if (activePlaybackController) {
+    await activePlaybackController.destroy();
+    activePlaybackController = null;
+  }
+
   submitButton.disabled = true;
   submitButton.textContent = '読み込み中…';
   setStorageStatus('');
@@ -65,6 +73,8 @@ form.addEventListener('submit', async (event) => {
     const result = await importMidiFile(file, { origin: originSelect.value });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
+
+    activePlaybackController = mountPlayback(resultRoot.querySelector('[data-playback-root]'), result.song);
 
     const keyRoot = resultRoot.querySelector('[data-key-analysis-root]');
     const chordRoot = resultRoot.querySelector('[data-chord-analysis-root]');
