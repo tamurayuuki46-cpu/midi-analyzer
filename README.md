@@ -2,7 +2,7 @@
 
 Androidスマートフォン中心の作曲支援PWA。
 
-MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Chord Tone / Non-Chord Tone などを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
+MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Chord Tone / Non-Chord Tone などを見える化して、「なぜこう聞こえるのか」を理解して自分の作曲へ応用するためのアプリです。
 
 ## 現在Version
 
@@ -35,7 +35,10 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 - IndexedDB端末保存（初期OFF）
 - 元MIDI bytes + 正規化Songの端末内保存
 - 保存済みMIDI一覧 / 削除
-- Parser / Normalizer / Storage unit test
+- 読み取り専用Piano Roll
+- Piano RollのTrack切替 / 横ズーム / 横・縦スクロール
+- 小節線 / 拍線 / C音ラベル表示
+- Parser / Normalizer / Storage / Piano Roll model unit test
 
 ## 保存方針
 
