@@ -25,7 +25,15 @@ function delta(value, suffix = '') {
   return `${sign}${value}${suffix}`;
 }
 
-function renderMetric(label, metric, format = value, suffix = '') {
+function percentDelta(value) {
+  if (!Number.isFinite(value)) return '—';
+  const points = Math.round(value * 100);
+  const sign = points > 0 ? '+' : '';
+  return `${sign}${points}pt`;
+}
+
+function renderMetric(label, metric, format = value, suffix = '', deltaFormat = null) {
+  const deltaText = deltaFormat ? deltaFormat(metric.delta) : delta(metric.delta, suffix);
   return `
     <article class="compare-metric-card">
       <span>${escapeHtml(label)}</span>
@@ -33,7 +41,7 @@ function renderMetric(label, metric, format = value, suffix = '') {
         <div><small>参考</small><strong>${escapeHtml(format(metric.reference, suffix))}</strong></div>
         <div><small>自作</small><strong>${escapeHtml(format(metric.own, suffix))}</strong></div>
       </div>
-      <small>差 ${escapeHtml(delta(metric.delta, suffix))}</small>
+      <small>差 ${escapeHtml(deltaText)}</small>
     </article>
   `;
 }
@@ -68,9 +76,9 @@ function renderComparison(result) {
       ${renderMetric('Melody密度', m.melodyDensity)}
       ${renderMetric('平均跳躍', m.melodyAverageLeap, value, ' st')}
       ${renderMetric('Bass移動', m.bassAverageMovement, value, ' st')}
-      ${renderMetric('Bass Root率', m.bassRootRatio, percent)}
+      ${renderMetric('Bass Root率', m.bassRootRatio, percent, '', percentDelta)}
       ${renderMetric('Rhythm密度', m.rhythmOnsetsPerQuarter)}
-      ${renderMetric('拍頭率', m.rhythmOnBeatRatio, percent)}
+      ${renderMetric('拍頭率', m.rhythmOnBeatRatio, percent, '', percentDelta)}
       ${renderMetric('全体Note密度', m.noteDensity)}
       ${renderMetric('転調候補数', m.modulationCount)}
     </div>
