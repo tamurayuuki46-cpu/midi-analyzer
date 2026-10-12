@@ -1,9 +1,9 @@
 # MIDI Analyzer
 
-Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細を可視化し、作曲判断へ応用するためのアプリです。
+Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細 / 可視化を作曲判断へ応用するためのアプリです。
 
 ## 現在Version
-`v0.4.1-dev`
+`v0.5-dev`
 
 公開中Version: `v0.4-dev`
 
@@ -20,9 +20,10 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
 - Structure: Motif / Section / 区間Key / 転調候補
+- Visual: Tonal Center / Chord Timeline / Melody・Bass Contour / Rhythm Density / Energy Curve / Section Map / Heatmap
 - Compare: 2 MIDI比較 / Personal Trend
 - Library: 端末内に保存したMIDI一覧
-- AI: 将来の説明機能用。v0.4.1時点では自動AI解析を実行しない
+- AI: 将来の説明機能用。v0.5時点では自動AI解析を実行しない
 - Parts: Track役割候補
 
 タブは横スクロール可能で、クリック/タップに加えてキーボードの左右矢印・Home・Endでも移動できます。
@@ -46,19 +47,16 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Drum詳細: GM Drum分類 / 使用Note / Fill候補
 - MIDI Track役割候補
 - カテゴリ別タブUI
+- Tonal Center Timeline / Chord Timeline
+- Melody / Bass Contour
+- Rhythm Density / Energy Curve
+- Section Map / Note・Velocity Heatmap
 - GitHub Actions CI / GitHub Pages
 
-## v0.3 Compare / Personal Trend
-現在のMIDIを自作曲側、追加で選んだMIDIを参考曲側として同じ指標で比較します。Key / BPM / Chord / Melody / Bass / Rhythm / Note密度 / 転調候補数を並べます。差は優劣として評価しません。
+## v0.5 Visualization
+既存AnalyzerとNormalized Songの結果を、曲全体の流れとして見やすくするVisual Tabを追加しています。表示は候補の可視化であり、Key / Chord / Section等を新たに確定しません。
 
-比較用MIDIは自動保存しません。Personal Trendはユーザーが明示的にIndexedDBへ保存したMIDIのみから、よく使うKey / Chordや平均BPM、Melody音域・密度などを集計します。
-
-詳細: `docs/COMPARE_SPEC.md`
-
-## v0.4 Part Deep Analysis
-裏メロ候補、Bass、Drum、Track役割候補をより細かく分析します。裏メロの2度同時発音やDrum Fill等は「候補」として表示し、良し悪しを自動判定しません。
-
-詳細: `docs/PART_DEEP_ANALYSIS_SPEC.md`
+詳細: `docs/VISUALIZATION_SPEC.md`
 
 ## 既存分析仕様
 - Key / Scale: `docs/KEY_ANALYZER_SPEC.md`
@@ -69,6 +67,7 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Storage: `docs/STORAGE_SPEC.md`
 - Compare: `docs/COMPARE_SPEC.md`
 - Part Deep: `docs/PART_DEEP_ANALYSIS_SPEC.md`
+- Visualization: `docs/VISUALIZATION_SPEC.md`
 
 ## 保存方針
 「この端末に保存する」は初期OFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへ自動送信しません。
@@ -89,8 +88,9 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 - v0.2.1: Chordランキング1位の仮コード進行
 - v0.3: 2 MIDI比較 / Personal Trend
 - v0.4: 裏メロ / Bass / Drum / Track役割の詳細分析
-- v0.4.1: 解析結果を概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Partsへタブ分割
-- v0.5以降: Visualization → Library強化 → Integration / Export → Explanation → Higher-level Metrics → v1.0統合
+- v0.4.1: 解析結果をカテゴリ別Tabへ分割
+- v0.5: Visualization
+- v0.6以降: Clip / Library → Integration / Export → Explanation → Higher-level Metrics → v1.0統合
 
 詳細は `docs/ROADMAP.md`。
 
@@ -102,9 +102,10 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 5. `docs/ANALYSIS_SPEC.md`
 6. `docs/COMPARE_SPEC.md`
 7. `docs/PART_DEEP_ANALYSIS_SPEC.md`
-8. `docs/MIDI_SCHEMA.md`
-9. `docs/ARCHITECTURE.md`
-10. `docs/ROADMAP.md`
-11. `CHANGELOG.md`
+8. `docs/VISUALIZATION_SPEC.md`
+9. `docs/MIDI_SCHEMA.md`
+10. `docs/ARCHITECTURE.md`
+11. `docs/ROADMAP.md`
+12. `CHANGELOG.md`
 
 重要仕様は `docs/` を正本とします。
