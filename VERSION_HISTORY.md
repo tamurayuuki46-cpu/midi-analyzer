@@ -1,7 +1,7 @@
 # VERSION_HISTORY
 
 ## v0.9-dev — 2026-10-13
-状態: v0.7 Integration / v0.8 Explainability / v0.9 Metrics実装完了 / 最終CI確認中
+状態: v0.7 Integration / v0.8 Explainability / v0.9 Metrics実装完了 / 103 tests pass / Bridge構文・Production Build確認済み
 
 主な内容:
 - Demo Composer Schema 3 Export Adapter
@@ -25,6 +25,7 @@
 
 復元ポイント:
 - `chatgpt/v0.7-before-integration-export`
+- `chatgpt/v0.9-feature-complete-milestone`
 
 ## v0.7-dev — 2026-10-13
 状態: Part Recording Scope実装完了 / 96 tests pass / Production Build確認済み
