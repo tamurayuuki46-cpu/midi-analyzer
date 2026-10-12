@@ -47,10 +47,13 @@
 - [x] v0.5自動テスト
 
 ## v0.6 — Clip / Library
-- [ ] Chord / Melody / Bass / Drum / Motif Clip保存
-- [ ] 4小節切り出し
-- [ ] タグ検索
-- [ ] Chord進行DB / Genre / Mood / BPM / Keyタグ
+- [x] Chord / Melody / Bass / Drum / Motif Clip保存
+- [x] 4小節切り出し
+- [x] タグ検索
+- [x] Chord進行DB / Genre / Mood / BPM / Keyタグ
+- [x] IndexedDB v1→v2非破壊Migration
+- [x] 保存済みMIDIとClip Libraryの分離表示
+- [x] v0.6自動テスト
 
 ## v0.7 — Integration / Export
 - [ ] Demo Composer Export Adapter
