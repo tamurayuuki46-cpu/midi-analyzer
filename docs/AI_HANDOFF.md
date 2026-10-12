@@ -4,7 +4,7 @@
 `v0.9-dev`
 
 公開中Version:
-`v0.7-dev`
+`v0.9-dev`
 
 最新安定版:
 未作成
@@ -121,5 +121,7 @@ v1.0:
 - `chatgpt/v0.6-published-milestone`
 - `chatgpt/v0.7-published-milestone`
 - `chatgpt/v0.7-before-integration-export`
+- `chatgpt/v0.9-feature-complete-milestone`
+- `chatgpt/v0.9-published-milestone`
 
 最終更新: 2026-10-13
