@@ -1,12 +1,14 @@
 const DB_NAME = 'midi-analyzer';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'savedMidis';
 const CLIP_STORE_NAME = 'savedClips';
+const TAKE_STORE_NAME = 'savedTakes';
 
 export const STORAGE_DB_NAME = DB_NAME;
 export const STORAGE_DB_VERSION = DB_VERSION;
 export const STORAGE_STORE_NAME = STORE_NAME;
 export const STORAGE_CLIP_STORE_NAME = CLIP_STORE_NAME;
+export const STORAGE_TAKE_STORE_NAME = TAKE_STORE_NAME;
 
 export function isIndexedDbAvailable(indexedDBFactory = globalThis.indexedDB) {
   return Boolean(indexedDBFactory && typeof indexedDBFactory.open === 'function');
@@ -46,6 +48,13 @@ function ensureClipStore(db) {
   store.createIndex('type', 'type', { unique: false });
 }
 
+function ensureTakeStore(db) {
+  if (db.objectStoreNames.contains(TAKE_STORE_NAME)) return;
+  const store = db.createObjectStore(TAKE_STORE_NAME, { keyPath: 'id' });
+  store.createIndex('savedAt', 'savedAt', { unique: false });
+  store.createIndex('partType', 'partType', { unique: false });
+}
+
 export function openMidiDatabase(indexedDBFactory = globalThis.indexedDB) {
   requireIndexedDb(indexedDBFactory);
 
@@ -56,6 +65,7 @@ export function openMidiDatabase(indexedDBFactory = globalThis.indexedDB) {
       const db = request.result;
       ensureMidiStore(db);
       ensureClipStore(db);
+      ensureTakeStore(db);
     };
 
     request.onsuccess = () => resolve(request.result);
@@ -119,31 +129,16 @@ async function withStore(storeName, mode, operation, indexedDBFactory = globalTh
 
 export async function saveImportedMidi(input, options = {}) {
   const record = await createSavedMidiRecord(input);
-  await withStore(
-    STORE_NAME,
-    'readwrite',
-    (store) => requestToPromise(store.put(record)),
-    options.indexedDBFactory,
-  );
+  await withStore(STORE_NAME, 'readwrite', (store) => requestToPromise(store.put(record)), options.indexedDBFactory);
   return record;
 }
 
 export async function getSavedMidi(id, options = {}) {
-  return withStore(
-    STORE_NAME,
-    'readonly',
-    (store) => requestToPromise(store.get(id)),
-    options.indexedDBFactory,
-  );
+  return withStore(STORE_NAME, 'readonly', (store) => requestToPromise(store.get(id)), options.indexedDBFactory);
 }
 
 export async function deleteSavedMidi(id, options = {}) {
-  await withStore(
-    STORE_NAME,
-    'readwrite',
-    (store) => requestToPromise(store.delete(id)),
-    options.indexedDBFactory,
-  );
+  await withStore(STORE_NAME, 'readwrite', (store) => requestToPromise(store.delete(id)), options.indexedDBFactory);
 }
 
 export async function listSavedMidis(options = {}) {
@@ -154,7 +149,6 @@ export async function listSavedMidis(options = {}) {
       const summaries = [];
       const index = store.index('savedAt');
       const request = index.openCursor(null, 'prev');
-
       request.onsuccess = () => {
         const cursor = request.result;
         if (!cursor) {
@@ -186,31 +180,16 @@ function validateClipRecord(record) {
 
 export async function saveClipRecord(record, options = {}) {
   validateClipRecord(record);
-  await withStore(
-    CLIP_STORE_NAME,
-    'readwrite',
-    (store) => requestToPromise(store.put(record)),
-    options.indexedDBFactory,
-  );
+  await withStore(CLIP_STORE_NAME, 'readwrite', (store) => requestToPromise(store.put(record)), options.indexedDBFactory);
   return record;
 }
 
 export async function getSavedClip(id, options = {}) {
-  return withStore(
-    CLIP_STORE_NAME,
-    'readonly',
-    (store) => requestToPromise(store.get(id)),
-    options.indexedDBFactory,
-  );
+  return withStore(CLIP_STORE_NAME, 'readonly', (store) => requestToPromise(store.get(id)), options.indexedDBFactory);
 }
 
 export async function deleteSavedClip(id, options = {}) {
-  await withStore(
-    CLIP_STORE_NAME,
-    'readwrite',
-    (store) => requestToPromise(store.delete(id)),
-    options.indexedDBFactory,
-  );
+  await withStore(CLIP_STORE_NAME, 'readwrite', (store) => requestToPromise(store.delete(id)), options.indexedDBFactory);
 }
 
 export async function listSavedClips(options = {}) {
@@ -231,6 +210,61 @@ export async function listSavedClips(options = {}) {
         cursor.continue();
       };
       request.onerror = () => reject(request.error ?? new Error('Clip Libraryを取得できませんでした。'));
+    }),
+    options.indexedDBFactory,
+  );
+}
+
+function validateTakeRecord(record) {
+  if (!record || typeof record !== 'object') throw new TypeError('Take recordが必要です。');
+  if (!record.id || !record.partType || !record.savedAt) throw new TypeError('Take recordのid / partType / savedAtが不足しています。');
+  if (!(record.audioBytes instanceof ArrayBuffer)) throw new TypeError('Take recordにはaudioBytes(ArrayBuffer)が必要です。');
+  return record;
+}
+
+export async function saveTakeRecord(record, options = {}) {
+  validateTakeRecord(record);
+  await withStore(TAKE_STORE_NAME, 'readwrite', (store) => requestToPromise(store.put(record)), options.indexedDBFactory);
+  return record;
+}
+
+export async function getSavedTake(id, options = {}) {
+  return withStore(TAKE_STORE_NAME, 'readonly', (store) => requestToPromise(store.get(id)), options.indexedDBFactory);
+}
+
+export async function deleteSavedTake(id, options = {}) {
+  await withStore(TAKE_STORE_NAME, 'readwrite', (store) => requestToPromise(store.delete(id)), options.indexedDBFactory);
+}
+
+export async function listSavedTakes(options = {}) {
+  return withStore(
+    TAKE_STORE_NAME,
+    'readonly',
+    (store) => new Promise((resolve, reject) => {
+      const summaries = [];
+      const index = store.index('savedAt');
+      const request = index.openCursor(null, 'prev');
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) {
+          resolve(summaries);
+          return;
+        }
+        const record = cursor.value;
+        summaries.push({
+          id: record.id,
+          savedAt: record.savedAt,
+          name: record.name,
+          partType: record.partType,
+          trackIds: record.trackIds ?? [],
+          source: record.source,
+          mimeType: record.mimeType,
+          durationSeconds: record.durationSeconds ?? 0,
+          size: record.audioBytes?.byteLength ?? 0,
+        });
+        cursor.continue();
+      };
+      request.onerror = () => reject(request.error ?? new Error('録音Take一覧を取得できませんでした。'));
     }),
     options.indexedDBFactory,
   );
