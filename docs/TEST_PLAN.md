@@ -23,6 +23,11 @@
 4. GM Drum NoteをKick / Snare / Tom等へ分類し、Tom集中小節をFill候補化
 5. roleHint付きTrackをMelody / Chord / Bass / Drums候補として維持
 
+### v0.4.1 Tab UI
+1. Tab順序が `overview → harmony → melody → bass → rhythm → structure → compare → library → ai → parts`
+2. ArrowLeft / ArrowRightで循環移動する
+3. Homeで先頭、Endで末尾へ移動する
+
 実行:
 ```bash
 npm test
@@ -47,6 +52,14 @@ npm run build
 - v0.2発展分析
 - v0.3比較File picker / Compare cards / Personal Trend
 - v0.4 Part Deep Panelが320px幅で崩れない
+- v0.4.1 Tab列が320px幅で横スクロールできる
+- 概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Partsを片手で切替できる
+- 選択中Tabが視覚的に分かる
+- Tab切替後に各Analyzer内容が欠落しない
+- Melody / BassのChord Tone系指標がChord選択変更後に再計算される
+- Library Tab内で保存済みMIDI一覧と削除が動く
+- Import前の保存済みMIDI一覧とImport後のLibraryが二重表示されない
+- AI Tabが「準備中」と表示され、未実装AI解析を実行したように見せない
 - 裏メロ / Bass / Drum Metricが縦スクロールで読める
 - GM Drum Note chipが折り返す
 - Track役割候補の長いTrack名がはみ出さない
@@ -55,4 +68,5 @@ npm run build
 
 ## Regression
 Analysis Engine / Playback変更前後で固定MIDIを再解析し、既存結果の意図しない変化がないか確認する。
+UI分割時もAnalyzerの候補順位・Normalized Song・保存Schemaを変更しない。
 アルゴリズム結果変更はCHANGELOGへ記録する。
