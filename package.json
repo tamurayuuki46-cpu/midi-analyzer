@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test",
+    "test": "node --test && node --check bridge/server.mjs",
     "bridge": "node bridge/server.mjs"
   },
   "dependencies": {
