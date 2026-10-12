@@ -17,8 +17,9 @@ Import後は1画面へ全解析を縦積みせず、以下のタブへ分ける�
 7. Visual
 8. Compare
 9. Library
-10. AI
-11. Parts
+10. Recorder
+11. AI
+12. Parts
 
 ## Tab構成
 ### 概要
@@ -103,20 +104,30 @@ Library Tabは2ブロックへ分ける。
 - Clip Card一覧
 - Delete Button
 
-Clip Cardには以下を表示する。
-- type
-- name
-- source fileName
-- Range
-- Note数
-- Chord progression（存在する場合）
-- Genre / Mood / BPM / Key / custom tags
-
+Clip Cardにはtype / name / source / Range / Note数 / Chord progression / tagsを表示する。
 検索は複数token AND。Chord名も検索対象。
 削除はconfirm後に実行する。
 
+### Recorder
+- Melody / Chord / Bass / Drum Part select
+- Partごとの既定Track checkbox
+- Track手動選択
+- Take名
+- Monitor ON/OFF
+- REC / STOP
+- 録音状態表示
+- Saved Take一覧
+- Take Preview
+- Take A / Take Bへセット
+- A/B個別Audio control
+- Audio書き出し
+- Take削除
+
+Recorderは読み込んだMIDIの簡易音源を選択TrackだけSolo再生し、そのAudioをMediaRecorderへ録音する。
+他アプリ内部Audioやマイク入力を録音するUIではない。
+
 ### AI
-- v0.6では自動AI解析を実行しない
+- v0.7では自動AI解析を実行しない
 - 「準備中」と表示する
 - 将来、Key / Chord / 転調の理由説明、参考曲から学べる点、作曲への応用候補を配置する
 
@@ -145,6 +156,16 @@ Clip Cardには以下を表示する。
 - 通常Noteは簡易シンセ、Channel 10はclick音
 - 元の楽器音色を再現しないことを明記
 - Pause / Seek / Loop / Tempo変更 / 音色選択は現段階では置かない
+
+## Recorder UI
+- REC / STOPは44px以上
+- REC中はRECをdisabled、STOPを有効化
+- STOP後または曲末でTakeを保存
+- Monitor OFFはspeaker出力だけ止め、MediaRecorderへの録音は継続
+- MediaRecorder非対応時はRecorderだけdisabledにし、解析機能は利用可能にする
+- IndexedDB非対応時はTake保存をdisabledにする
+- 再Import時に旧Recorder Controllerを破棄する
+- Audio書き出し拡張子はmimeTypeに従う
 
 ## Key UI
 - Top 3候補
@@ -184,7 +205,7 @@ Clip Cardには以下を表示する。
 - 小さすぎる文字を避ける
 - 長押し / ピンチ必須にしない
 - タブ列とPiano RollとVisualの長いTimelineは必要に応じて横スクロール
-- Clip Library Formは560px以下で1column
-- Clip Delete Buttonはmobile幅で押しやすくする
+- Clip Library / Recorder Formは560px以下で1column
+- Delete / REC / STOP / Take操作Buttonはmobile幅で押しやすくする
 - 各タブ内は縦スクロール中心
 - 1タブ内へ無関係な解析を詰め込みすぎない
