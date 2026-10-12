@@ -1,104 +1,60 @@
 # MIDI Analyzer
 
-Androidスマートフォン中心の作曲支援PWA。
-
-MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Motif、Section、転調候補、Chord Detailなどを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
+Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細を可視化し、作曲判断へ応用するためのアプリです。
 
 ## 現在Version
-`v0.2.1-dev`
+`v0.4-dev`
 
-最新安定版: 未作成
+公開中Version: `v0.2.1-dev`
 
-## 公開
-Vercelに依存せず、GitHub Pagesだけで公開できる構成です。
+公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
-- 公開元: `develop`
-- 公開Workflow: `.github/workflows/pages.yml`
-- 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
-- `develop`更新時に Unit Test → Production Build → GitHub Pages Deploy を自動実行
-- Viteのasset pathは相対化しているため、GitHub Pagesのproject path配下でも動作します
+`develop`への統合時にUnit Test → Production Build → GitHub Pages Deployを自動実行します。`main`は安定版専用です。
 
-詳細: `docs/DEPLOYMENT.md`
-
-## 位置づけ
-音源 → RipX → MIDI Analyzer → Demo Composer → Cubasis → Cubase → 完成曲
-
-## 現在実装済み
-- `.mid` / `.midi` Import UI
-- `midi-file` Parser Adapter / Song正規化
-- Tempo Map / Time Signature / Track情報
-- RipX origin / Warning処理
-- IndexedDB端末保存（初期OFF）/ 一覧 / 削除
+## 実装済み
+- `.mid` / `.midi` Import / `midi-file` Adapter / Normalized Song
+- Tempo / 拍子 / Track一覧 / RipX origin / Warning
+- IndexedDB任意保存 / 一覧 / 削除
 - 読み取り専用Piano Roll
-- 固定binary MIDI Parser regression fixture
-- Key / Scale Analyzer（major / minor Top 3）
-- Key候補のユーザー選択UI
-- Chord Analyzer（10 templates × 12 roots / Top 3）
-- Chord分析対象Track選択
-- 各Chord区間のランキング1位を時間順に並べる仮コード進行表示
-- Degree表示 / 音階外表示
-- Melody基本分析（音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率）
-- Bass基本分析（最低音移動 / Root・3rd・5th・Other / リズム型）
-- Rhythm基本分析（拍位置 / シンコペーション候補 / 密度 / 16分Grid）
-- Melody / Bass / Rhythm対象Track選択UI
-- Chord選択・Chord分析Track変更に連動したMelody / Bass再計算
-- 最小Play / Stop簡易再生
-- Tempo Map対応のTick→秒変換 / lookahead Web Audio scheduler
-- 再Import時の旧再生停止 / Channel 10簡易click
-- Motif反復候補（移調非依存）
-- 4小節BlockのSection候補
-- 区間Key Timeline / 転調候補 / Key関係表示
-- 転回形 / Slash Chord候補
-- add9 / 11 / 6・13のChord色付け候補
-- v0.2発展分析Panel
-- Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis / Playback / Motif / Structure / Harmony Detail tests
-- GitHub Pages自動公開
+- Key / Scale Top 3 + ユーザー選択
+- Chord Top 3 + Track選択 + Degree
+- 各Chord区間ランキング1位の仮コード進行
+- Melody / Bass / Rhythm基本分析
+- Play / Stop簡易再生
+- Motif反復 / 4小節Section / 区間Key / 転調候補
+- Slash Chord / add9・11・6/13色付け候補
+- 2 MIDI比較 / 参考曲 vs 自作曲
+- 保存済みMIDIからPersonal Trend集計
+- 裏メロ候補の反行 / 並行 / 斜行 / 隙間 / 2度衝突候補
+- Bass詳細: ペダル / オクターブ / 半音 / 順次 / 次Chord Root接近
+- Drum詳細: GM Drum分類 / 使用Note / Fill候補
+- MIDI Track役割候補
+- GitHub Actions CI / GitHub Pages
 
-## Key / Scale
-Drums以外のNoteを `durationTick × velocity` で重み付けし、major/minor 24候補から上位3つを表示します。confidenceは確率ではなくprofile一致度です。解析直後には確定せず、ユーザーが選んだときだけ選択状態にします。
+## v0.3 Compare / Personal Trend
+現在のMIDIを自作曲側、追加で選んだMIDIを参考曲側として同じ指標で比較します。Key / BPM / Chord / Melody / Bass / Rhythm / Note密度 / 転調候補数を並べます。差は優劣として評価しません。
 
-詳細: `docs/KEY_ANALYZER_SPEC.md`
+比較用MIDIは自動保存しません。Personal Trendはユーザーが明示的にIndexedDBへ保存したMIDIのみから、よく使うKey / Chordや平均BPM、Melody音域・密度などを集計します。
 
-## Chord / Degree
-ユーザーがChord分析対象Trackを選び、時間Grid内の重なりNoteを `overlapDurationTick × velocity` で重み付けしてChord候補Top 3を表示します。
+詳細: `docs/COMPARE_SPEC.md`
 
-各表示区間のランキング1位だけを時間順に抜き出した「候補1位のコード進行」も表示します。この進行は自動候補の一覧であり、下のTop 3から行うユーザー手動選択とは別管理です。Track選択を変更してChord分析を再計算すると自動で更新されます。
+## v0.4 Part Deep Analysis
+裏メロ候補、Bass、Drum、Track役割候補をより細かく分析します。裏メロの2度同時発音やDrum Fill等は「候補」として表示し、良し悪しを自動判定しません。
 
-Degreeは選択済みKeyを基準にし、Key未選択時は第1Key候補を仮基準として「Key候補 X の場合」と明記します。音階外Chordは誤り扱いせず、♭VII等のDegreeと「音階外」を表示します。
+詳細: `docs/PART_DEEP_ANALYSIS_SPEC.md`
 
-詳細: `docs/CHORD_ANALYZER_SPEC.md`
-
-## Melody / Bass / Rhythm
-Melodyは音域・跳躍・同音連打・密度・Chord Tone / Non-Chord Tone、Bassは最低音の動き・Chord Root / 3rd / 5th / Other・リズム型、Rhythmは拍位置・シンコペーション候補・密度・16分Gridを表示します。
-
-Melody / BassはTrackをユーザーが変更できます。Rhythmは複数Trackを選択できます。Chord Tone系の指標は選択済みChordを優先し、未選択区間では第1Chord候補を仮使用したことを画面に明示します。
-
-詳細: `docs/BASIC_ANALYSIS_SPEC.md`
-
-## v0.2 発展分析
-### Motif
-標準4Noteの音程差とリズム間隔を比較し、移調されていても同じ形なら反復Motif候補として検出します。
-
-### Section
-4小節BlockごとにPitch Class分布、Note密度、平均Pitch、平均Velocityを比較し、似たBlockへA/B/C等の候補labelを付けます。
-
-### 区間Key / 転調
-4小節ごとにKey候補を計算し、隣接Blockで第1候補が切り替わった位置を転調候補として表示します。同主調、平行調、属調方向、下属調方向、半音・全音移動も補助表示します。
-
-### Chord Detail
-v0.1のChord候補順位は変更せず、その上に最低音から転回形 / Slash Chord候補を追加し、add9 / 11 / 6・13に相当する色付け音の候補も表示します。
-
-詳細: `docs/ADVANCED_ANALYSIS_SPEC.md`
-
-## 簡易再生
-ImportしたNormalized Songを曲頭からPlay / Stopできます。Tempo Mapを反映し、通常Noteは簡易triangle oscillator、Channel 10は短いclickとしてWeb Audioでプレビューします。
-
-元MIDIの楽器音色を再現する機能ではありません。
-
-詳細: `docs/PLAYBACK_SPEC.md`
+## 既存分析仕様
+- Key / Scale: `docs/KEY_ANALYZER_SPEC.md`
+- Chord / Degree: `docs/CHORD_ANALYZER_SPEC.md`
+- Melody / Bass / Rhythm: `docs/BASIC_ANALYSIS_SPEC.md`
+- Motif / Structure / Harmony Detail: `docs/ADVANCED_ANALYSIS_SPEC.md`
+- Playback: `docs/PLAYBACK_SPEC.md`
+- Storage: `docs/STORAGE_SPEC.md`
+- Compare: `docs/COMPARE_SPEC.md`
+- Part Deep: `docs/PART_DEEP_ANALYSIS_SPEC.md`
 
 ## 保存方針
-「この端末に保存する」は初期状態でOFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへの自動送信はありません。
+「この端末に保存する」は初期OFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへ自動送信しません。
 
 ## 開発
 ```bash
@@ -108,19 +64,17 @@ npm test
 npm run build
 ```
 
-Viteはplain HTML/CSS/JavaScriptとnpm依存をbundleするためだけに使用し、React等のFrameworkは導入していません。
+plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していません。
 
 ## Version Scope
-### v0.1
-MIDI Import / Storage / Piano Roll / Key / Chord / Degree / Melody / Bass / Rhythm / Play・Stopの基礎を構築。
+- v0.1: Import / Storage / Piano Roll / Key / Chord / Melody / Bass / Rhythm / Playback
+- v0.2: Motif / Section / 区間Key / 転調 / Chord Detail
+- v0.2.1: Chordランキング1位の仮コード進行
+- v0.3: 2 MIDI比較 / Personal Trend
+- v0.4: 裏メロ / Bass / Drum / Track役割の詳細分析
+- v0.5以降: Visualization → Library → Integration / Export → Explanation → Higher-level Metrics → v1.0統合
 
-### v0.2
-Motif / Section / 区間Key / 転調 / Slash Chord / Chord Detailを追加。
-
-### v0.2.1
-各Chord区間のランキング1位を時間順に並べ、仮コード進行としてすぐ確認できる表示を追加。
-
-以降は `docs/ROADMAP.md` に従い、比較、裏メロ・Drum・Bass詳細、可視化、素材Library、Demo Composer / RipX連携、AI説明、高度Scoreを段階追加します。
+詳細は `docs/ROADMAP.md`。
 
 ## 開発開始時に読む順番
 1. `README.md`
@@ -128,10 +82,11 @@ Motif / Section / 区間Key / 転調 / Slash Chord / Chord Detailを追加。
 3. `docs/AI_HANDOFF.md`
 4. `docs/PRODUCT_SPEC.md`
 5. `docs/ANALYSIS_SPEC.md`
-6. `docs/ADVANCED_ANALYSIS_SPEC.md`
-7. `docs/MIDI_SCHEMA.md`
-8. `docs/ARCHITECTURE.md`
-9. `docs/ROADMAP.md`
-10. `CHANGELOG.md`
+6. `docs/COMPARE_SPEC.md`
+7. `docs/PART_DEEP_ANALYSIS_SPEC.md`
+8. `docs/MIDI_SCHEMA.md`
+9. `docs/ARCHITECTURE.md`
+10. `docs/ROADMAP.md`
+11. `CHANGELOG.md`
 
 重要仕様は `docs/` を正本とします。
