@@ -25,7 +25,12 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 - Chord Analyzer（10 templates × 12 roots / Top 3）
 - Chord分析対象Track選択
 - Degree表示 / 音階外表示
-- Parser / Normalizer / Storage / Piano Roll / Key / Chord tests
+- Melody基本分析（音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率）
+- Bass基本分析（最低音移動 / Root・3rd・5th・Other / リズム型）
+- Rhythm基本分析（拍位置 / シンコペーション候補 / 密度 / 16分Grid）
+- Melody / Bass / Rhythm対象Track選択UI
+- Chord選択・Chord分析Track変更に連動したMelody / Bass再計算
+- Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis tests
 
 ## Key / Scale
 Drums以外のNoteを `durationTick × velocity` で重み付けし、major/minor 24候補から上位3つを表示します。confidenceは確率ではなくprofile一致度です。解析直後には確定せず、ユーザーが選んだときだけ選択状態にします。
@@ -38,6 +43,13 @@ Drums以外のNoteを `durationTick × velocity` で重み付けし、major/mino
 Degreeは選択済みKeyを基準にし、Key未選択時は第1Key候補を仮基準として「Key候補 X の場合」と明記します。音階外Chordは誤り扱いせず、♭VII等のDegreeと「音階外」を表示します。
 
 詳細: `docs/CHORD_ANALYZER_SPEC.md`
+
+## Melody / Bass / Rhythm
+Melodyは音域・跳躍・同音連打・密度・Chord Tone / Non-Chord Tone、Bassは最低音の動き・Chord Root / 3rd / 5th / Other・リズム型、Rhythmは拍位置・シンコペーション候補・密度・16分Gridを表示します。
+
+Melody / BassはTrackをユーザーが変更できます。Rhythmは複数Trackを選択できます。Chord Tone系の指標は選択済みChordを優先し、未選択区間では第1Chord候補を仮使用したことを画面に明示します。
+
+詳細: `docs/BASIC_ANALYSIS_SPEC.md`
 
 ## 保存方針
 「この端末に保存する」は初期状態でOFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。クラウドへの自動送信はありません。

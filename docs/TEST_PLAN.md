@@ -30,6 +30,17 @@
 9. A minor Degree: C=III / G♯=♯VII音階外
 10. 同一小節で同じChordが続くGridを1区間にまとめる
 
+### Melody / Bass / Rhythm Basic Analysis
+1. roleHintをMelody / Bass初期Trackとして優先
+2. roleHintなしでは平均Pitch最高/最低Trackをfallback
+3. Melody: 音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率
+4. Melody: 同一Tick複数Noteを代表Noteへ集約
+5. Bass: Root / 3rd / 5th / Other分類
+6. Bass: 同一Tickでは最低Pitchを代表Noteとして移動量計算
+7. Rhythm: Drum Track優先 / 4/4密度 / 16分Grid
+8. 6/8: musicalBeatを付点4分として拍位置判定
+9. MIDI Pitch表記
+
 実行:
 ```bash
 npm test
@@ -47,14 +58,21 @@ npm run build
 8. 6/8
 9. ループ曲
 10. イントロだけ別調
+11. Melodyが和音化されたMIDI
+12. Bass Track名が曖昧なMIDI
+13. Drumなしで全TrackからRhythmを見るMIDI
 
 ## Android Manual
 - Chord Track checkboxが片手で押せる
 - Chord候補3つが縦スクロールで読みやすい
 - Key選択を変えるとDegreeが即時更新される
 - Chord候補選択が区間ごとに保持される
+- Chord候補選択でMelody Chord Tone / Bass Chord Roleが再計算される
+- Melody / Bass Track selectが片手で操作できる
+- Rhythmの複数Track checkboxが操作しやすい
+- 16分Gridが320px幅でも横にはみ出さない
 - 長いMIDIでChord区間数が多くてもページが破綻しない
-- Import / Storage / Piano Roll / Key機能が回帰していない
+- Import / Storage / Piano Roll / Key / Chord機能が回帰していない
 
 ## Regression
 Analysis Engine変更前後で固定MIDIを再解析し、意図しない結果変化がないか確認する。

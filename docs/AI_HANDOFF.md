@@ -30,14 +30,20 @@ v0.1-dev
 - 音階外Degree表示
 - Chord Analyzer unit test 10件
 - CHORD_ANALYZER_SPEC
+- Melody基本分析: 音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率
+- Bass基本分析: 最低音移動 / Root・3rd・5th・Other / リズム型
+- Rhythm基本分析: 拍位置 / シンコペーション候補 / 密度 / 16分Grid
+- Melody / Bass / Rhythm分析対象Track選択UI
+- Chord選択・Chord分析Track変更時のMelody / Bass再計算
+- Basic Analysis unit test 9件 / BASIC_ANALYSIS_SPEC
 
 開発中:
-- Chord Analyzer + Degree実装済み。次はMelody / Bass / Rhythm基本分析
+- Melody / Bass / Rhythm基本分析まで実装済み。次は最小簡易再生（Play / Stop）
 
 次に実装:
-1. Melody / Bass / Rhythm基本分析
-2. 最小簡易再生（Play / Stop）
-3. Android実機と実MIDIでKey / Chord係数調整
+1. 最小簡易再生（Play / Stop）
+2. Android実機でStorage / Piano Roll / Key / Chord / Basic Analysisを確認
+3. RipX等の実MIDIでKey / Chord係数とBasic Analysis heuristicを調整
 
 既知の問題:
 - SMPTE time divisionはv0.1未対応
@@ -48,7 +54,11 @@ v0.1-dev
 - slash chord専用表記は未対応
 - 6/8等のmusicalBeat accent表示は未対応
 - 保存済みMIDIの「開く」は未実装
-- Android実機でStorage / Piano Roll / Key / Chord UI manual testが必要
+- Melody / Bass fallback Track推定はroleHint + 平均Pitchの簡易heuristic
+- Melody同時発音の代表Note選択は簡易heuristic
+- Rhythmのシンコペーションは拍頭以外onsetの簡易候補
+- beat判定許容幅は暫定
+- Android実機でStorage / Piano Roll / Key / Chord / Basic Analysis UI manual testが必要
 - RipX / Scaler / EZkeys等の実ファイルRegressionは別途必要
 
 触らない部分:
@@ -74,6 +84,13 @@ v0.1-dev
 - Chord候補Top 3を表示しselectedはUIで人が選択
 - Degreeは選択Key、未選択なら第1Key候補を仮基準にする
 - 音階外Degreeは表示するが評価しない
+- Melody初期TrackはroleHint melody優先、fallbackは平均Pitch最高
+- Bass初期TrackはroleHint bass優先、fallbackは平均Pitch最低
+- Rhythm初期TrackはDrum優先、なければNoteを持つ全Track
+- Chord Tone / Bass Chord Roleは選択Chord優先、未選択区間は第1候補を仮使用して前提表示
+- Chord分析Track変更 / Chord候補選択でBasic Analysisを再計算
+- Rhythm同一Tickは1 onsetとして扱う
+- 6/8等compound meterでは3 denominator unitを1 musicalBeatとして扱う
 - Motifはv0.2以降
 - v0.1 UIに一般Exportを置かない
 
@@ -87,6 +104,9 @@ Import Result: { song, warnings }
 現在のAnalysis Result:
 Key: { candidates: [{ value, confidence }], selected: null, note, hint }
 Chord: { trackIds, segments: [{ id, startTick, endTick, barNumber, candidates, selected }], selected: null, note, parameters }
+Melody: { trackId, noteCount, range, leap, repeated, density, chordTone, note }
+Bass: { trackId, noteCount, movement, chordRole, rhythm, note }
+Rhythm: { trackIds, noteCount, onsetCount, beatPosition, density, meterGrids, note }
 selectedは人が選択した場合のみUI stateで設定。自動解析では確定しない。
 
 現在のStorage Schema:

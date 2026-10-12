@@ -23,6 +23,13 @@
 - Degree表示 / 選択Key連動 / 音階外表示
 - Chord Analyzer unit test 10件
 - `docs/CHORD_ANALYZER_SPEC.md`
+- Melody基本分析（音域 / 最大・平均跳躍 / 同音連打 / 密度 / Chord Tone比率）
+- Bass基本分析（最低音移動 / Root・3rd・5th・Other / リズム型）
+- Rhythm基本分析（拍位置 / シンコペーション候補 / 密度 / 16分Grid）
+- Melody / Bass / Rhythm分析対象Track選択UI
+- Chord選択・Chord分析Track変更に連動したMelody / Bass再計算
+- Basic Analysis unit test 9件
+- `docs/BASIC_ANALYSIS_SPEC.md`
 
 ### 【変更】
 - Motifはv0.2以降
@@ -31,6 +38,8 @@
 - 保存失敗とImport失敗を分離
 - Key / Chord confidenceは確率ではなく一致度として表示
 - Chordは全Trackを無条件に混ぜず、ユーザー選択Trackだけを分析
+- Chord Tone / Bass Chord Roleは選択Chordを優先し、未選択時は第1候補を仮使用して前提を表示
+- Rhythmのシンコペーションはv0.1では「musicalBeat拍頭以外」の簡易候補として扱う
 
 ### 【修正】
 - Claude引き継ぎ案と既存仕様の矛盾整理
@@ -38,7 +47,8 @@
 - PWA manifest path
 
 ### 【未対応】
-- Melody / Bass / Rhythm Analyzer
-- 最小簡易再生
-- 実MIDIによるKey / Chord係数調整
+- 最小簡易再生（Play / Stop）
+- Android実機でStorage / Piano Roll / Key / Chord / Basic Analysis UI確認
+- 実MIDIによるKey / Chord係数・Basic Analysis heuristic調整
+- 保存済みMIDIの「開く」
 - slash chord専用表記

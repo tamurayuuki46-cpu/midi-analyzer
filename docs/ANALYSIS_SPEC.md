@@ -68,6 +68,12 @@ v0.1:
 - リズム密度
 - Chord Tone / Non-Chord Tone割合
 
+初期Trackは `roleHint === "melody"` を優先。なければ非Drum Trackの平均Pitchが最も高いTrackを仮選択し、ユーザーが変更できる。
+
+同一Tickの複数Noteは代表Note 1つにまとめる。代表Noteは velocity → duration → pitch の順で優先する。
+
+Chord Tone判定はユーザー選択Chordを優先し、未選択区間はChord第1候補を仮使用する。仮使用時はUIで明示する。
+
 Motifはv0.2以降。
 
 ## 5. Bass
@@ -77,6 +83,12 @@ v0.1:
 - 3rd / 5th / Other
 - リズムの型
 
+初期Trackは `roleHint === "bass"` を優先。なければ非Drum Trackの平均Pitchが最も低いTrackを仮選択し、ユーザーが変更できる。
+
+同一Tickに複数Noteがある場合は最低Pitchを代表Bass Noteにする。
+
+Root / 3rd / 5th / Otherは現在のChord候補との関係として表示する。7th等はChord ToneでもBass分類上はOtherに含める。
+
 ## 6. Rhythm
 v0.1:
 - 拍内発音位置
@@ -84,8 +96,22 @@ v0.1:
 - Density
 - 16分Grid表示
 
+初期TrackはDrum Trackを優先。Drum TrackがなければNoteを持つ全Track。複数Track選択を許可する。
+
+同一Tickの複数Noteは1 onsetとして数える。
+
+シンコペーション候補はv0.1では「musicalBeat拍頭以外のonset」の簡易候補。確定判定ではない。
+
+16分Gridは `ppq / 4` を1 cellとして、小節内の発音位置分布を表示する。
+
+6/8等のcompound meterでは3つのdenominator単位を1 musicalBeatとして扱う。
+
 ## 7. Chord Tone
 Chord Tone / Non-Chord Toneは特徴量。Non-Chord Toneを誤り扱いしない。
+
+Chord UIが現在のeffective candidateをBasic Analyzerへ渡す。Chord対象Track変更またはChord候補選択時にMelody / BassのChord関係指標を再計算する。
+
+詳細: `docs/BASIC_ANALYSIS_SPEC.md`
 
 ## 8. 調整対象パラメータ
 実MIDIで調整:
@@ -93,3 +119,6 @@ Chord Tone / Non-Chord Toneは特徴量。Non-Chord Toneを誤り扱いしない
 - Non-Chord Penalty（仮0.5）
 - Key拮抗閾値（仮10%）
 - Chord切替閾値（仮10%）
+- Melody / Bass Track fallback heuristic
+- Beat判定許容幅
+- シンコペーション候補定義
