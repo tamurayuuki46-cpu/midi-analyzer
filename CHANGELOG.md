@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## Version: v0.7-dev
+更新日: 2026-10-13
+
+### 【追加】
+- `Recorder` Tab
+- Melody / Chord / Bass / DrumのPart別Track候補
+- Recorder TabでのTrack手動選択
+- Web Audio簡易音源 → MediaRecorderによるパート分離Audio録音
+- 録音中Monitor ON / OFF
+- 録音Takeの端末内保存 / Preview再生 / 削除
+- Take A / Bセットと個別再生
+- MediaRecorderのmimeTypeに合わせたAudio書き出し（WebM / M4A / OGG等）
+- IndexedDB `savedTakes` Store
+- IndexedDB v1→v3 / v2→v3 Migration test
+- Part Recorder model / controller lifecycle unit test
+- `docs/PART_RECORDING_SPEC.md`
+
+### 【変更】
+- IndexedDB Database versionを2→3へ更新
+- 既存`savedMidis` / `savedClips`を保持し、新しい`savedTakes`だけ追加
+- Tab navigationを12カテゴリへ更新
+- Versionを`v0.7-dev`へ更新
+- 再Import前に録音Controllerをdestroyし、旧録音sessionを停止する
+
+### 【修正】
+- v2→v3 Migrationで保存済みMIDI / Clipを削除・変換しないことを自動テストで固定
+- Part録音時は選択TrackだけをPart Songへfilterし、元Songを変更しない
+
+### 【未対応】
+- Android実機でMediaRecorder / Audio書き出し最終確認
+- WAV固定renderer
+- マイク / 外部Audio input
+- RipX / Cubasis / Cubaseなど他アプリ内部Audioの直接録音
+- 同時Multi Stem録音
+- Demo Composer Export Adapter
+- JSON / CSV / Markdown Report
+- Chord / Degree text export
+- RipX Bridge / PC→Android転送
+- 実MIDIによる各Analyzer閾値調整
+
 ## Version: v0.6-dev
 更新日: 2026-10-13
 

@@ -1,7 +1,33 @@
 # VERSION_HISTORY
 
+## v0.7-dev — 2026-10-13
+状態: Part Recording Scope実装完了 / 96 tests pass / Production Build確認済み
+
+主な内容:
+- Recorder Tab
+- Melody / Chord / Bass / Drum Part Track候補
+- Track手動選択
+- Web Audio簡易音源をMediaRecorderでPart別Audio録音
+- Monitor ON/OFF
+- Take保存 / Preview / 削除
+- Take A/B比較
+- Browser対応Audio形式で書き出し
+- IndexedDB version 3 / `savedTakes` Store
+- v1→v3 / v2→v3非破壊Migration test
+- Part Recorder model / controller lifecycle test
+
+設計方針:
+- 元MIDI / Normalized Songを録音時に変更しない
+- 他アプリ内部Audioやマイク入力はv0.7 Scope外
+- MediaRecorder形式はブラウザ対応形式を使い、WAV固定にはしない
+- v2の`savedMidis` / `savedClips`を削除・変換せず維持する
+- Recorderは既存Playback / Analyzerとは独立Controllerとして扱う
+
+復元ポイント:
+- `chatgpt/v0.6-before-part-recorder`
+
 ## v0.6-dev — 2026-10-13
-状態: Clip / Library Scope実装完了 / Unit Test・Production Build確認済み
+状態: Clip / Library Scope実装完了 / Unit Test・Production Build確認済み / GitHub Pages公開済み
 
 主な内容:
 - Chord / Melody / Bass / Drum / Motifの4小節Clip
@@ -24,6 +50,8 @@
 
 復元ポイント:
 - `chatgpt/v0.6-before-clip-library`
+- `chatgpt/v0.6-feature-complete-milestone`
+- `chatgpt/v0.6-published-milestone`
 
 ## v0.5-dev — 2026-10-13
 状態: Visualization Scope実装完了 / Unit Test・Production Build確認済み

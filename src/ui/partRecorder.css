@@ -1,0 +1,36 @@
+.part-recorder { display: grid; gap: 16px; }
+.recorder-form { display: grid; gap: 14px; }
+.recorder-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.recorder-field { display: grid; gap: 6px; }
+.recorder-field > span { font-size: .82rem; font-weight: 800; }
+.recorder-field input[type="text"], .recorder-field select {
+  width: 100%; border: 1px solid #d4d4d8; border-radius: 12px; padding: 10px 12px; background: #fff;
+}
+.recorder-monitor { display: flex; align-items: center; gap: 10px; min-height: 48px; font-weight: 700; }
+.recorder-monitor input { width: 22px; height: 22px; }
+.recorder-tracks { display: grid; gap: 8px; }
+.recorder-track { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: start; padding: 10px; border: 1px solid #e4e4e7; border-radius: 12px; }
+.recorder-track input { width: 22px; height: 22px; margin: 0; }
+.recorder-track small { display: block; margin-top: 3px; color: #71717a; }
+.recorder-actions { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.rec-button, .stop-button, .take-button {
+  min-height: 46px; border-radius: 12px; padding: 9px 14px; font-weight: 800; cursor: pointer;
+}
+.rec-button { border: 0; background: #18181b; color: #fff; }
+.stop-button, .take-button { border: 1px solid #d4d4d8; background: #fff; color: #18181b; }
+.rec-button:disabled, .stop-button:disabled, .take-button:disabled { opacity: .5; cursor: default; }
+.recorder-status { margin: 0; min-height: 1.5em; color: #52525b; line-height: 1.5; }
+.take-list { display: grid; gap: 10px; }
+.take-card { border: 1px solid #e4e4e7; border-radius: 14px; padding: 12px; display: grid; gap: 9px; }
+.take-card-heading { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.take-card-heading strong { overflow-wrap: anywhere; }
+.take-meta { margin: 0; color: #71717a; font-size: .86rem; line-height: 1.45; }
+.take-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.take-button { min-height: 42px; padding: 7px 10px; }
+.recorder-empty { margin: 0; color: #71717a; line-height: 1.5; }
+.take-preview, .ab-audio { width: 100%; min-height: 44px; }
+.ab-compare { display: grid; gap: 10px; }
+.ab-slot { border: 1px solid #e4e4e7; border-radius: 12px; padding: 11px; display: grid; gap: 7px; }
+.ab-slot strong { font-size: .92rem; }
+.ab-slot span { color: #71717a; font-size: .84rem; overflow-wrap: anywhere; }
+@media (min-width: 560px) { .recorder-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

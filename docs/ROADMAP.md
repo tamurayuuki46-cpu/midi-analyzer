@@ -55,7 +55,17 @@
 - [x] 保存済みMIDIとClip Libraryの分離表示
 - [x] v0.6自動テスト
 
-## v0.7 — Integration / Export
+## v0.7 — Part Recording / Integration / Export
+- [x] Recorder Tab
+- [x] Melody / Chord / Bass / DrumのPart別Track候補
+- [x] Track手動選択
+- [x] Web Audio → MediaRecorderによる分離Audio録音
+- [x] 録音中Monitor ON/OFF
+- [x] Take端末保存 / 再生 / 削除
+- [x] Take A/B比較
+- [x] Browser対応Audio形式で書き出し
+- [x] IndexedDB v2→v3非破壊Migration / savedTakes追加
+- [ ] Android実機でMediaRecorder / Audio書き出し確認
 - [ ] Demo Composer Export Adapter
 - [ ] JSON / CSV / Markdown Report
 - [ ] Chord / Degree text export
