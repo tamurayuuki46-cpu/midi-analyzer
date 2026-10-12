@@ -2,9 +2,7 @@
 
 Androidスマートフォン中心の作曲支援PWA。
 
-MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、
-Chord Tone / Non-Chord Tone などを見える化して、
-「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
+MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rhythm、Chord Tone / Non-Chord Tone などを見える化して、「なぜこう聞こえるのか」を理解し、自分の作曲へ応用するためのアプリです。
 
 ## 現在Version
 
@@ -21,6 +19,41 @@ Chord Tone / Non-Chord Tone などを見える化して、
 - Demo Composer: 作曲
 - Cubasis: モバイル制作
 - Cubase: 本制作
+
+## 現在実装済み
+
+- `.mid` / `.midi` Import UI
+- `midi-file` を隔離したParser Adapter
+- Standard MIDI File → Song / Track / Note正規化
+- tick / PPQ保持
+- Tempo Map / Time Signature正規化
+- Note On / Note Off対応（Note On velocity 0をNote Offとして処理）
+- Track名 / channels[] / Drum hint / roleHint抽出
+- 読み込み結果の概要・Track一覧表示
+- RipX由来MIDIのorigin記録
+- 不完全Noteイベントを勝手に補完しないWarning処理
+- Normalizer unit test
+
+## 開発
+
+```bash
+npm install
+npm run dev
+```
+
+テスト:
+
+```bash
+npm test
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+Viteはplain HTML/CSS/JavaScriptとnpm依存をブラウザ向けにbundleするためだけに使用し、React等のFrameworkは導入していません。
 
 ## v0.1 Scope
 

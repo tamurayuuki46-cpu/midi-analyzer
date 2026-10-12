@@ -30,6 +30,20 @@ UI
 - 分離結果も元Noteを書き換えず別Layerに持つ
 - 将来連携はAdapter経由にする
 
+## v0.1 Parser Boundary
+
+```text
+Browser File
+  ↓ arrayBuffer()
+src/midi/parseMidiFile.js
+  ↓ midi-file raw event model
+src/midi/normalizeMidi.js
+  ↓
+{ song, warnings }
+```
+
+`midi-file` のraw event modelは `src/midi/` の外へ出さない。
+
 ## Module
 
 ### core
@@ -37,6 +51,11 @@ UI
 
 ### midi
 Standard MIDI Fileの読み取りと正規化。
+
+実装済み:
+- `parseMidiFile.js`: File → parser → normalizer
+- `normalizeMidi.js`: raw MIDI event → Song / Track / Note
+- `roleHint.js`: Track名とChannelからの補助hint
 
 ### analysis
 理論分析。Parser実装を知らない。
@@ -59,12 +78,28 @@ Android向け画面。
 ### adapters
 RipX / Demo Composer等との境界。
 
-## MIDI Parser候補
-`midi-file` を第一候補とするが、依存を `src/midi/` に隔離する。
-採用は実装開始時に最終確認する。
+## MIDI Parser
 
-方針:
-- 読み取り用途のみ
-- CDNに依存しない
-- bundleへ同梱
-- Analysis側へ生データ形式を漏らさない
+v0.1では `midi-file@1.2.4` を採用する。
+
+採用理由:
+- Standard MIDI Fileのraw eventとdeltaTimeを直接扱える
+- tick / PPQ中心の内部設計へ変換しやすい
+- MIT License
+- Parser依存を `src/midi/` に閉じ込められる
+
+注意:
+- package自体は成熟しているが更新頻度は高くない
+- Analysis Engineから直接importしない
+- 将来差し替える場合でもNormalized Song Schemaは維持する
+
+## Build Tool
+
+`Vite` をBuild / Dev Server用途だけに使用する。
+
+目的:
+- npm dependencyをAndroid Chrome向けにbundleする
+- CDN依存を避ける
+- plain HTML/CSS/JavaScript構成を維持する
+
+React / TypeScript等のFramework導入を意味しない。
