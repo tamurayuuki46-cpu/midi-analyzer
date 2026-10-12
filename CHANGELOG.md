@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## Version: v0.5-dev
+更新日: 2026-10-13
+
+### 【追加】
+- Visual Tab
+- Tonal Center Timeline
+- Chord Timeline（各区間Top 1候補）
+- Melody / Bass Contour
+- Rhythm Density / Energy Curve
+- Section Map
+- Note / Velocity Heatmap（Pitch Class × 小節、先頭16小節）
+- `buildVisualizationModel`
+- `docs/VISUALIZATION_SPEC.md`
+- Visualization unit test 2件
+
+### 【変更】
+- Tab順に`Visual`を追加
+- Energy CurveをMIDI onset密度 × average velocityの曲内正規化指標として定義
+- 可視化は既存Analyzer結果とNormalized Songの表示Layerに限定し、候補順位や元Noteを変更しない
+- Versionを`v0.5-dev`へ更新
+
+### 【修正】
+- Visual Tab追加に合わせてTab navigation testを11カテゴリへ更新
+
+### 【未対応】
+- full-song Heatmapの無制限描画
+- Audio waveform / spectral分析
+- 実MIDIでの表示密度・閾値調整
+- Android実機でVisual Tab横スクロール確認
+
 ## Version: v0.4.1-dev
 更新日: 2026-10-13
 
