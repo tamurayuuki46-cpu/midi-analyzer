@@ -37,18 +37,23 @@
 - [x] MIDI内パート分離候補
 
 ## v0.5 — Visualization
-- [ ] Tonal Center Timeline
-- [ ] Chord Timeline
-- [ ] Melody / Bass Contour
-- [ ] Rhythm Density / Energy Curve
-- [ ] Section Map
-- [ ] Note / Velocity Heatmap
+- [x] Tonal Center Timeline
+- [x] Chord Timeline
+- [x] Melody / Bass Contour
+- [x] Rhythm Density / Energy Curve
+- [x] Section Map
+- [x] Note / Velocity Heatmap
+- [x] Android向けVisual Tab
+- [x] v0.5自動テスト
 
 ## v0.6 — Clip / Library
-- [ ] Chord / Melody / Bass / Drum / Motif Clip保存
-- [ ] 4小節切り出し
-- [ ] タグ検索
-- [ ] Chord進行DB / Genre / Mood / BPM / Keyタグ
+- [x] Chord / Melody / Bass / Drum / Motif Clip保存
+- [x] 4小節切り出し
+- [x] タグ検索
+- [x] Chord進行DB / Genre / Mood / BPM / Keyタグ
+- [x] IndexedDB v1→v2非破壊Migration
+- [x] 保存済みMIDIとClip Libraryの分離表示
+- [x] v0.6自動テスト
 
 ## v0.7 — Integration / Export
 - [ ] Demo Composer Export Adapter

@@ -109,37 +109,42 @@ function renderHarmony(result) {
   `;
 }
 
-export function mountAdvancedAnalysis(root, song) {
+export function mountAdvancedAnalysis(root, song, options = {}) {
   if (!root) return null;
-  const motif = analyzeMotifs(song);
-  const structure = analyzeStructure(song);
-  const harmony = analyzeHarmonyDetails(song);
+  const section = options.section ?? 'all';
+  const motif = section === 'all' || section === 'structure' ? analyzeMotifs(song) : null;
+  const structure = section === 'all' || section === 'structure' ? analyzeStructure(song) : null;
+  const harmony = section === 'all' || section === 'harmony' ? analyzeHarmonyDetails(song) : null;
+  const blocks = [];
 
-  root.innerHTML = `
-    <div class="advanced-analysis-stack">
+  if (section === 'all' || section === 'structure') {
+    blocks.push(`
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>Motif候補</h3><span class="status-pill">反復</span></div>
         ${renderMotifs(motif)}
         <p class="helper-note">${escapeHtml(motif.note)}</p>
       </section>
-
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>Section候補</h3><span class="status-pill">4小節単位</span></div>
         ${renderSections(structure)}
       </section>
-
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>区間Key / 転調候補</h3><span class="status-pill">Timeline</span></div>
         ${renderKeyTimeline(structure)}
       </section>
+    `);
+  }
 
+  if (section === 'all' || section === 'harmony') {
+    blocks.push(`
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>Chord Detail</h3><span class="status-pill">Slash / Tension</span></div>
         ${renderHarmony(harmony)}
         <p class="helper-note">${escapeHtml(harmony.note)}</p>
       </section>
-    </div>
-  `;
+    `);
+  }
 
+  root.innerHTML = `<div class="advanced-analysis-stack">${blocks.join('')}</div>`;
   return Object.freeze({ motif, structure, harmony });
 }

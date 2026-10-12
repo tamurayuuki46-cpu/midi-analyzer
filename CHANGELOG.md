@@ -1,5 +1,105 @@
 # CHANGELOG
 
+## Version: v0.6-dev
+更新日: 2026-10-13
+
+### 【追加】
+- Chord / Melody / Bass / Drum / Motifの4小節Clip保存
+- 連続4小節Range選択（8小節なら1–4〜5–8）
+- Clip内NoteをRange先頭0tickへ相対化して保存
+- Genre / Mood / BPM / Key / custom tag
+- Top 1 Chord progressionをClip contextとして保存
+- Clip名・種類・source・Genre・Mood・BPM・Key・custom tag・Chord名のAND検索
+- Library Tab内のClip保存Form / Search / Card / Delete UI
+- IndexedDB `savedClips` Store
+- IndexedDB v1→v2 Migration test
+- Clip model / search unit test
+- `docs/CLIP_LIBRARY_SPEC.md`
+
+### 【変更】
+- IndexedDB Database versionを1→2へ更新
+- 既存`savedMidis` Storeは保持し、新しい`savedClips`だけ追加
+- Library Tabを「保存済みMIDI」と「Clip Library」に分離
+- BPM / Keyは保存Rangeから自動Tag、Genre / Mood / custom tagは任意入力
+- Chord進行DBをClip LibraryのChord contextとして統合
+- Versionを`v0.6-dev`へ更新
+
+### 【修正】
+- v1→v2 Migration時に既存保存済みMIDI recordを削除・変換しないことを自動テストで固定
+- Clip Range境界をまたぐNoteはClip側だけ切り詰め、元Songを変更しない
+
+### 【未対応】
+- ClipからMIDI binaryを書き出す機能
+- Clip編集 / Quantize
+- Clip Trackの手動対応付け
+- Cloud同期 / Demo Composer送信
+- 保存済みMIDIの「開く」
+- Android実機でClip保存 / 検索 / 削除の最終確認
+- 実MIDIによる各Analyzer閾値調整
+
+## Version: v0.5-dev
+更新日: 2026-10-13
+
+### 【追加】
+- Visual Tab
+- Tonal Center Timeline
+- Chord Timeline（各区間Top 1候補）
+- Melody / Bass Contour
+- Rhythm Density / Energy Curve
+- Section Map
+- Note / Velocity Heatmap（Pitch Class × 小節、先頭16小節）
+- `buildVisualizationModel`
+- `docs/VISUALIZATION_SPEC.md`
+- Visualization unit test 2件
+
+### 【変更】
+- Tab順に`Visual`を追加
+- Energy CurveをMIDI onset密度 × average velocityの曲内正規化指標として定義
+- 可視化は既存Analyzer結果とNormalized Songの表示Layerに限定し、候補順位や元Noteを変更しない
+- Versionを`v0.5-dev`へ更新
+
+### 【修正】
+- Visual Tab追加に合わせてTab navigation testを11カテゴリへ更新
+
+### 【未対応】
+- full-song Heatmapの無制限描画
+- Audio waveform / spectral分析
+- 実MIDIでの表示密度・閾値調整
+- Android実機でVisual Tab横スクロール確認
+
+## Version: v0.4.1-dev
+更新日: 2026-10-13
+
+### 【追加】
+- 解析結果を「概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Parts」へ分けるTab UI
+- Android向け横スクロールTab列
+- WAI-ARIA `tablist` / `tab` / `tabpanel`
+- 左右矢印 / Home / EndによるTabキーボード操作
+- `tabModel`純粋ロジックとunit test 3件
+
+### 【変更】
+- 概要へ基本情報 / Playback / Track一覧 / Piano Rollを集約
+- HarmonyへKey / Chord / Degree / Chord Detailを集約
+- Melodyへ主旋律基本分析 + 裏メロ候補を集約
+- Bassへ基本分析 + Bass詳細を集約
+- Rhythmへ基本分析 + Drum詳細を集約
+- StructureへMotif / Section / 区間Key / 転調候補を集約
+- Compare / Library / Partsを専用Tab化
+- Import後の保存済みMIDI一覧をLibrary Tabへ移動
+- AI Tabは将来機能用の準備中表示とし、自動AI解析は実行しない
+- Versionを`v0.4.1-dev`へ更新
+
+### 【修正】
+- Import後に保存済みMIDI一覧が画面上部とLibrary内で二重表示されないよう整理
+- カテゴリ分割後もChord選択変更時のMelody / Bass再計算を維持
+
+### 【未対応】
+- AI説明機能本体
+- 保存済みMIDIの「開く」
+- Libraryのタグ検索 / Clip管理
+- 実MIDIによる各解析閾値の調整
+- Android実機で全Tabの最終タップ/スクロール確認
+
 ## Version: v0.4-dev
 更新日: 2026-10-13
 

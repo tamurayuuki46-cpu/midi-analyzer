@@ -1,24 +1,41 @@
 # STORAGE_SPEC.md
 
 ## Version
-v0.1-dev
+v0.6-dev
 
 ## 目的
-MIDI Analyzerで読み込んだMIDIを、ユーザーが明示的に選んだ場合だけAndroid端末内へ保存する。
+MIDI Analyzerで読み込んだMIDIと、ユーザーが明示保存した4小節ClipをAndroid端末内へ保持する。
+クラウドや外部サービスへ自動送信しない。
 
 ## 基本ルール
-- 初期値は「保存しない」
-- 保存OFFの場合、元MIDIデータをIndexedDBへ保存しない
-- 保存ONの場合のみIndexedDBへ保存する
+- MIDI Import時の「この端末に保存する」は初期OFF
+- 保存OFFの場合、元MIDI binary / SongをIndexedDBへ保存しない
+- 保存ONの場合のみ元MIDI + Normalized Songを`savedMidis`へ保存する
+- Clip保存はLibrary Tabでユーザーが`Clipを保存`を押した場合だけ行う
 - 保存データをクラウド、外部API、他アプリへ自動送信しない
-- v0.1では保存データの共有・Exportを行わない
-- 保存済みMIDIは一覧から削除できる
+- 保存済みMIDI / Clipはそれぞれ一覧から削除できる
+- 削除前にユーザー確認を行う
 
-## 保存対象
-保存ONの場合、以下を1 recordとして保持する。
+## IndexedDB
+Database:
+`midi-analyzer`
+
+Version:
+`2`
+
+### Object Store: savedMidis
+v0.1から継続する元MIDI保存Store。
+
+Key:
+`id`
+
+Index:
+`savedAt`
+
+Record:
 
 ```text
-storageSchemaVersion
+storageSchemaVersion: 1
 id
 savedAt
 source
@@ -32,39 +49,52 @@ song
 warnings
 ```
 
-`midiBytes` は元MIDIのArrayBuffer。
-`song` はMIDI Schema v0.1へ正規化した読み取り専用データ。
+`midiBytes`は元MIDI ArrayBuffer。
+`song`はNormalized Song。
 
-## IndexedDB
-Database:
-`midi-analyzer`
-
-Version:
-`1`
-
-Object Store:
-`savedMidis`
+### Object Store: savedClips
+v0.6で追加するClip Library Store。
 
 Key:
 `id`
 
-Index:
-`savedAt`
+Indexes:
+- `savedAt`
+- `type`
 
-Storage Schema変更時はDB versionを上げ、Migration方針を先にdocsへ記録する。
+Record Schemaは`docs/CLIP_LIBRARY_SPEC.md`を正本とする。
+
+## v1 → v2 Migration
+DB version 2へのUpgradeで以下を行う。
+
+1. `savedMidis`が既に存在する場合はそのまま維持する
+2. `savedMidis`の既存recordを削除・変換しない
+3. 新しい`savedClips` Storeだけを追加する
+4. `savedMidis`が存在しない新規環境では両Storeを作成する
+
+Migrationによって元MIDI dataを上書きしない。
+`fake-indexeddb`でv1 recordを作成後、v2へUpgradeして既存recordが残ることを自動テストする。
 
 ## 保存OFF時
-現段階では分析履歴機能が未実装のため、元MIDI / Songを永続化しない。
+MIDI Importの保存OFFでは、元MIDI / Songを`savedMidis`へ永続化しない。
 
-将来Analysis Resultの履歴保存を追加する場合も、保存OFF時は元MIDI binaryを含めない。
+ClipはImport保存設定とは独立し、Library Tabで明示的に保存ボタンを押した場合だけ`savedClips`へ保存する。
+Clip recordは元MIDI binaryを含まない。
 
 ## 削除
-削除操作はユーザー確認後に行う。
-削除は端末内IndexedDBから対象recordを削除する。
+- MIDI削除 → `savedMidis`対象recordのみ削除
+- Clip削除 → `savedClips`対象recordのみ削除
+- 一方の削除で他方を連鎖削除しない
 
 ## エラー方針
-IndexedDB保存に失敗しても、MIDI Import自体の成功結果は破棄しない。
-画面上に「読み込み成功 / 保存失敗」を分けて表示する。
+IndexedDB保存に失敗してもMIDI Import成功結果は破棄しない。
+MIDI保存失敗とClip保存失敗は別に表示する。
 
 ## Testing
-Node unit testでは本番コードを変更せず、`fake-indexeddb` をdevDependencyとして利用する。
+Node unit testでは`fake-indexeddb`を利用する。
+確認対象:
+- v1→v2 migration
+- 既存`savedMidis` record保持
+- MIDI CRUD
+- Clip CRUD
+- savedAt降順一覧

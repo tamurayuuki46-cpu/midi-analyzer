@@ -127,6 +127,7 @@ function renderRhythm(result) {
 export function mountBasicAnalysis(root, song, options = {}) {
   if (!root) return null;
 
+  const section = options.section ?? 'all';
   const melodyTracks = nonDrumTracks(song);
   const bassTracks = nonDrumTracks(song);
   const rhythmTrackList = rhythmTracks(song);
@@ -167,42 +168,45 @@ export function mountBasicAnalysis(root, song, options = {}) {
     `;
   }
 
-  function render() {
-    const segments = chordSegments();
-    const melody = analyzeMelody(song, { trackId: melodyTrackId, chordSegments: segments });
-    const bass = analyzeBass(song, { trackId: bassTrackId, chordSegments: segments });
-    const rhythm = analyzeRhythm(song, { trackIds: [...selectedRhythmTrackIds] });
-
-    root.innerHTML = `
-      <div class="basic-analysis-list">
-        <section class="basic-analysis-card" aria-labelledby="melody-basic-title">
-          <div class="basic-analysis-heading">
-            <div><p class="eyebrow">MELODY</p><h3 id="melody-basic-title">主旋律の特徴</h3></div>
-            <span class="status-pill">v0.1</span>
-          </div>
-          ${renderTrackSelect('melody', melodyTracks, melodyTrackId)}
-          ${renderMelody(melody)}
-        </section>
-
-        <section class="basic-analysis-card" aria-labelledby="bass-basic-title">
-          <div class="basic-analysis-heading">
-            <div><p class="eyebrow">BASS</p><h3 id="bass-basic-title">Bassの動き</h3></div>
-            <span class="status-pill">v0.1</span>
-          </div>
-          ${renderTrackSelect('bass', bassTracks, bassTrackId)}
-          ${renderBass(bass)}
-        </section>
-
-        <section class="basic-analysis-card" aria-labelledby="rhythm-basic-title">
-          <div class="basic-analysis-heading">
-            <div><p class="eyebrow">RHYTHM</p><h3 id="rhythm-basic-title">発音位置と密度</h3></div>
-            <span class="status-pill">v0.1</span>
-          </div>
-          ${renderRhythmTrackChoices()}
-          ${renderRhythm(rhythm)}
-        </section>
-      </div>
+  function renderMelodySection() {
+    const result = analyzeMelody(song, { trackId: melodyTrackId, chordSegments: chordSegments() });
+    return `
+      <section class="basic-analysis-card" aria-labelledby="melody-basic-title">
+        <div class="basic-analysis-heading"><div><p class="eyebrow">MELODY</p><h3 id="melody-basic-title">主旋律の特徴</h3></div><span class="status-pill">v0.1</span></div>
+        ${renderTrackSelect('melody', melodyTracks, melodyTrackId)}
+        ${renderMelody(result)}
+      </section>
     `;
+  }
+
+  function renderBassSection() {
+    const result = analyzeBass(song, { trackId: bassTrackId, chordSegments: chordSegments() });
+    return `
+      <section class="basic-analysis-card" aria-labelledby="bass-basic-title">
+        <div class="basic-analysis-heading"><div><p class="eyebrow">BASS</p><h3 id="bass-basic-title">Bassの動き</h3></div><span class="status-pill">v0.1</span></div>
+        ${renderTrackSelect('bass', bassTracks, bassTrackId)}
+        ${renderBass(result)}
+      </section>
+    `;
+  }
+
+  function renderRhythmSection() {
+    const result = analyzeRhythm(song, { trackIds: [...selectedRhythmTrackIds] });
+    return `
+      <section class="basic-analysis-card" aria-labelledby="rhythm-basic-title">
+        <div class="basic-analysis-heading"><div><p class="eyebrow">RHYTHM</p><h3 id="rhythm-basic-title">発音位置と密度</h3></div><span class="status-pill">v0.1</span></div>
+        ${renderRhythmTrackChoices()}
+        ${renderRhythm(result)}
+      </section>
+    `;
+  }
+
+  function render() {
+    const sections = [];
+    if (section === 'all' || section === 'melody') sections.push(renderMelodySection());
+    if (section === 'all' || section === 'bass') sections.push(renderBassSection());
+    if (section === 'all' || section === 'rhythm') sections.push(renderRhythmSection());
+    root.innerHTML = `<div class="basic-analysis-list">${sections.join('')}</div>`;
   }
 
   root.addEventListener('change', (event) => {

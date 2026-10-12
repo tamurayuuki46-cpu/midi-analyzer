@@ -6,12 +6,12 @@
     <meta name="theme-color" content="#f4f4f5" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="MIDIをスマホで読み込み、作曲上の特徴を理解するためのMIDI Analyzer" />
-    <title>MIDI Analyzer v0.4-dev</title>
+    <title>MIDI Analyzer v0.6-dev</title>
   </head>
   <body>
     <main class="app-shell">
       <header class="app-header">
-        <p class="eyebrow">MIDI ANALYZER · v0.4-dev</p>
+        <p class="eyebrow">MIDI ANALYZER · v0.6-dev</p>
         <h1>MIDIを読み込む</h1>
         <p>まず元データをそのまま読み込みます。QuantizeやNote修正は自動では行いません。</p>
       </header>
@@ -23,7 +23,7 @@
           <label class="save-choice" for="save-midi"><input id="save-midi" name="save-midi" type="checkbox" /><span><strong>この端末に保存する</strong><small>初期値はOFFです。ONの場合だけ、元MIDIと正規化結果をIndexedDBへ保存します。</small></span></label>
           <button id="import-button" class="primary-button" type="submit">MIDIを読み込む</button>
         </form>
-        <p class="helper-note">保存したMIDIはこの端末内だけで扱い、クラウド共有・自動送信・書き出しは行いません。</p>
+        <p class="helper-note">保存したMIDIとClipはこの端末内だけで扱い、クラウド共有・自動送信・書き出しは行いません。</p>
         <p id="storage-status" class="storage-status" aria-live="polite"></p>
       </section>
       <div id="saved-midi-list"></div>

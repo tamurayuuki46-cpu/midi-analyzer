@@ -1,0 +1,163 @@
+.clip-library {
+  display: grid;
+  gap: 18px;
+}
+
+.clip-form {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.clip-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.clip-field {
+  display: grid;
+  gap: 5px;
+}
+
+.clip-field span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clip-field input,
+.clip-field select,
+.clip-search input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid #d4d4d8;
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  padding: 9px 10px;
+  font: inherit;
+}
+
+.clip-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.clip-save-button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: #18181b;
+  color: #fff;
+  padding: 10px 16px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clip-save-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.clip-status {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: 13px;
+}
+
+.clip-search {
+  display: grid;
+  gap: 6px;
+}
+
+.clip-search span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clip-list {
+  display: grid;
+  gap: 10px;
+}
+
+.clip-card {
+  display: grid;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.clip-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.clip-card-heading strong {
+  overflow-wrap: anywhere;
+}
+
+.clip-meta,
+.clip-progression {
+  margin: 0;
+  font-size: 13px;
+}
+
+.clip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.clip-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  background: #f4f4f5;
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+.clip-delete-button {
+  min-height: 42px;
+  border: 1px solid #d4d4d8;
+  border-radius: 9px;
+  background: #fff;
+  padding: 7px 11px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.clip-empty {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed #d4d4d8;
+  border-radius: 12px;
+  color: #71717a;
+}
+
+@media (max-width: 560px) {
+  .clip-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clip-card-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clip-delete-button {
+    width: 100%;
+  }
+}

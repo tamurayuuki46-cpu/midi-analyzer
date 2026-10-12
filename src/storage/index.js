@@ -1,12 +1,17 @@
 export {
+  STORAGE_CLIP_STORE_NAME,
   STORAGE_DB_NAME,
   STORAGE_DB_VERSION,
   STORAGE_STORE_NAME,
   createSavedMidiRecord,
+  deleteSavedClip,
   deleteSavedMidi,
+  getSavedClip,
   getSavedMidi,
   isIndexedDbAvailable,
+  listSavedClips,
   listSavedMidis,
   openMidiDatabase,
+  saveClipRecord,
   saveImportedMidi,
 } from './indexedDb.js';

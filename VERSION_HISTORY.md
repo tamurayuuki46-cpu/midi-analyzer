@@ -1,7 +1,81 @@
 # VERSION_HISTORY
 
+## v0.6-dev — 2026-10-13
+状態: Clip / Library Scope実装完了 / Unit Test・Production Build確認済み
+
+主な内容:
+- Chord / Melody / Bass / Drum / Motifの4小節Clip
+- 連続4小節Range切り出し
+- Clip内Noteの相対tick化 / Range境界Clip
+- Genre / Mood / BPM / Key / custom tag
+- Top 1 Chord progression context
+- Clip検索 / 削除
+- Library Tabを保存済みMIDI + Clip Libraryへ分割
+- IndexedDB version 2 / `savedClips` Store
+- v1→v2非破壊Migration
+- Clip model / IndexedDB migration自動テスト
+
+設計方針:
+- v1の`savedMidis`を削除・変換せず維持する
+- Clip保存はユーザーの明示操作のみ
+- 元Song / 元MIDIをClip作成時に変更しない
+- ClipのKey / ChordはAnalyzer候補contextであり確定値ではない
+- Chord進行DBはClip Libraryへ統合する
+
+復元ポイント:
+- `chatgpt/v0.6-before-clip-library`
+
+## v0.5-dev — 2026-10-13
+状態: Visualization Scope実装完了 / Unit Test・Production Build確認済み
+
+主な内容:
+- Tonal Center Timeline
+- Chord Timeline
+- Melody / Bass Contour
+- Rhythm Density / Energy Curve
+- Section Map
+- Note / Velocity Heatmap
+- Visual Tab
+- Visualization model unit test 2件
+
+設計方針:
+- 既存Analyzerの候補順位を変更しない
+- VisualizationはNormalized SongとAnalyzer結果の表示Layerに限定する
+- Energyはaudio loudnessではなくMIDI onset密度 × average velocityの簡易指標
+- HeatmapはAndroid負荷を考慮して先頭16小節へ制限する
+
+復元ポイント:
+- `chatgpt/v0.4.1-feature-complete-milestone`
+- `chatgpt/v0.5-feature-complete-milestone`
+
+## v0.4.1-dev — 2026-10-13
+状態: カテゴリ別Tab UI実装完了 / Unit Test・Production Build確認済み
+
+主な内容:
+- 解析結果を「概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / Parts」に分割
+- 概要へ基本情報 / Playback / Track一覧 / Piano Rollを集約
+- HarmonyへKey / Chord / Degree / Chord Detailを集約
+- Melodyへ主旋律基本分析 + 裏メロ候補を集約
+- Bassへ基本分析 + 詳細分析を集約
+- Rhythmへ基本分析 + Drum詳細を集約
+- StructureへMotif / Section / 区間Key / 転調候補を集約
+- Compare / Library / Partsを専用Tab化
+- AI Tabは将来機能用の準備中表示とし、v0.4.1ではAI解析を自動実行しない
+- Android向け横スクロールTab列
+- WAI-ARIA tablist / tab / tabpanel + Arrow / Home / End操作
+- Tab navigation unit test 3件
+
+設計方針:
+- Analyzerロジック・候補順位・Normalized Songは変更しない
+- 既存UI componentをカテゴリ別にmountできるよう分割し、解析結果の意味を維持する
+- Import前の保存済みMIDI一覧は従来表示、Import後はLibrary Tabへ表示する
+
+復元ポイント:
+- `chatgpt/v0.4-before-tabbed-ui`
+- `chatgpt/v0.4.1-feature-complete-milestone`
+
 ## v0.4-dev — 2026-10-13
-状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み
+状態: Part Deep Analysis最小Scope実装完了 / 76 tests pass / Production Build確認済み / GitHub Pages公開済み
 
 主な内容:
 - 裏メロ候補: 反行 / 並行 / 斜行 / 隙間 / 2度衝突候補 / Register
@@ -19,6 +93,8 @@
 
 復元ポイント:
 - `chatgpt/v0.4-before-part-deep`
+- `chatgpt/v0.4-feature-complete-milestone`
+- `chatgpt/v0.4-published-milestone`
 
 ## v0.3-dev — 2026-10-13
 状態: Compare / Personal Trend最小Scope実装完了 / CI・Production Build確認済み
