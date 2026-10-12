@@ -105,6 +105,17 @@ export function renderSongSummary(root, result) {
       <div data-basic-analysis-root></div>
     </section>
 
+    <section class="panel" aria-labelledby="advanced-analysis-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">V0.2 STRUCTURE / MOTIF</p>
+          <h2 id="advanced-analysis-title">発展分析</h2>
+        </div>
+        <span class="status-pill">候補</span>
+      </div>
+      <div data-advanced-analysis-root></div>
+    </section>
+
     <section class="panel piano-roll-panel" aria-labelledby="piano-roll-title">
       <div class="panel-heading">
         <div>

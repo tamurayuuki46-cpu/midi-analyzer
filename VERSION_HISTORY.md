@@ -1,7 +1,30 @@
 # VERSION_HISTORY
 
-## v0.1-dev — 2026-10-12
-状態: v0.1機能Scope実装完了 / 実機・実MIDI安定化待ち
+## v0.2-dev — 2026-10-13
+状態: v0.2最小Scope実装完了 / 実MIDI安定化待ち
+
+主な内容:
+- 移調非依存Motif反復候補
+- 4小節BlockのSection候補
+- 4小節BlockごとのKey Timeline
+- 転調候補 + Key relation
+- 転回形 / Slash Chord候補
+- add9 / 11 / 6・13色付け候補
+- Android-first発展分析Panel
+- Motif / Structure / Harmony Detailの追加自動テスト
+- 全部入りを段階追加するROADMAPへ更新
+
+設計方針:
+- v0.1 Chord Analyzerの順位・選択形式を破壊しない
+- v0.2 Chord Detailは上位Layerとして追加する
+- Motif / Section / 転調も自動確定せず候補表示する
+- Normalized Songを解析入力の正本として維持する
+
+復元ポイント:
+- `chatgpt/v0.2-before-structure-motif`
+
+## v0.1-dev — 2026-10-12〜2026-10-13
+状態: v0.1機能Scope実装完了 / Android基本Smoke Test完了 / 実MIDI安定化待ち
 
 主な内容:
 - MIDI Import / Normalized Song Schema
@@ -18,10 +41,10 @@
 - 再Import時の旧再生停止 / AudioContext lifecycle対策
 - Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis / Playback自動テスト
 - GitHub Actionsでtest + production buildを継続確認
-- Android-first UI / RipX・Demo Composer連携境界をdocsで管理
+- GitHub Pages公開
+- Android Chrome基本実機確認
 
-v0.1安定版化前の確認:
-- Android Chrome実機でImport / Storage / Play / Stop / UI確認
+v0.1由来の継続確認:
 - RipX / Scaler / EZkeys等の実MIDI regression
 - Key / Chord係数・Basic Analysis heuristic調整
 - Playback音量 / Tempo Change / Bluetooth確認
@@ -34,6 +57,8 @@ v0.1安定版化前の確認:
 - `chatgpt/v0.1-before-chord-analyzer`
 - `chatgpt/v0.1-before-basic-analysis`
 - `chatgpt/v0.1-before-playback`
+- `chatgpt/v0.1-feature-complete-milestone`
+- `chatgpt/v0.1-android-verified-milestone`
 
 最新安定版:
 未作成

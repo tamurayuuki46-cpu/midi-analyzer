@@ -21,7 +21,7 @@
 ### Chord Analyzer
 1. C major triad → C
 2. A minor triad → Am
-3. C/E転回形 → C
+3. C/E転回形のHarmony本体はCとして判定
 4. G7構成音あり → G7
 5. Track選択 / Channel 10除外
 6. 2音だけの候補はconfidenceを下げる
@@ -57,6 +57,19 @@
 2. NoteなしSongは再生error
 3. AudioContext resume中にStopしても旧sessionを開始しない
 
+### v0.2 Motif
+1. C-D-E-GとD-E-F♯-Aのような移調反復を同一Motifとして検出
+2. 2回分のNote数が足りない場合は候補なし
+
+### v0.2 Structure / Modulation
+1. C系4小節 → D系4小節 → C系4小節で第1/第3Blockを同一Section候補へ分類
+2. 隣接BlockのKey第1候補変化から転調候補を作る
+3. 解析可能な長さがないSongでは空Resultを返す
+
+### v0.2 Harmony Detail
+1. E-G-CのようにChord ToneがBassのC majorをC/E候補として表示
+2. C major区間にDが十分含まれる場合add9色付け候補を表示
+
 実行:
 ```bash
 npm test
@@ -79,19 +92,13 @@ npm run build
 13. Drumなしで全TrackからRhythmを見るMIDI
 14. Tempo Changeを含むMIDI
 15. Channel 10 Drumを含むMIDI
+16. 同一Motifを別Keyへ移調して再登場させたMIDI
+17. A-B-A型でPitch / Densityが明確に違うMIDI
+18. サビ前で半音または全音転調するMIDI
+19. Slash Chordを含むPiano MIDI
+20. add9 / 11 / 6・13が持続するChord MIDI
 
 ## Android Manual
-2026-10-13: GitHub Pages公開版をAndroid Chrome実機で確認し、以下の基本Smoke Testを通過。
-- MIDI Import
-- 端末保存 / 再読込
-- Play / Stop
-- Piano Roll
-- Key / Scale
-- Chord / Degree
-- Melody / Bass / Rhythm Basic Analysis
-- スマートフォン幅での主要操作・スクロール
-
-実MIDI安定化時の追加回帰確認:
 - Import後にPlayで初回から音が鳴る
 - Stopで即座に音が止まる
 - 再Import時に旧MIDIの音が残らない
@@ -107,6 +114,8 @@ npm run build
 - Rhythmの複数Track checkboxが操作しやすい
 - 16分Gridが320px幅でも横にはみ出さない
 - 長いMIDIでChord区間数が多くてもページが破綻しない
+- v0.2発展分析Panelが320px幅で横崩れしない
+- Motif候補 / Section / Key Timeline / Chord Detailが縦スクロールで読める
 - Import / Storage / Piano Roll / Key / Chord / Basic Analysis機能が回帰していない
 
 ## Regression
