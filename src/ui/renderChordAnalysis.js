@@ -1,5 +1,10 @@
 import './chordAnalysis.css';
-import { analyzeChords, degreeForPitchClass, getDefaultChordTrackIds } from '../analysis/chord/index.js';
+import {
+  analyzeChords,
+  buildTopChordProgression,
+  degreeForPitchClass,
+  getDefaultChordTrackIds,
+} from '../analysis/chord/index.js';
 
 function escapeHtml(value) {
   return String(value)
@@ -82,6 +87,36 @@ export function mountChordAnalysis(root, song, options = {}) {
     `;
   }
 
+  function renderTopProgression() {
+    const progression = buildTopChordProgression(result.segments);
+    if (!progression.length) return '';
+
+    return `
+      <section class="chord-progression-summary" aria-label="候補1位のコード進行">
+        <div class="chord-progression-heading">
+          <div>
+            <p class="chord-progression-kicker">自動ランキング</p>
+            <strong>候補1位のコード進行</strong>
+          </div>
+          <span class="status-pill">Top 1</span>
+        </div>
+        <div class="chord-progression-strip" role="list">
+          ${progression.map((entry, index) => `
+            <div class="chord-progression-step" role="listitem">
+              <div class="chord-progression-item">
+                <small>${entry.barNumber ? `${entry.barNumber}小節` : `#${index + 1}`}</small>
+                <strong>${escapeHtml(entry.value)}</strong>
+                <span>${entry.confidence === null ? '一致度 —' : `一致度 ${(entry.confidence * 100).toFixed(0)}%`}</span>
+              </div>
+              ${index < progression.length - 1 ? '<span class="chord-progression-arrow" aria-hidden="true">→</span>' : ''}
+            </div>
+          `).join('')}
+        </div>
+        <p class="helper-note">各Chord区間のランキング1位を時間順に並べた仮コード進行です。下のTop 3候補を手動選択しても、この一覧はランキング1位を表示し続けます。</p>
+      </section>
+    `;
+  }
+
   function renderSegments() {
     if (!result.segments.length) return `<p class="empty-state">${escapeHtml(result.note)}</p>`;
     return `
@@ -129,6 +164,7 @@ export function mountChordAnalysis(root, song, options = {}) {
     root.innerHTML = `
       ${renderTrackChoices()}
       <p class="chord-key-context">${escapeHtml(keyContext)}</p>
+      ${renderTopProgression()}
       ${renderSegments()}
       <p class="helper-note">${escapeHtml(result.note)}</p>
       <p class="chord-parameter-note">暫定値: Bass Bonus 1.5 / Non-Chord Penalty 0.5 / Chord切替閾値 10%。実MIDIで調整予定です。</p>
