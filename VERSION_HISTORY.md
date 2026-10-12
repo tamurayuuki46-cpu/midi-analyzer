@@ -1,5 +1,30 @@
 # VERSION_HISTORY
 
+## v0.6-dev — 2026-10-13
+状態: Clip / Library Scope実装完了 / Unit Test・Production Build確認済み
+
+主な内容:
+- Chord / Melody / Bass / Drum / Motifの4小節Clip
+- 連続4小節Range切り出し
+- Clip内Noteの相対tick化 / Range境界Clip
+- Genre / Mood / BPM / Key / custom tag
+- Top 1 Chord progression context
+- Clip検索 / 削除
+- Library Tabを保存済みMIDI + Clip Libraryへ分割
+- IndexedDB version 2 / `savedClips` Store
+- v1→v2非破壊Migration
+- Clip model / IndexedDB migration自動テスト
+
+設計方針:
+- v1の`savedMidis`を削除・変換せず維持する
+- Clip保存はユーザーの明示操作のみ
+- 元Song / 元MIDIをClip作成時に変更しない
+- ClipのKey / ChordはAnalyzer候補contextであり確定値ではない
+- Chord進行DBはClip Libraryへ統合する
+
+復元ポイント:
+- `chatgpt/v0.6-before-clip-library`
+
 ## v0.5-dev — 2026-10-13
 状態: Visualization Scope実装完了 / Unit Test・Production Build確認済み
 
@@ -21,6 +46,7 @@
 
 復元ポイント:
 - `chatgpt/v0.4.1-feature-complete-milestone`
+- `chatgpt/v0.5-feature-complete-milestone`
 
 ## v0.4.1-dev — 2026-10-13
 状態: カテゴリ別Tab UI実装完了 / Unit Test・Production Build確認済み
