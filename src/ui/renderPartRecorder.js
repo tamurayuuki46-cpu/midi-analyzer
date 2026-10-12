@@ -328,9 +328,10 @@ export function mountPartRecorder(root, song) {
   return Object.freeze({
     refresh,
     async destroy() {
-      if (activeRecorder) await activeRecorder.destroy();
-      activeRecorder = null;
+      const recorderToDestroy = activeRecorder;
       recordingSession = null;
+      activeRecorder = null;
+      if (recorderToDestroy) await recorderToDestroy.destroy();
       revoke('preview');
       revoke('a');
       revoke('b');
