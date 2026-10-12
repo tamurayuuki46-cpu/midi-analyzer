@@ -15,6 +15,7 @@ import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
 import { mountCompareAnalysis } from './ui/renderCompareAnalysis.js';
 import { renderImportError, renderSongSummary } from './ui/renderImport.js';
 import { mountKeyAnalysis } from './ui/renderKeyAnalysis.js';
+import { mountPartDeepAnalysis } from './ui/renderPartDeepAnalysis.js';
 import { mountPlayback } from './ui/renderPlayback.js';
 import {
   renderSavedMidiList,
@@ -46,7 +47,6 @@ async function refreshSavedMidiList() {
     renderStorageUnavailable(savedRoot);
     return;
   }
-
   try {
     const items = await listSavedMidis();
     renderSavedMidiList(savedRoot, items);
@@ -65,7 +65,6 @@ async function loadSavedSongs() {
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const file = fileInput.files?.[0];
-
   if (!file) {
     renderImportError(resultRoot, new Error('MIDIファイルを選んでください。'));
     return;
@@ -76,7 +75,6 @@ form.addEventListener('submit', async (event) => {
     activePlaybackController = null;
   }
   activeCompareController = null;
-
   submitButton.disabled = true;
   submitButton.textContent = '読み込み中…';
   setStorageStatus('');
@@ -85,48 +83,31 @@ form.addEventListener('submit', async (event) => {
     const result = await importMidiFile(file, { origin: originSelect.value });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
-
     activePlaybackController = mountPlayback(resultRoot.querySelector('[data-playback-root]'), result.song);
 
     const keyRoot = resultRoot.querySelector('[data-key-analysis-root]');
     const chordRoot = resultRoot.querySelector('[data-chord-analysis-root]');
     const keyController = mountKeyAnalysis(keyRoot, keyAnalysis);
-    const chordController = mountChordAnalysis(
-      chordRoot,
-      result.song,
-      {
-        getEffectiveKey: keyController?.getEffectiveKey,
-        isKeyExplicit: () => Boolean(keyController?.getSelected()),
-      },
-    );
-    const basicController = mountBasicAnalysis(
-      resultRoot.querySelector('[data-basic-analysis-root]'),
-      result.song,
-      {
-        getChordSegments: chordController?.getEffectiveSegments,
-      },
-    );
+    const chordController = mountChordAnalysis(chordRoot, result.song, {
+      getEffectiveKey: keyController?.getEffectiveKey,
+      isKeyExplicit: () => Boolean(keyController?.getSelected()),
+    });
+    const basicController = mountBasicAnalysis(resultRoot.querySelector('[data-basic-analysis-root]'), result.song, {
+      getChordSegments: chordController?.getEffectiveSegments,
+    });
 
     mountAdvancedAnalysis(resultRoot.querySelector('[data-advanced-analysis-root]'), result.song);
-    activeCompareController = mountCompareAnalysis(
-      resultRoot.querySelector('[data-compare-analysis-root]'),
-      result.song,
-      { loadSavedSongs },
-    );
+    activeCompareController = mountCompareAnalysis(resultRoot.querySelector('[data-compare-analysis-root]'), result.song, { loadSavedSongs });
+    mountPartDeepAnalysis(resultRoot.querySelector('[data-part-deep-analysis-root]'), result.song);
 
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
     chordRoot?.addEventListener('chord-selection-change', () => basicController?.refreshChordContext());
     chordRoot?.addEventListener('chord-analysis-change', () => basicController?.refreshChordContext());
-
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
 
     if (saveCheckbox.checked) {
       try {
-        await saveImportedMidi({
-          file,
-          importResult: result,
-          origin: originSelect.value,
-        });
+        await saveImportedMidi({ file, importResult: result, origin: originSelect.value });
         setStorageStatus('この端末に保存しました。クラウドや外部サービスには送信していません。', 'success');
         await refreshSavedMidiList();
         await activeCompareController?.refreshTrend();
@@ -147,11 +128,9 @@ form.addEventListener('submit', async (event) => {
 savedRoot.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-delete-midi]');
   if (!button) return;
-
   const id = button.dataset.deleteMidi;
   const confirmed = globalThis.confirm('この端末から保存済みMIDIを削除します。よろしいですか？');
   if (!confirmed) return;
-
   button.disabled = true;
   try {
     await deleteSavedMidi(id);
