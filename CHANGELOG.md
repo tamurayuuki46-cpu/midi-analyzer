@@ -36,6 +36,9 @@
 - Stop / 再Import時のAudioContext破棄
 - Playback timing unit test 9件 / controller lifecycle test 3件
 - `docs/PLAYBACK_SPEC.md`
+- GitHub Pages自動公開Workflow
+- hosting非依存のVite相対asset path設定
+- `docs/DEPLOYMENT.md`
 
 ### 【変更】
 - Motifはv0.2以降
@@ -48,6 +51,7 @@
 - Rhythmのシンコペーションはv0.1では「musicalBeat拍頭以外」の簡易候補として扱う
 - Playbackは元音色再現ではなくTiming / Pitch / Rhythm確認用の簡易プレビューに限定
 - v0.1機能Scopeは実装完了。安定版化前にAndroid実機確認と実MIDI調整を行う
+- 標準公開先をVercel必須構成からGitHub Pages単独で運用可能な構成へ変更
 
 ### 【修正】
 - Claude引き継ぎ案と既存仕様の矛盾整理
@@ -55,9 +59,11 @@
 - PWA manifest path
 - 再生開始中の二重Playを防止
 - AudioContext resume中のStop / 再Importで旧sessionが復帰しないようlifecycleを修正
+- GitHub Pagesのproject path配下でbuild assetが404にならないようVite baseを相対化
 
 ### 【未対応】
 - Android実機でImport / Storage / Playback / Piano Roll / Key / Chord / Basic Analysis UI確認
 - 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
 - 保存済みMIDIの「開く」
 - slash chord専用表記
+- GitHub Pages初回有効化が未設定の場合はRepository SettingsでSourceをGitHub Actionsへ1回設定

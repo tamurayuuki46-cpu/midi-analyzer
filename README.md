@@ -9,6 +9,19 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 
 最新安定版: 未作成
 
+## 公開
+Vercelに依存せず、GitHub Pagesだけで公開できる構成です。
+
+- 公開元: `develop`
+- 公開Workflow: `.github/workflows/pages.yml`
+- 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
+- `develop`更新時に Unit Test → Production Build → GitHub Pages Deploy を自動実行
+- Viteのasset pathは相対化しているため、GitHub Pagesのproject path配下でも動作します
+
+初回のみRepositoryの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** に設定する必要があります。以後は`develop`更新時に自動公開されます。
+
+詳細: `docs/DEPLOYMENT.md`
+
 ## 位置づけ
 音源 → RipX → MIDI Analyzer → Demo Composer → Cubasis → Cubase → 完成曲
 
@@ -34,6 +47,7 @@ MIDIファイルを分析し、Key / Scale、Chord、Degree、Melody、Bass、Rh
 - Tempo Map対応のTick→秒変換 / lookahead Web Audio scheduler
 - 再Import時の旧再生停止 / Channel 10簡易click
 - Parser / Normalizer / Storage / Piano Roll / Key / Chord / Basic Analysis / Playback tests
+- GitHub Pages自動公開
 
 ## Key / Scale
 Drums以外のNoteを `durationTick × velocity` で重み付けし、major/minor 24候補から上位3つを表示します。confidenceは確率ではなくprofile一致度です。解析直後には確定せず、ユーザーが選んだときだけ選択状態にします。
