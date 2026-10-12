@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "bridge": "node bridge/server.mjs"
   },
   "dependencies": {
     "midi-file": "1.2.4"
