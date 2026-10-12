@@ -1,7 +1,7 @@
 # AI_HANDOFF.md
 
 現在Version:
-v0.2-dev
+v0.2.1-dev
 
 最新安定版:
 未作成
@@ -13,6 +13,8 @@ v0.2-dev
 - 読み取り専用Piano Roll / Track切替 / Zoom / Scroll
 - Key / Scale Analyzer / major-minor 24候補 → Top 3 / ユーザー選択
 - Chord Analyzer + Degree / Track選択 / Top 3候補
+- 各Chord区間のランキング1位を時間順に並べるTop 1コード進行表示
+- Top 1コード進行: 小節番号 / Chord名 / 一致度 / Android向け横スクロール
 - Melody / Bass / Rhythm基本分析
 - Chord選択・Chord Track変更時のMelody / Bass再計算
 - 最小Play / Stop簡易再生 / Tempo Map対応Web Audio scheduler
@@ -26,15 +28,17 @@ v0.2-dev
 - v0.2発展分析Panel
 
 開発中:
-- v0.2 Scopeの最小実装は完了
+- v0.2.1 Top 1コード進行表示は実装・CI/Production Build確認済み
+- 公開はdevelop merge後にGitHub Pagesへ自動Deploy
 - 実MIDIでMotif / Section / 転調 / Chord Detailの閾値調整を残す
 - v0.1由来のKey / Chord / Basic Analysis / Playback実MIDI調整も継続課題
 
 次に実施:
-1. RipX / Scaler / EZkeys等の実MIDIでv0.1/v0.2解析をRegression確認
-2. Motifの誤検出、Section similarity 0.82、Chord Detail weight 8%を調整
-3. 長いMIDIで発展分析のPerformance / Android表示を確認
-4. v0.3で2 MIDI比較 / 参考曲vs自作曲 / 自作曲傾向へ進む
+1. v0.2.1をdevelopへ統合後、GitHub Pages公開とAndroid表示を確認
+2. RipX / Scaler / EZkeys等の実MIDIでv0.1/v0.2解析をRegression確認
+3. Motifの誤検出、Section similarity 0.82、Chord Detail weight 8%を調整
+4. 長いMIDIで発展分析とTop 1コード進行のPerformance / Android表示を確認
+5. v0.3で2 MIDI比較 / 参考曲vs自作曲 / 自作曲傾向へ進む
 
 既知の問題:
 - SMPTE time division未対応
@@ -48,6 +52,7 @@ v0.2-dev
 - pivot chord / common toneによる転調理由推定は未対応
 - Slash Chordはv0.2 Chord Detail候補であり、v0.1 Chord選択値そのものは変更しない
 - Chord Detail extensionはadd9 / 11 / 6・13のみ
+- Top 1コード進行は自動ランキング1位のみで、Copy / Export / Demo Composer送信は未実装
 - RipX / Scaler / EZkeys等の実ファイルRegressionは別途必要
 
 触らない部分:
@@ -59,6 +64,7 @@ v0.2-dev
 - 保存OFF時に元MIDI binaryを永続化しない
 - AnalyzerがKey / Chord / Section / Motif / 転調を自動確定しない
 - v0.1 Chord Analyzerをv0.2 Chord Detailのために破壊的変更しない
+- Top 1コード進行に手動選択Chordを混ぜない
 
 最近の重要な設計判断:
 - v0.2以降もNormalized Songを解析入力の正本とする
@@ -71,12 +77,15 @@ v0.2-dev
 - Chord Detailは既存Chord Analyzerの上位Layerとして実装し、候補順位を変更しない
 - Slash Chordは最低音がChord構成音かつRoot以外のときのみ候補表示する
 - add9 / 11 / 6・13は区間weight 8%以上を候補表示する
+- Top 1コード進行は各Chord segmentの`candidates[0]`のみを時間順に並べる
+- Chord分析Track変更時にはTop 1コード進行も再計算する
 - v0.3以降はROADMAPに従って全部入りを段階追加する
 
 現在のAnalysis Result追加分:
 Motif: { trackId, motifs: [{ id, noteLength, signature, occurrenceCount, occurrences, representativePitches }], note, parameters }
 Structure: { sections, keyTimeline, modulations, note, parameters }
 Harmony Detail: { trackIds, segments: [{ id, startTick, endTick, barNumber, baseCandidate, displayValue, inversion, extensions }], note }
+Top 1 Progression: [{ segmentId, barNumber, startTick, endTick, value, confidence }]
 
 現在のStorage Schema:
 IndexedDB `midi-analyzer` / version 1 / store `savedMidis`
@@ -89,6 +98,7 @@ record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 - `chatgpt/v0.1-before-pages-deploy-fix`
 - `chatgpt/v0.1-android-verified-milestone`
 - `chatgpt/v0.2-before-structure-motif`
+- `chatgpt/v0.2-before-top1-progression`
 
 最終更新:
 2026-10-13
