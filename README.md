@@ -1,11 +1,11 @@
 # MIDI Analyzer
 
-Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細 / 可視化 / Clip Libraryを作曲判断へ応用するためのアプリです。
+Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細 / 可視化 / Clip Library / Part Recordingを作曲判断へ応用するためのアプリです。
 
 ## 現在Version
-`v0.6-dev`
+`v0.7-dev`
 
-公開中Version: `v0.4-dev`
+公開中Version: `v0.6-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -23,7 +23,8 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Visual: Tonal Center / Chord Timeline / Melody・Bass Contour / Rhythm Density / Energy Curve / Section Map / Heatmap
 - Compare: 2 MIDI比較 / Personal Trend
 - Library: 保存済みMIDI + 4小節Clip Library / タグ検索
-- AI: 将来の説明機能用。v0.6時点では自動AI解析を実行しない
+- Recorder: Melody / Chord / Bass / Drumの分離Audio録音 / Take保存 / A/B / Audio書き出し
+- AI: 将来の説明機能用。v0.7時点では自動AI解析を実行しない
 - Parts: Track役割候補
 
 タブは横スクロール可能で、クリック/タップに加えてキーボードの左右矢印・Home・Endでも移動できます。
@@ -54,7 +55,10 @@ Import後の解析結果は、Androidで1画面が長くなりすぎないよう
 - Chord / Melody / Bass / Drum / Motifの4小節Clip保存
 - ClipのGenre / Mood / BPM / Key / custom tag
 - Chord進行context保存・検索
-- IndexedDB v2 migration（既存`savedMidis`を維持して`savedClips`追加）
+- Melody / Chord / Bass / DrumのPart別Audio録音
+- Recorder Track手動選択 / Monitor ON/OFF
+- Take保存 / Preview / A/B比較 / Audio書き出し / 削除
+- IndexedDB v3 migration（既存`savedMidis` / `savedClips`を維持して`savedTakes`追加）
 - GitHub Actions CI / GitHub Pages
 
 ## v0.5 Visualization
@@ -69,6 +73,15 @@ Library検索はClip名・種類・source・Genre・Mood・BPM・Key・custom ta
 
 詳細: `docs/CLIP_LIBRARY_SPEC.md`
 
+## v0.7 Part Recording
+Recorder TabでMelody / Chord / Bass / Drumを選ぶとroleHint等から既定Trackを候補表示します。Trackは手動変更でき、選択TrackだけをSolo状態で簡易音源再生し、そのAudioをMediaRecorderで録音します。
+
+録音Takeは端末内IndexedDBへ保存し、Preview、Take A / B比較、ブラウザ対応形式でのAudio書き出し、削除ができます。Monitor OFFではspeakerへ鳴らさず録音できます。
+
+これはMIDI Analyzer内の簡易音源を分離録音する機能です。RipX / Cubasis / Cubase等、他アプリ内部Audioの直接録音やマイク録音ではありません。MediaRecorderの出力形式はブラウザ依存で、Android ChromeではWebM/Opusを優先します。
+
+詳細: `docs/PART_RECORDING_SPEC.md`
+
 ## 既存分析仕様
 - Key / Scale: `docs/KEY_ANALYZER_SPEC.md`
 - Chord / Degree: `docs/CHORD_ANALYZER_SPEC.md`
@@ -80,9 +93,10 @@ Library検索はClip名・種類・source・Genre・Mood・BPM・Key・custom ta
 - Part Deep: `docs/PART_DEEP_ANALYSIS_SPEC.md`
 - Visualization: `docs/VISUALIZATION_SPEC.md`
 - Clip Library: `docs/CLIP_LIBRARY_SPEC.md`
+- Part Recording: `docs/PART_RECORDING_SPEC.md`
 
 ## 保存方針
-「この端末に保存する」は初期OFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。ClipはLibraryでユーザーが明示的に保存ボタンを押した時だけ保存します。クラウドへ自動送信しません。
+「この端末に保存する」は初期OFFです。ONの場合のみ元MIDIと正規化結果を端末内IndexedDBへ保存します。ClipはLibraryでユーザーが明示的に保存ボタンを押した時だけ保存します。TakeはRecorderで録音した時だけ保存します。クラウドへ自動送信しません。
 
 ## 開発
 ```bash
@@ -103,7 +117,8 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 - v0.4.1: 解析結果をカテゴリ別Tabへ分割
 - v0.5: Visualization
 - v0.6: 4小節Clip / Library / Tag Search / Chord進行DB
-- v0.7以降: Integration / Export → Explanation → Higher-level Metrics → v1.0統合
+- v0.7: Part Recording + Integration / Export
+- v0.8以降: Explanation → Higher-level Metrics → v1.0統合
 
 詳細は `docs/ROADMAP.md`。
 
@@ -117,10 +132,11 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 7. `docs/PART_DEEP_ANALYSIS_SPEC.md`
 8. `docs/VISUALIZATION_SPEC.md`
 9. `docs/CLIP_LIBRARY_SPEC.md`
-10. `docs/STORAGE_SPEC.md`
-11. `docs/MIDI_SCHEMA.md`
-12. `docs/ARCHITECTURE.md`
-13. `docs/ROADMAP.md`
-14. `CHANGELOG.md`
+10. `docs/PART_RECORDING_SPEC.md`
+11. `docs/STORAGE_SPEC.md`
+12. `docs/MIDI_SCHEMA.md`
+13. `docs/ARCHITECTURE.md`
+14. `docs/ROADMAP.md`
+15. `CHANGELOG.md`
 
 重要仕様は `docs/` を正本とします。
