@@ -35,6 +35,7 @@ export function renderSongSummary(root, result) {
         ${tabButton('bass', 'Bass')}
         ${tabButton('rhythm', 'Rhythm')}
         ${tabButton('structure', 'Structure')}
+        ${tabButton('visual', 'Visual')}
         ${tabButton('compare', 'Compare')}
         ${tabButton('library', 'Library')}
         ${tabButton('ai', 'AI')}
@@ -85,6 +86,10 @@ export function renderSongSummary(root, result) {
 
       ${panelStart('structure')}
         <section class="panel" aria-labelledby="structure-analysis-title"><div class="panel-heading"><div><p class="eyebrow">STRUCTURE / MOTIF</p><h2 id="structure-analysis-title">構成・Motif・転調</h2></div><span class="status-pill">候補</span></div><div data-advanced-structure-root></div></section>
+      </section>
+
+      ${panelStart('visual')}
+        <section class="panel" aria-labelledby="visualization-title"><div class="panel-heading"><div><p class="eyebrow">VISUALIZATION</p><h2 id="visualization-title">曲の流れを可視化</h2></div><span class="status-pill">v0.5</span></div><div data-visualization-root></div></section>
       </section>
 
       ${panelStart('compare')}
