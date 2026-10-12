@@ -30,6 +30,10 @@ function normalized(value, min, max) {
   return clamp01((value - min) / (max - min));
 }
 
+function range(values) {
+  return values.length ? { min: Math.min(...values), max: Math.max(...values) } : { min: 0, max: 0 };
+}
+
 function effectiveChords(bundle) {
   return (bundle?.chords?.segments ?? [])
     .map((segment) => segment.effectiveCandidate ?? segment.candidates?.[0] ?? null)
@@ -64,17 +68,14 @@ function chorusMetric(bundle) {
   const densities = sections.map((item) => Number(item.metrics?.density)).filter(Number.isFinite);
   const velocities = sections.map((item) => Number(item.metrics?.averageVelocity)).filter(Number.isFinite);
   const registers = sections.map((item) => Number(item.metrics?.averagePitch)).filter(Number.isFinite);
-  const minDensity = Math.min(...densities, 0);
-  const maxDensity = Math.max(...densities, 0);
-  const minVelocity = Math.min(...velocities, 0);
-  const maxVelocity = Math.max(...velocities, 0);
-  const minRegister = Math.min(...registers, 0);
-  const maxRegister = Math.max(...registers, 0);
+  const densityRange = range(densities);
+  const velocityRange = range(velocities);
+  const registerRange = range(registers);
 
   const candidates = sections.map((section) => {
-    const density = normalized(Number(section.metrics?.density), minDensity, maxDensity);
-    const velocity = normalized(Number(section.metrics?.averageVelocity), minVelocity, maxVelocity);
-    const register = normalized(Number(section.metrics?.averagePitch), minRegister, maxRegister);
+    const density = normalized(Number(section.metrics?.density), densityRange.min, densityRange.max);
+    const velocity = normalized(Number(section.metrics?.averageVelocity), velocityRange.min, velocityRange.max);
+    const register = normalized(Number(section.metrics?.averagePitch), registerRange.min, registerRange.max);
     const score = score100(0.4 * density + 0.35 * velocity + 0.25 * register);
     return Object.freeze({
       sectionId: section.id,
