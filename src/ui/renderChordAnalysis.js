@@ -37,6 +37,23 @@ export function mountChordAnalysis(root, song, options = {}) {
     return Boolean(options.isKeyExplicit?.());
   }
 
+  function getEffectiveSegments() {
+    return Object.freeze(result.segments.map((segment) => {
+      const selectedValue = selectedBySegment.get(segment.id) ?? null;
+      const selectedCandidate = selectedValue
+        ? segment.candidates.find((candidate) => candidate.value === selectedValue) ?? null
+        : null;
+      const effectiveCandidate = selectedCandidate ?? segment.candidates[0] ?? null;
+      return Object.freeze({
+        ...segment,
+        selected: selectedValue,
+        selectedCandidate,
+        effectiveCandidate,
+        selectionSource: selectedCandidate ? 'selected' : 'candidate',
+      });
+    }));
+  }
+
   function degreeMarkup(candidate) {
     const key = effectiveKey();
     if (!key) return '<span class="degree-chip">Degree —</span>';
@@ -122,6 +139,12 @@ export function mountChordAnalysis(root, song, options = {}) {
     selectedBySegment.clear();
     result = analyzeChords(song, { trackIds: [...selectedTrackIds] });
     render();
+    root.dispatchEvent(new CustomEvent('chord-analysis-change', {
+      bubbles: true,
+      detail: {
+        trackIds: [...selectedTrackIds],
+      },
+    }));
   }
 
   root.addEventListener('change', (event) => {
@@ -151,5 +174,6 @@ export function mountChordAnalysis(root, song, options = {}) {
     refreshKeyContext: render,
     getSelectedTrackIds: () => Object.freeze([...selectedTrackIds]),
     getSelections: () => Object.freeze(Object.fromEntries(selectedBySegment)),
+    getEffectiveSegments,
   });
 }
