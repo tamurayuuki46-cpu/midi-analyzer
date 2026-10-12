@@ -6,17 +6,22 @@ import {
   STORAGE_DB_NAME,
   STORAGE_DB_VERSION,
   STORAGE_STORE_NAME,
+  STORAGE_TAKE_STORE_NAME,
   createSavedMidiRecord,
   deleteSavedClip,
   deleteSavedMidi,
+  deleteSavedTake,
   getSavedClip,
   getSavedMidi,
+  getSavedTake,
   isIndexedDbAvailable,
   listSavedClips,
   listSavedMidis,
+  listSavedTakes,
   openMidiDatabase,
   saveClipRecord,
   saveImportedMidi,
+  saveTakeRecord,
 } from '../src/storage/indexedDb.js';
 
 function makeFile(name = 'song.mid', bytes = [77, 84, 104, 100]) {
@@ -62,6 +67,30 @@ function openLegacyV1(indexedDBFactory) {
         song: makeImportResult('legacy.mid').song,
         warnings: [],
       });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function openLegacyV2(indexedDBFactory) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDBFactory.open(STORAGE_DB_NAME, 2);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      const midiStore = db.createObjectStore(STORAGE_STORE_NAME, { keyPath: 'id' });
+      midiStore.createIndex('savedAt', 'savedAt', { unique: false });
+      midiStore.put({
+        id: 'legacy-midi-v2',
+        savedAt: '2026-10-12T00:00:00.000Z',
+        source: { fileName: 'legacy-v2.mid', origin: 'midi' },
+        song: makeImportResult('legacy-v2.mid').song,
+        warnings: [],
+      });
+      const clipStore = db.createObjectStore(STORAGE_CLIP_STORE_NAME, { keyPath: 'id' });
+      clipStore.createIndex('savedAt', 'savedAt', { unique: false });
+      clipStore.createIndex('type', 'type', { unique: false });
+      clipStore.put({ id: 'legacy-clip', savedAt: '2026-10-12T01:00:00.000Z', type: 'chord', name: 'Legacy Clip' });
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -130,20 +159,35 @@ test('saved list is newest first', async () => {
   assert.deepEqual(list.map((item) => item.id), ['new', 'old']);
 });
 
-test('v2 migration preserves the legacy savedMidis store and adds savedClips', async () => {
+test('v3 migration from v1 preserves savedMidis and adds clips/takes', async () => {
   const indexedDBFactory = new IDBFactory();
   const legacyDb = await openLegacyV1(indexedDBFactory);
   legacyDb.close();
 
   const db = await openMidiDatabase(indexedDBFactory);
   assert.equal(db.version, STORAGE_DB_VERSION);
-  assert.equal(STORAGE_DB_VERSION, 2);
+  assert.equal(STORAGE_DB_VERSION, 3);
   assert.equal(db.objectStoreNames.contains(STORAGE_STORE_NAME), true);
   assert.equal(db.objectStoreNames.contains(STORAGE_CLIP_STORE_NAME), true);
+  assert.equal(db.objectStoreNames.contains(STORAGE_TAKE_STORE_NAME), true);
   db.close();
 
   const legacy = await getSavedMidi('legacy-midi', { indexedDBFactory });
   assert.equal(legacy.source.fileName, 'legacy.mid');
+});
+
+test('v3 migration from v2 preserves existing MIDI and Clip records', async () => {
+  const indexedDBFactory = new IDBFactory();
+  const legacyDb = await openLegacyV2(indexedDBFactory);
+  legacyDb.close();
+
+  const db = await openMidiDatabase(indexedDBFactory);
+  assert.equal(db.version, 3);
+  assert.equal(db.objectStoreNames.contains(STORAGE_TAKE_STORE_NAME), true);
+  db.close();
+
+  assert.equal((await getSavedMidi('legacy-midi-v2', { indexedDBFactory })).source.fileName, 'legacy-v2.mid');
+  assert.equal((await getSavedClip('legacy-clip', { indexedDBFactory })).name, 'Legacy Clip');
 });
 
 test('save, get, list and delete work for clip records', async () => {
@@ -175,4 +219,36 @@ test('save, get, list and delete work for clip records', async () => {
   await deleteSavedClip('clip-1', { indexedDBFactory });
   assert.equal(await getSavedClip('clip-1', { indexedDBFactory }), undefined);
   assert.deepEqual(await listSavedClips({ indexedDBFactory }), []);
+});
+
+test('save, get, list and delete work for recorded take audio', async () => {
+  const indexedDBFactory = new IDBFactory();
+  const take = {
+    takeSchemaVersion: 1,
+    id: 'take-1',
+    savedAt: '2026-10-13T02:00:00.000Z',
+    name: 'Melody A',
+    partType: 'melody',
+    trackIds: ['track-1'],
+    source: { fileName: 'song.mid', origin: 'midi' },
+    mimeType: 'audio/webm',
+    durationSeconds: 4.2,
+    eventCount: 8,
+    audioBytes: Uint8Array.from([1, 2, 3]).buffer,
+  };
+
+  await saveTakeRecord(take, { indexedDBFactory });
+  const loaded = await getSavedTake('take-1', { indexedDBFactory });
+  assert.equal(loaded.name, 'Melody A');
+  assert.deepEqual([...new Uint8Array(loaded.audioBytes)], [1, 2, 3]);
+
+  const list = await listSavedTakes({ indexedDBFactory });
+  assert.equal(list.length, 1);
+  assert.equal(list[0].partType, 'melody');
+  assert.equal(list[0].size, 3);
+  assert.equal('audioBytes' in list[0], false);
+
+  await deleteSavedTake('take-1', { indexedDBFactory });
+  assert.equal(await getSavedTake('take-1', { indexedDBFactory }), undefined);
+  assert.deepEqual(await listSavedTakes({ indexedDBFactory }), []);
 });
