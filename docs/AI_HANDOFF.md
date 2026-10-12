@@ -11,39 +11,38 @@ v0.1-dev
 - MIDI Schema v0.1 / Analysis仕様 v0.1
 - MIDI Import / Parser Adapter / Song正規化
 - Tempo / 拍子 / Track / RipX origin / Warning
-- Normalizer unit test 7件
-- GitHub Actions CI
 - IndexedDB端末保存（初期OFF）/ 一覧 / 削除
-- IndexedDB unit test 4件 / STORAGE_SPEC
 - 読み取り専用Piano Roll / Track切替 / Zoom / Scroll
-- Piano Roll model unit test 7件 / PIANO_ROLL_SPEC
-- 固定binary MIDI Parser integration regression test 2件
+- 固定binary MIDI Parser integration regression test
 - Key / Scale Analyzer / major-minor 24候補 → Top 3
-- Key候補ユーザー選択UI / Key Analyzer unit test 6件 / KEY_ANALYZER_SPEC
-- Chord Analyzer + Degree
-- Chord分析対象Track選択UI
+- Key候補ユーザー選択UI
+- Chord Analyzer + Degree / Chord分析対象Track選択UI
 - 12 root × 10 Chord Template / Top 3候補
 - overlap duration × velocity重み
 - Bass Bonus / Non-Chord Penalty / sparse chord confidence reduction
 - Chord切替閾値10% / 同一小節内の連続Chord集約
-- 選択Keyまたは第1Key候補を基準にDegree表示
-- 音階外Degree表示
-- Chord Analyzer unit test 10件
-- CHORD_ANALYZER_SPEC
+- 選択Keyまたは第1Key候補を基準にDegree表示 / 音階外Degree表示
 - Melody基本分析: 音域 / 跳躍 / 同音連打 / 密度 / Chord Tone比率
 - Bass基本分析: 最低音移動 / Root・3rd・5th・Other / リズム型
 - Rhythm基本分析: 拍位置 / シンコペーション候補 / 密度 / 16分Grid
 - Melody / Bass / Rhythm分析対象Track選択UI
 - Chord選択・Chord分析Track変更時のMelody / Bass再計算
-- Basic Analysis unit test 9件 / BASIC_ANALYSIS_SPEC
+- 最小Play / Stop簡易再生
+- Tempo Map対応Tick→seconds変換
+- 50ms scheduler / 約180ms lookahead Web Audio scheduling
+- 通常Note triangle oscillator / Channel 10簡易click
+- Stop / 再Import時AudioContext破棄 / resume競合対策
+- GitHub Actionsでunit test + production buildを継続確認
 
 開発中:
-- Melody / Bass / Rhythm基本分析まで実装済み。次は最小簡易再生（Play / Stop）
+- v0.1機能Scopeの実装は完了
+- Android実機確認と実MIDIによる係数 / heuristic / playback音量調整を残す
 
-次に実装:
-1. 最小簡易再生（Play / Stop）
-2. Android実機でStorage / Piano Roll / Key / Chord / Basic Analysisを確認
-3. RipX等の実MIDIでKey / Chord係数とBasic Analysis heuristicを調整
+次に実施:
+1. Android Chrome実機でImport / Storage / Play / Stop / Piano Roll / Key / Chord / Basic Analysisを確認
+2. RipX / Scaler / EZkeys等の実MIDIでKey / Chord係数・Track heuristic・Beat toleranceを調整
+3. Playbackの端末speaker / Bluetooth音量とTempo Change再生を確認
+4. 上記が通ればv0.1-stable候補を作る
 
 既知の問題:
 - SMPTE time divisionはv0.1未対応
@@ -58,18 +57,20 @@ v0.1-dev
 - Melody同時発音の代表Note選択は簡易heuristic
 - Rhythmのシンコペーションは拍頭以外onsetの簡易候補
 - beat判定許容幅は暫定
-- Android実機でStorage / Piano Roll / Key / Chord / Basic Analysis UI manual testが必要
+- PlaybackはGM / 元音色を再現しない簡易Web Audio preview
+- Android実機でStorage / Playback / Piano Roll / Analysis UI manual testが必要
 - RipX / Scaler / EZkeys等の実ファイルRegressionは別途必要
 
 触らない部分:
 - mainを開発用にしない
 - 過去Version / 復元Branch
 - Demo Composerのproject.json Schema
-- 元MIDI由来Noteを分析処理 / Piano Rollで直接変更しない
+- 元MIDI由来Noteを分析処理 / Piano Roll / Playbackで直接変更しない
 - `midi-file` raw event modelを `src/midi/` 外へ漏らさない
 - 保存OFF時に元MIDI binaryを永続化しない
 - v0.1 Piano RollへNote編集を追加しない
 - AnalyzerがKey / Chordを自動確定しない
+- v0.1 PlaybackへPause / Seek / Loop / Tempo変更 / 音色選択を追加しない
 
 最近の重要な設計判断:
 - MIDI Parserは `midi-file@1.2.4` を `src/midi/` に隔離
@@ -91,6 +92,10 @@ v0.1-dev
 - Chord分析Track変更 / Chord候補選択でBasic Analysisを再計算
 - Rhythm同一Tickは1 onsetとして扱う
 - 6/8等compound meterでは3 denominator unitを1 musicalBeatとして扱う
+- PlaybackはNormalized Song + Tempo Mapのみを読む
+- Playbackは長いMIDI対策としてlookahead schedulerを使用
+- Android Web Audio制約に合わせPlay操作でAudioContextを開始
+- 再Import前に旧Playback controllerをdestroyする
 - Motifはv0.2以降
 - v0.1 UIに一般Exportを置かない
 
@@ -109,9 +114,18 @@ Bass: { trackId, noteCount, movement, chordRole, rhythm, note }
 Rhythm: { trackIds, noteCount, onsetCount, beatPosition, density, meterGrids, note }
 selectedは人が選択した場合のみUI stateで設定。自動解析では確定しない。
 
+現在のPlayback:
+Normalized Song → tempo-aware playback schedule → Web Audio controller
+通常Note=triangle / Channel 10=短いsquare click
+Play / Stopのみ。Pause / Seek / Loopなし。
+
 現在のStorage Schema:
 IndexedDB `midi-analyzer` / version 1 / store `savedMidis`
 record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
+
+復元ポイント:
+- `chatgpt/v0.1-before-basic-analysis`
+- `chatgpt/v0.1-before-playback`
 
 最終更新:
 2026-10-12
