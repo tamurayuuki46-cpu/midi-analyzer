@@ -28,16 +28,17 @@ v0.1-dev
 - 小節線 / 拍線 / C音Pitch label
 - Piano Roll model unit test 7件
 - PIANO_ROLL_SPEC
+- 固定binary MIDI fixture Parser integration regression test 2件
+- Format 0 / Format 1を実Parser経由で検証
 
 開発中:
-- Piano Roll基盤は実装済み。次の実装単位は固定binary MIDI fixtureによるParser integration regression test
+- Parser integration regression testを追加済み。次の実装単位はKey / Scale Analyzer
 
 次に実装:
-1. 固定binary MIDI fixtureによるParser integration regression test
-2. Key / Scale Analyzer
-3. Chord Analyzer + Degree
-4. Melody / Bass / Rhythm基本分析
-5. 最小簡易再生（Play / Stop）
+1. Key / Scale Analyzer
+2. Chord Analyzer + Degree
+3. Melody / Bass / Rhythm基本分析
+4. 最小簡易再生（Play / Stop）
 
 既知の問題:
 - SMPTE time divisionはv0.1未対応
@@ -48,6 +49,7 @@ v0.1-dev
 - Browser実機でのIndexedDB manual testが必要
 - Piano RollのAndroid実機スクロール / 長いMIDI性能テストが必要
 - Piano Rollの複合拍子Gridは分母単位。musicalBeat accentは未実装
+- Parser fixtureは最小Regression用。RipX / Scaler等の実ファイル検証は別途必要
 
 触らない部分:
 - mainを開発用にしない
@@ -68,6 +70,7 @@ v0.1-dev
 - Piano RollはNormalized Songだけを読む独立Module
 - Piano Rollは1 Track表示。初期Trackは非Drumを優先
 - Piano Roll Zoomは4分音符基準。ピンチ依存せず − / ＋ ボタンを使う
+- Parser regression fixtureは固定hexをUint8Arrayへ復元して実Parserへ通す
 - Motifはv0.2以降
 - Track.channel単一前提を廃止し channels[] を採用
 - Drum判定はNote.channel === 9を基本とする
