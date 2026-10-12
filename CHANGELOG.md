@@ -1,5 +1,50 @@
 # CHANGELOG
 
+## Version: v0.9-dev
+更新日: 2026-10-13
+
+### 【追加】
+- `Export` Tab
+- Demo Composer `project.json` Schema 3 Export Adapter
+- Analyzer PPQからDemo Composer PPQ 480への比例変換
+- JSON / CSV / Markdown解析Report Export
+- Chord / Degree Text Export
+- Android共有メニューへのDemo Composer project.json受け渡し
+- 共通`buildAnalysisBundle`による既存Analyzer結果の統合
+- `AI` Tabの端末内Explainability Report
+- なぜこのKey / Chord / 転調候補なのかの根拠説明
+- 「この曲から学べること」/ 作曲へ応用する候補
+- 外部AIへ手動で渡すPrompt package Export
+- `Metrics` Tab
+- 浮遊感候補Score
+- サビらしさ候補Score / Section ranking
+- 驚き度 / 転調Impact候補Score
+- 反復と変化のBalance候補Score
+- 裏メロ存在感候補Score
+- 編曲密度候補Score
+- 各ScoreのEvidence表示
+- RipX Bridge Prototype (`npm run bridge -- path/to/song.mid`)
+- PC上の指定MIDIをLAN経由でAndroidへDownloadするTransfer page
+- v0.7 Integration / v0.8 Explanation / v0.9 Metricsの回帰テスト
+
+### 【変更】
+- Versionを`v0.9-dev`へ更新
+- Tab navigationを`概要 / Harmony / Melody / Bass / Rhythm / Structure / Visual / Compare / Library / Recorder / Export / AI / Metrics / Parts`へ拡張
+- AI Tabを「準備中」から端末内Explainability機能へ変更
+- v0.9 Scoreは0〜100の候補指標とし、品質・人気・正解の採点には使わない
+- Demo Composer連携ではSection候補をVerse/Chorusへ勝手に確定せず、確定できない構成名は自動固定しない
+- 外部AIへのMIDI / Analysis自動送信は行わない
+
+### 【修正】
+- Demo Composer現行SchemaのPPQ 480 / 4/4制約をExport時にWarningとして明示
+- Key候補が取得できない場合にDemo Composer Projectを壊さずC major初期値へFallback
+- Export / Explanation / Metrics追加時も元Song / Note / Analyzer候補順位を変更しないことをテストで固定
+
+### 【未対応】
+- v1.0 全機能統合 / Android UI最適化 / Performance最適化 / Stable化
+- Android実機でRecorder / Export / Bridgeの最終確認
+- 実MIDIによるv0.9 Score閾値・係数の追加チューニング
+
 ## Version: v0.7-dev
 更新日: 2026-10-13
 
