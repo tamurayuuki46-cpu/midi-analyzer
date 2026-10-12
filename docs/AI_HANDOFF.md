@@ -1,135 +1,125 @@
 # AI_HANDOFF.md
 
 現在Version:
-v0.7-dev
+`v0.9-dev`
 
 公開中Version:
-v0.6-dev
+`v0.7-dev`
 
 最新安定版:
 未作成
 
 ## 現在実装済み
-- MIDI Import / Parser Adapter / Normalized Song Schema
-- Tempo / 拍子 / Track / RipX origin / Warning
-- IndexedDB任意保存 / 一覧 / 削除
-- Piano Roll
-- Key / Scale Top 3 + ユーザー選択
-- Chord Top 3 + Degree / Track選択
-- 各Chord区間のランキング1位を並べるTop 1コード進行
-- Melody / Bass / Rhythm基本分析
-- Play / Stop簡易再生 / Tempo Map対応Web Audio
-- Motif / 4小節Section / 区間Key / 転調候補
-- Slash Chord / add9 / 11 / 6・13候補
-- v0.3: 2 MIDI比較 / 参考曲 vs 自作曲 / Personal Trend
-- v0.4: 裏メロ候補 / Bass詳細 / Drum詳細 / Track役割候補
-- v0.4.1: カテゴリ別Tab UI
-- v0.5: Tonal Center / Chord Timeline、Melody/Bass Contour、Rhythm Density、Energy Curve、Section Map、Note/Velocity Heatmap
-- v0.6: Chord / Melody / Bass / Drum / Motifの4小節Clip Library、Tag Search、Chord progression context
-- v0.7: Recorder Tab / Part別Audio録音 / Take保存 / A/B / Audio書き出し
+- v0.1 Import / Storage / Piano Roll / Key / Chord / Melody / Bass / Rhythm / Playback
+- v0.2 Motif / 4小節Section / 区間Key / 転調 / Slash / Chord Detail
+- v0.2.1 Top 1仮コード進行
+- v0.3 2 MIDI比較 / 参考曲 vs 自作曲 / Personal Trend
+- v0.4 裏メロ / Bass詳細 / Drum詳細 / Track役割候補
+- v0.4.1 カテゴリ別Tab UI
+- v0.5 Visualization / Energy Curve / Section Map / Heatmap
+- v0.6 4小節Clip Library / Tag Search / Chord context DB
+- v0.7 Recorder / Take Library / Demo Composer連携 / Export / RipX Bridge
+- v0.8 端末内Explainability / この曲から学べること / AI Prompt Export
+- v0.9 Higher-level Metrics 6種 + Evidence
 - IndexedDB v3: `savedMidis` + `savedClips` + `savedTakes`
-- GitHub Actions test + build
-- GitHub Pages（develop公開）
+- GitHub Actions test + build / GitHub Pages develop公開
 
-## v0.7 Part Recording設計
-- Recorder TabはImport後に既存Tab DOMへ安全に挿入する
-- Part Type: melody / chord / bass / drum
-- roleHintを既定Track選択へ利用し、ユーザーはTrackを手動変更できる
-- Melody fallbackは平均Pitch最高、Bass fallbackは平均Pitch最低
-- DrumはisDrumsまたはChannel 10を優先
-- 選択TrackだけをPart Songへfilterし、元Songは変更しない
-- 既存Playbackと同系統のtriangle / square click簡易音源を録音する
-- Web Audio `MediaStreamDestination` → MediaRecorderで録音する
-- Monitor OFFではMediaRecorderへ出力しつつspeakerへ接続しない
-- MediaRecorder mimeTypeはWebM/Opus → WebM → MP4の順に対応形式を選ぶ
-- TakeはPreview / A/B / Audio書き出し / 削除に対応
-- 再Import時はRecorder Controllerをdestroyする
-- 他アプリ内部Audio / マイク入力 / WAV固定rendererはScope外
+## v0.7 Integration / Export
+- `buildAnalysisBundle`をExport / Explainability / Metricsの共通入力にする
+- Export: JSON / CSV / Markdown / Chord-Degree Text
+- Demo Composer `project.json` Schema 3 Adapter
+- Demo Composer現行制約: PPQ 480 / 4/4
+- 元PPQは480へ比例変換
+- Analyzer flat key表記はDemo Composerのsharp表記へPitch Class維持で変換
+- A/B/C Section候補をVerse / Chorusへ自動確定しない
+- 対応Androidでは`navigator.share`でproject.jsonを共有可能
+- RipX Bridge: PC指定MIDIを同一LANのAndroidへDownloadするNode Prototype
 
-## IndexedDB v3 Migration
-Database: `midi-analyzer`
-Version: `3`
+## v0.8 Explainability
+- 外部LLMを自動実行しない
+- 既存Analyzerの候補とEvidenceを端末内で文章化する
+- Why Key / Chord / Modulation
+- この曲から学べること
+- 作曲への応用候補
+- 必要な場合だけ外部AI用PromptをFile Export
+- MIDI / Analysisの自動Uploadなし
 
-Stores:
-- `savedMidis` — v0.1から継続。元MIDI + Normalized Song
-- `savedClips` — v0.6追加。Clip Library
-- `savedTakes` — v0.7追加。録音Audio Take
+## v0.9 Higher-level Metrics
+0〜100の候補Score:
+- Floating
+- Chorus-likeness + Section ranking
+- Surprise / Modulation Impact
+- Repetition vs Variation balance
+- Counter Melody presence
+- Arrangement density
 
-v1/v2→v3では既存`savedMidis` / `savedClips` Store / recordを削除・変換しない。
-Upgrade時に`savedTakes`だけ追加する。
-Migrationを`fake-indexeddb`で自動テストする。
+全Scoreは品質・人気・正解の採点ではなく、Evidenceを併記する。
+
+## Tab順
+`overview / harmony / melody / bass / rhythm / structure / visual / compare / library / recorder / export / ai / metrics / parts`
+
+## Storage
+Database: `midi-analyzer` / version 3
+
+- `savedMidis`: 元MIDI + Normalized Song
+- `savedClips`: Clip Library
+- `savedTakes`: Recorder Audio Take
+
+v1/v2→v3は既存recordを破壊しない。
 
 ## 次に実施
-1. Android Chrome実機でMediaRecorder / Audio書き出し確認
-2. v0.7残りのIntegration / Export
-3. Demo Composer Export Adapter
-4. JSON / CSV / Markdown Report
-5. Chord / Degree text export
-6. RipX Bridge Prototype / PC→Android転送の設計
-7. RipX / Scaler / EZkeys等の実MIDI regression
+機能実装として残すのはv1.0のみ。
 
-## 既知の問題 / 継続課題
+v1.0:
+1. 全機能統合 / 情報設計整理
+2. Android UI最適化
+3. 長いMIDIのPerformance最適化
+4. 実制作フロー検証
+5. Stable化 / main候補
+
+実装とは別の継続検証:
+- Android実機でRecorder / Export / Bridge
+- Demo Composer実アプリへのproject.json Import
+- RipX / Scaler / EZkeys等の実MIDI regression
+- v0.9 Metric係数・閾値 tuning
+
+## 既知の制約
 - SMPTE time division未対応
-- Key / Chord / Section / Motif / Part Deepの一部閾値は暫定
-- 保存済みMIDIの「開く」は未実装
-- Playback / RecorderはGM / 元音色を再現しない簡易音源
 - Sectionは固定4小節Block
-- pivot chord / common tone転調理由は未対応
-- CompareのTrack手動対応 / Section同期比較は未対応
-- 裏メロTrackの手動指定UIは未対応
-- Fill候補はrule-based簡易判定
-- AI Tabはplaceholderのみで説明機能本体は未実装
-- Visual Heatmapは先頭16小節表示
-- Clip編集 / MIDI書き出しは未対応
-- RecorderのMediaRecorder形式はブラウザ依存
-- WAV固定renderer / マイク / 外部Audio input / 同時Multi Stem録音は未対応
-- Clip / Take Cloud同期 / Demo Composer送信は未対応
-- 実ファイルRegressionは継続必要
+- pivot chord / common tone転調理由の完全推定なし
+- CompareのTrack手動対応 / Section同期比較なし
+- Voice Leadingの完全和声学判定なし
+- Visual Heatmapは先頭16小節
+- Recorder出力形式はMediaRecorder / Browser依存
+- WAV固定 / Mic / 他アプリ内部Audio直接録音 / 同時Multi StemはScope外
+- RipX Bridgeは同一LAN用Prototypeで認証/TLSなし
+- Explainabilityは外部生成AIではなくlocal rule-based explanation
 
 ## 触らない部分
-- mainを開発用にしない
+- `main`を開発用にしない
 - 過去Version / 復元Branchを削除・上書きしない
-- Demo Composer project.json Schema
+- Demo ComposerのSchema定義をMIDI Analyzer側都合で変更しない
 - 元MIDI由来Noteを自動変更しない
-- `midi-file` raw event modelを `src/midi/` 外へ漏らさない
+- `midi-file` raw event modelを`src/midi/`外へ漏らさない
 - 保存OFF時に元MIDI binaryを永続化しない
 - AnalyzerがKey / Chord / Section / Motif / 転調 / Track役割を自動確定しない
-- Migrationで`savedMidis` / `savedClips` recordを破壊しない
+- Higher-level Metricを品質Scoreとして扱わない
+- 外部AIへ自動送信しない
 
-## Analysis / Library Result追加分
-- Compare Summary: `{ name, key, bpm, melodyRange, melodyDensity, bassAverageMovement, rhythmOnsetsPerQuarter, noteDensity, modulationCount, chordProgression, uniqueChords }`
-- Compare Result: `{ reference, own, metrics, sameTopKey, chordSimilarity, note }`
-- Personal Trend: `{ count, summaries, trend, note }`
-- Counter Melody: `{ melodyTrackId, counterTrackId, motion, gaps, collisions, register, note }`
-- Bass Detail: `{ trackId, pedal, movement, approach, note }`
-- Drum Detail: `{ categoryCounts, usedGmNotes, fills, averageOnsetsPerBar, note }`
-- Part Candidates: `{ candidates: [{ trackId, roleCandidate, confidence, reasons }], note }`
-- Visualization Model: `{ bars, tonalTimeline, chordTimeline, melody, bass, rhythm, sections, heatmap, note }`
-- Clip Record: `{ clipSchemaVersion, id, savedAt, type, name, source, range, ppq, trackIds, notes, chordProgression, motifs, tags }`
-- Take Record: `{ takeSchemaVersion, id, savedAt, name, partType, trackIds, source, mimeType, durationSeconds, eventCount, audioBytes }`
-
-## Storage Schema
-IndexedDB `midi-analyzer` / version 3
-
-`savedMidis` record:
-`storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings`
-
-`savedClips` record:
-`clipSchemaVersion, id, savedAt, type, name, source, range, ppq, trackIds, notes, chordProgression, motifs, tags`
-
-`savedTakes` record:
-`takeSchemaVersion, id, savedAt, name, partType, trackIds, source, mimeType, durationSeconds, eventCount, audioBytes`
+## 主要追加Result
+- Analysis Bundle: `{ source, song, key, chords, topChordProgression, melody, bass, rhythm, motif, structure, deep }`
+- Explanation: `{ engine, generatedLocally, overview, whyKey, harmony, modulation, learnings, applications, metrics, note }`
+- Metrics: `{ metrics, chorusCandidates, note }`
+- Demo Composer Export: `{ project, warnings }`
 
 ## 重要な復元ポイント
 - `chatgpt/v0.1-android-verified-milestone`
-- `chatgpt/v0.2-before-structure-motif`
 - `chatgpt/v0.2.1-published-milestone`
 - `chatgpt/v0.3-feature-complete-milestone`
 - `chatgpt/v0.4-published-milestone`
-- `chatgpt/v0.4.1-feature-complete-milestone`
 - `chatgpt/v0.5-feature-complete-milestone`
 - `chatgpt/v0.6-published-milestone`
-- `chatgpt/v0.6-before-part-recorder`
+- `chatgpt/v0.7-published-milestone`
+- `chatgpt/v0.7-before-integration-export`
 
-最終更新:
-2026-10-13
+最終更新: 2026-10-13
