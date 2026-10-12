@@ -1,7 +1,7 @@
 # AI_HANDOFF.md
 
 現在Version:
-v0.4.1-dev
+v0.5-dev
 
 公開中Version:
 v0.4-dev
@@ -23,31 +23,28 @@ v0.4-dev
 - Slash Chord / add9 / 11 / 6・13候補
 - v0.3: 2 MIDI比較 / 参考曲 vs 自作曲 / Personal Trend
 - v0.4: 裏メロ候補 / Bass詳細 / Drum詳細 / Track役割候補
-- v0.4.1: 概要 / Harmony / Melody / Bass / Rhythm / Structure / Compare / Library / AI / PartsのTab UI
+- v0.4.1: カテゴリ別Tab UI
+- v0.5: Tonal Center / Chord Timeline、Melody/Bass Contour、Rhythm Density、Energy Curve、Section Map、Note/Velocity Heatmap
 - GitHub Actions test + build
 - GitHub Pages（develop公開）
 
-## v0.4.1 UI設計
-- Analyzerロジック・候補順位・Normalized Songは変更しない
-- Import後の解析結果をカテゴリ別Tabへ分離する
-- 概要: 基本情報 / Playback / Track一覧 / Piano Roll
-- Harmony: Key / Chord / Degree / Chord Detail
-- Melody: 主旋律基本分析 / 裏メロ候補
-- Bass: Bass基本分析 / Bass詳細
-- Rhythm: Rhythm基本分析 / Drum詳細
-- Structure: Motif / Section / 区間Key / 転調候補
-- Compare: 2 MIDI比較 / Personal Trend
-- Library: 保存済みMIDI一覧 / 削除
-- AI: 将来用の準備中表示。v0.4.1ではAI解析を自動実行しない
-- Parts: Track役割候補
-- AndroidではTab列を横スクロール可能にする
-- WAI-ARIA tablist / tab / tabpanel、Arrow / Home / End操作に対応
+## v0.5 Visualization設計
+- Visual TabをStructureとCompareの間へ追加
+- Visualizationは既存Analyzer結果とNormalized Songの表示Layer
+- Key / Chord / Section等の候補順位を変更しない
+- Melody / Bass Contourは既定Trackの小節平均Pitch
+- Rhythm Densityは小節ごとのunique onset密度
+- Energy Curveは`onset density × average velocity`を曲内0..1へ正規化した簡易指標
+- Heatmapは非Drum NoteのPitch Class × 小節。Android負荷を抑えるため先頭16小節
+- Canvas必須にせずHTML/CSS中心
 
 ## 次に実施
-1. v0.4.1最終CI / Production Build確認
-2. Android実機で全Tabのタップ・横スクロール・Library削除確認
-3. RipX / Scaler / EZkeys等の実MIDIでv0.1〜v0.4 regression
-4. v0.5 Visualizationへ進む
+1. v0.6 Clip / Library
+2. IndexedDBを既存`savedMidis`を壊さずmigration
+3. Chord / Melody / Bass / Drum / Motifの4小節Clip保存
+4. Genre / Mood / BPM / Key / custom tag検索
+5. Android実機でVisual / Library操作確認
+6. RipX / Scaler / EZkeys等の実MIDI regression
 
 ## 既知の問題 / 継続課題
 - SMPTE time division未対応
@@ -60,6 +57,7 @@ v0.4-dev
 - 裏メロTrackの手動指定UIは未対応
 - Fill候補はrule-based簡易判定
 - AI Tabはplaceholderのみで説明機能本体は未実装
+- Visual Heatmapは先頭16小節表示
 - 実ファイルRegressionは継続必要
 
 ## 触らない部分
@@ -79,6 +77,7 @@ v0.4-dev
 - Bass Detail: `{ trackId, pedal, movement, approach, note }`
 - Drum Detail: `{ categoryCounts, usedGmNotes, fills, averageOnsetsPerBar, note }`
 - Part Candidates: `{ candidates: [{ trackId, roleCandidate, confidence, reasons }], note }`
+- Visualization Model: `{ bars, tonalTimeline, chordTimeline, melody, bass, rhythm, sections, heatmap, note }`
 
 ## Storage Schema
 IndexedDB `midi-analyzer` / version 1 / store `savedMidis`
@@ -88,11 +87,9 @@ record: storageSchemaVersion, id, savedAt, source, midiBytes, song, warnings
 - `chatgpt/v0.1-android-verified-milestone`
 - `chatgpt/v0.2-before-structure-motif`
 - `chatgpt/v0.2.1-published-milestone`
-- `chatgpt/v0.3-before-compare`
 - `chatgpt/v0.3-feature-complete-milestone`
-- `chatgpt/v0.4-before-part-deep`
 - `chatgpt/v0.4-published-milestone`
-- `chatgpt/v0.4-before-tabbed-ui`
+- `chatgpt/v0.4.1-feature-complete-milestone`
 
 最終更新:
 2026-10-13
