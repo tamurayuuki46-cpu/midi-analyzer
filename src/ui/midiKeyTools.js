@@ -1,0 +1,14 @@
+import { normalizedSongToMidi } from '../midi/normalizedSongToMidi.js';
+import { generate12KeyVariants, transposeNotesToKey } from '../midi/transpose.js';
+
+let song=null;
+function safeName(value){return String(value||'midi').replace(/\.(mid|midi)$/i,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,70)||'midi';}
+function download(bytes,name){const url=URL.createObjectURL(new Blob([bytes],{type:'audio/midi'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);}
+function asPitchNotes(notes){return notes.map(note=>({...note,pitchMidi:note.pitch}));}
+function restorePitch(notes){return notes.map(({pitchMidi,...note})=>({...note,pitch:pitchMidi}));}
+function mount(){const root=document.querySelector('[data-midi-key-tools-root]');if(!root||!song)return;root.innerHTML=`<div class="feature-stack"><div><p class="eyebrow">KEY CHANGE</p><h3>素材を別Keyへ移調</h3><p class="feature-note">元MIDIは変更せず、新しいMIDIを書き出します。Degree PreserveはScale Degree関係を優先、ChromaticはKey tonic差をそのまま平行移動します。</p></div><div class="controls-row"><label class="field"><span>Source Key</span><input data-mkt-source value="C major"></label><label class="field"><span>Target Key</span><input data-mkt-target value="D major"></label><label class="field"><span>Mode</span><select data-mkt-mode><option value="degree">Degree Preserve</option><option value="chromatic">Chromatic</option></select></label></div><div class="button-row"><button data-mkt-export class="primary-button" type="button">Target Key MIDI</button><button data-mkt-12 type="button">12 Key生成</button></div><p data-mkt-status class="feature-status" aria-live="polite"></p></div>`;
+ const status=root.querySelector('[data-mkt-status]'); const source=()=>root.querySelector('[data-mkt-source]').value; const target=()=>root.querySelector('[data-mkt-target]').value; const mode=()=>root.querySelector('[data-mkt-mode]').value;
+ root.querySelector('[data-mkt-export]').onclick=()=>{try{const changed=restorePitch(transposeNotesToKey(asPitchNotes(song.notes),source(),target(),mode()));download(normalizedSongToMidi(song,{notes:changed,trackNameSuffix:target()}),`${safeName(song.source?.fileName)}_${target().replace(/\s+/g,'_')}.mid`);status.textContent=`${target()}版を書き出しました。`;}catch(error){status.textContent=error.message;}};
+ root.querySelector('[data-mkt-12]').onclick=()=>{try{const variants=generate12KeyVariants(asPitchNotes(song.notes),source(),mode());variants.forEach((variant,index)=>setTimeout(()=>download(normalizedSongToMidi(song,{notes:restorePitch(variant.notes),trackNameSuffix:variant.key}),`${safeName(song.source?.fileName)}_${variant.key.replace(/\s+/g,'_')}.mid`),index*120));status.textContent='12 Key MIDIの保存を開始しました。複数ダウンロードの許可を求められる場合があります。';}catch(error){status.textContent=error.message;}};
+}
+window.addEventListener('midi-analyzer-song-ready',(event)=>{song=event.detail?.song||null;queueMicrotask(mount);});
