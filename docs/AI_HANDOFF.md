@@ -1,10 +1,10 @@
 # AI_HANDOFF.md
 
 現在Version:
-`v0.10-dev`
+`v0.11-dev`
 
 公開中Version:
-`v0.10-dev`
+`v0.11-dev`
 
 最新安定版:
 未作成
@@ -128,10 +128,13 @@ v1.0:
 
 ## 2026-10-13 現在の統合状態
 
-- PR #19でGit運用変更をdevelopへ統合、PR #20でv0.10-devをmainへ統合済み。
+- PR #19でGit運用変更をdevelopへ統合、PR #20でv0.11-devをmainへ統合済み。
 - PR #21でmain CI gate、PR #22/#23でPages公開元をmainへ変更。developへのpushでは公開しない。
 - `develop`は開発統合、`main`は自動テスト・build・回帰CI合格版、GitHub Pages公開元。stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
 - SongProject v1 Adapter / analysisとreferenceのownership保護、Basic Pitch Audio→MIDI / Progress / Cancel / chunk / Note Edit / Quantize。
 - Key Transpose / Degree Preserve / 12 Key / 一般MIDI Key変更 / SongProject Key整合 / Channel 10 Drums移調除外。
 - Stem Blobは専用IndexedDBに保存。Solo / Mute / Basic Pitch入力 / reference.items metadata同期。Project Homeを実装。
 - Android実機、WAV/MP3/M4A、長尺Audioメモリ/Cancel/再試行、Stem quota、Cubasis/Cubase実機取込は未確認。stable tag未作成。
+
+## Cloud Browser回帰修正 v0.11-dev
+公開v0.10で短いWAVの変換は完了したが、正規化のorigin許可漏れで解析へ渡せなかった。basic-pitchを許可し、Noteの出所を保持する統合回帰を追加。DB変更なし。

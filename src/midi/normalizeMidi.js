@@ -1,6 +1,6 @@
 import { inferRoleHint } from './roleHint.js';
 
-const VALID_ORIGINS = new Set(['midi', 'ripx', 'separator']);
+const VALID_ORIGINS = new Set(['midi', 'ripx', 'separator', 'basic-pitch']);
 const DEFAULT_TEMPO_US_PER_BEAT = 500000;
 const DEFAULT_TIME_SIGNATURE = Object.freeze({ numerator: 4, denominator: 4 });
 

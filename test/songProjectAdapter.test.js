@@ -68,7 +68,7 @@ test('Analyzer creates a new SongProject v1 that Demo Composer can consume', () 
   assert.equal(project.composition.drums.length, 1);
   assert.equal(project.reference.items[0].type, 'midi');
   assert.equal(project.reference.items[0].name, 'reference.mid');
-  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.10-dev');
+  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.11-dev');
   assert.equal(project.compatibility.demoComposer.legacyProject.schemaVersion, 3);
   assert.equal(project.compatibility.demoComposer.legacyProject.basic.key, 'E');
 });
