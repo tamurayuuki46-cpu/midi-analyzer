@@ -2,6 +2,22 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { noteEventsToMidi } from '../src/audio/noteEventsToMidi.js';
 import { BASIC_PITCH_LIMITS, validateAudioFile } from '../src/audio/basicPitchTranscriber.js';
+import { importMidiFile } from '../src/midi/index.js';
+import { buildAnalysisBundle } from '../src/analysis/summary/buildAnalysisBundle.js';
+
+test('Basic Pitch generated and edited MIDI reaches the existing Analyzer with its origin intact', async () => {
+  const bytes = noteEventsToMidi([
+    { pitchMidi: 60, startTimeSeconds: 0, durationSeconds: 0.5, amplitude: 0.8 },
+    { pitchMidi: 64, startTimeSeconds: 0.5, durationSeconds: 0.5, amplitude: 0.7 },
+  ], { bpm: 120, ppq: 480 });
+  const file = { name: 'basic_pitch.mid', arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
+  const { song, warnings } = await importMidiFile(file, { origin: 'basic-pitch' });
+  assert.equal(song.source.origin, 'basic-pitch');
+  assert.deepEqual(song.notes.map(note => note.origin), ['basic-pitch', 'basic-pitch']);
+  assert.deepEqual(song.notes.map(note => [note.pitch, note.startTick, note.durationTick]), [[60, 0, 480], [64, 480, 480]]);
+  assert.equal(warnings.length, 0);
+  assert.doesNotThrow(() => buildAnalysisBundle(song));
+});
 
 test('Basic Pitch note events encode to a valid one-track MIDI file', () => {
   const bytes = noteEventsToMidi([

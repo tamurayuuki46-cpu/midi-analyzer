@@ -36,6 +36,7 @@ Warningは元MIDIに不完全なNoteイベント等がある場合の情報で�
 - `midi`
 - `ripx`
 - `separator`
+- `basic-pitch`: 端末内Audio→MIDIの変換結果。sourceと各Noteに保持する。既存originを変更しない。
 
 ### 重要
 - Import後は読み取り専用
