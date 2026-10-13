@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildSongProjectFromAnalysis, mergeAnalyzerAnalysisIntoSongProject } from '../src/export/songProjectAdapter.js';
+import { buildSongProjectFromAnalysis, mergeAnalyzerAnalysisIntoSongProject, mergeReferenceMetadata } from '../src/export/songProjectAdapter.js';
 
 function fixtureSong() {
   return {
@@ -68,6 +68,7 @@ test('Analyzer creates a new SongProject v1 that Demo Composer can consume', () 
   assert.equal(project.composition.drums.length, 1);
   assert.equal(project.reference.items[0].type, 'midi');
   assert.equal(project.reference.items[0].name, 'reference.mid');
+  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.10-dev');
   assert.equal(project.compatibility.demoComposer.legacyProject.schemaVersion, 3);
   assert.equal(project.compatibility.demoComposer.legacyProject.basic.key, 'E');
 });
@@ -109,4 +110,29 @@ test('Analyzer merge owns analysis/reference/basic but preserves composition and
   assert.equal(merged.basic.key, 'A');
   assert.equal(merged.reference.items[0].name, 'reference.mid');
   assert.equal(merged.updatedAt, '2026-10-13T01:05:00.000Z');
+});
+
+test('reference metadata can be appended without embedding audio or changing composition', () => {
+  const initial = buildSongProjectFromAnalysis(fixtureSong(), fixtureBundle(), {
+    projectId: 'analysis-song-3',
+    now: '2026-10-13T01:00:00.000Z',
+  }).project;
+  const compositionBefore = structuredClone(initial.composition);
+  const stemReference = {
+    id: 'stem-1',
+    type: 'stem',
+    stemType: 'bass',
+    name: 'Bass Stem',
+    storage: { kind: 'indexeddb', database: 'midi-analyzer-stems', recordId: 'stem-1' },
+  };
+  const merged = mergeReferenceMetadata(initial, [stemReference], { now: '2026-10-13T01:10:00.000Z' });
+  assert.deepEqual(merged.composition, compositionBefore);
+  assert.equal(merged.reference.items.length, 2);
+  assert.equal(merged.reference.items[1].stemType, 'bass');
+  assert.equal('blob' in merged.reference.items[1], false);
+  assert.equal(merged.updatedAt, '2026-10-13T01:10:00.000Z');
+
+  const deduped = mergeReferenceMetadata(merged, [{ ...stemReference, conversionStatus: 'converted' }]);
+  assert.equal(deduped.reference.items.length, 2);
+  assert.equal(deduped.reference.items[1].conversionStatus, 'converted');
 });
