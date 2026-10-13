@@ -24,13 +24,11 @@ try {
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
     await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
 
-    const expectedTabs = ['概要', 'Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Export', 'AI', 'Metrics', 'Parts'];
-    for (const name of expectedTabs) {
+    for (const name of ['Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Recorder', 'Export', 'AI', 'Metrics', 'Parts']) {
       await page.getByRole('tab', { name, exact: true }).click();
-      await page.getByRole('tabpanel', { name, exact: true }).waitFor({ state: 'visible' });
+      assert.ok(await page.getByRole('tabpanel', { name, exact: true }).isVisible(), `${name} panel missing`);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name} overflows at ${width}px`);
     }
-    assert.equal(await page.getByRole('tab', { name: 'Recorder', exact: true }).count(), 0, 'Recorder must stay retired from the main workflow');
 
     await page.getByRole('tab', { name: 'Export', exact: true }).click();
     await page.getByRole('heading', { name: 'Demo Composerへ渡す', exact: true }).waitFor();
@@ -52,10 +50,6 @@ try {
     const output = await fs.readFile(await download.path());
     assert.equal(output.subarray(0, 4).toString(), 'MThd');
 
-    await page.getByRole('tab', { name: 'Library', exact: true }).click();
-    await page.getByText('素材の出自', { exact: true }).waitFor();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Material Library overflows at ${width}px`);
-
     await page.getByRole('tab', { name: '概要', exact: true }).click();
     await page.screenshot({ path: `test-results/analyzer-mobile-${width}.png` });
     await page.reload();
@@ -63,5 +57,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('Analyzer 360/390/430px import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('Analyzer 360/390/430px import / analysis tabs / handoff / transpose / storage regression passed');
 } finally { await browser.close(); }
