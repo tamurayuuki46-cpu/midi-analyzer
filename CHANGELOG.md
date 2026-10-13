@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.10-dev — 2026-10-13 main統合・公開後の整合性修正
+
+- SongProject v1 / Basic Pitch / Key変更 / Stem連携の実装詳細: `versions/v0.10-dev/CHANGELOG_v0.10-dev.md`。
+- PR #19: 運用変更、PR #20: main昇格、PR #21: main CI gate、PR #22/#23: Pages公開元をmainへ変更。
+- mainでUnit tests / Production build / Basic Pitch model検証・Pages Deploy成功。
+- README / AI_HANDOFFの旧Version・公開Branch記載を修正。Version番号・Schema・アプリ処理は維持。
+- Android/Cubasis/Cubase実機確認は未完了、stable tag未作成。
+
+
 ## Version: v0.9-dev
 更新日: 2026-10-13
 
