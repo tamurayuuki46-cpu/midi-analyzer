@@ -12,6 +12,18 @@ import { analyzeKeyScale } from '../analysis/key/index.js';
 import { analyzeMotifs } from '../analysis/motif/index.js';
 
 export const CLIP_TYPES = Object.freeze(['chord', 'melody', 'bass', 'drum', 'motif']);
+export const MATERIAL_SOURCE_TYPES = Object.freeze([
+  'self',
+  'reference',
+  'moises-stem',
+  'audio-to-midi',
+  'ripx',
+  'book',
+  'plugin',
+  'manual',
+  'other',
+  'unknown',
+]);
 
 function createClipId() {
   if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
@@ -139,6 +151,33 @@ function normalizeCustomTags(value) {
   return Object.freeze([...new Set(raw.map((item) => String(item).trim()).filter(Boolean))].slice(0, 20));
 }
 
+function normalizeProjectIds(value) {
+  const raw = Array.isArray(value) ? value : String(value ?? '').split(',');
+  return Object.freeze([...new Set(raw.map((item) => String(item).trim()).filter(Boolean))].slice(0, 20));
+}
+
+function inferredSourceType(song) {
+  const origin = String(song?.source?.origin ?? '').toLowerCase();
+  if (origin.includes('moises')) return 'moises-stem';
+  if (origin.includes('basic') || origin.includes('audio')) return 'audio-to-midi';
+  if (origin.includes('ripx')) return 'ripx';
+  return 'unknown';
+}
+
+function provenanceForClip(song, options, savedAt) {
+  const supplied = options.provenance ?? {};
+  const sourceType = MATERIAL_SOURCE_TYPES.includes(supplied.type) ? supplied.type : inferredSourceType(song);
+  return Object.freeze({
+    type: sourceType,
+    sourceTitle: String(supplied.sourceTitle ?? '').trim(),
+    sourceProjectId: String(supplied.sourceProjectId ?? '').trim() || null,
+    usedInProjectIds: normalizeProjectIds(supplied.usedInProjectIds),
+    importedFrom: String(song?.source?.origin ?? 'midi'),
+    createdBy: 'midi-analyzer',
+    recordedAt: supplied.recordedAt ?? savedAt,
+  });
+}
+
 function defaultName(song, type, range) {
   const source = song?.source?.fileName?.replace(/\.(mid|midi)$/i, '') || 'MIDI';
   return `${source} · ${type} · ${range.startBar}-${range.endBar}小節`;
@@ -179,17 +218,19 @@ export function buildClipRecord(song, options = {}) {
   const customKey = String(options.tags?.key ?? '').trim();
   const customBpm = Number(options.tags?.bpm);
   const motifs = type === 'motif' ? analyzeMotifs(clipSong).motifs.slice(0, 5) : [];
+  const savedAt = options.savedAt ?? new Date().toISOString();
 
   return Object.freeze({
-    clipSchemaVersion: 1,
+    clipSchemaVersion: 2,
     id: options.id ?? createClipId(),
-    savedAt: options.savedAt ?? new Date().toISOString(),
+    savedAt,
     type,
     name: String(options.name ?? '').trim() || defaultName(song, type, range),
     source: Object.freeze({
       fileName: song?.source?.fileName ?? 'untitled.mid',
       origin: song?.source?.origin ?? 'midi',
     }),
+    provenance: provenanceForClip(song, options, savedAt),
     range: Object.freeze({ ...range, lengthTicks: range.endTick - range.startTick }),
     ppq: song?.ppq ?? null,
     trackIds: Object.freeze([...trackIds]),
@@ -211,6 +252,10 @@ function searchableText(record) {
     record?.name,
     record?.type,
     record?.source?.fileName,
+    record?.provenance?.type,
+    record?.provenance?.sourceTitle,
+    record?.provenance?.sourceProjectId,
+    ...(record?.provenance?.usedInProjectIds ?? []),
     record?.tags?.genre,
     record?.tags?.mood,
     record?.tags?.key,

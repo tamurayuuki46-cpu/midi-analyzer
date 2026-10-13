@@ -1,39 +1,36 @@
 # STORAGE_SPEC.md
 
 ## Version
-v0.7-dev
+v0.12-dev
+
+更新日: 2026-10-13
 
 ## 目的
-MIDI Analyzerで読み込んだMIDI、ユーザーが明示保存した4小節Clip、分離録音TakeをAndroid端末内へ保持する。
+
+MIDI Analyzerの「素材を集める / 曲を理解する」責務に必要なデータをAndroid端末内へ保持する。
 クラウドや外部サービスへ自動送信しない。
 
 ## 基本ルール
-- MIDI Import時の「この端末に保存する」は初期OFF
-- 保存OFFの場合、元MIDI binary / SongをIndexedDBへ保存しない
-- 保存ONの場合のみ元MIDI + Normalized Songを`savedMidis`へ保存する
-- Clip保存はLibrary Tabでユーザーが`Clipを保存`を押した場合だけ行う
-- Take保存はRecorder Tabでユーザーが録音した場合だけ行う
-- 保存データをクラウド、外部API、他アプリへ自動送信しない
-- 保存済みMIDI / Clip / Takeはそれぞれ一覧から削除できる
-- 削除前にユーザー確認を行う
 
-## IndexedDB
+- MIDI Importの「この端末に保存する」は初期OFF
+- 保存ONの場合のみ元MIDI + Normalized Songを`savedMidis`へ保存
+- 素材ClipはLibraryで明示保存した場合のみ`savedClips`へ保存
+- Stemはユーザーが明示Importした場合のみ別IndexedDBへ保存
+- 旧Part Recorder Takeは互換性のため`savedTakes`へ保持するが、新規主導線からは外す
+- 一方のStore削除で他Storeを連鎖削除しない
+- 保存データを外部APIや他アプリへ自動送信しない
+
+## IndexedDB: MIDI / Clip / legacy Take
+
 Database:
 `midi-analyzer`
 
 Version:
 `3`
 
-### Object Store: savedMidis
+### savedMidis
+
 v0.1から継続する元MIDI保存Store。
-
-Key:
-`id`
-
-Index:
-`savedAt`
-
-Record:
 
 ```text
 storageSchemaVersion: 1
@@ -50,32 +47,19 @@ song
 warnings
 ```
 
-`midiBytes`は元MIDI ArrayBuffer。
-`song`はNormalized Song。
+### savedClips
 
-### Object Store: savedClips
-v0.6で追加したClip Library Store。
+v0.6で追加。v0.12-devから新規Clipは`clipSchemaVersion: 2`。
 
-Key:
-`id`
+Schema正本: `docs/CLIP_LIBRARY_SPEC.md`
 
-Indexes:
-- `savedAt`
-- `type`
+v1 Clipはそのまま保持する。Provenanceを追加するためのDB Version変更は行わない。
 
-Record Schemaは`docs/CLIP_LIBRARY_SPEC.md`を正本とする。
+### savedTakes — legacy compatibility
 
-### Object Store: savedTakes
-v0.7で追加する分離録音Take Store。
+v0.7で追加したPart Recorder Take Store。
 
-Key:
-`id`
-
-Indexes:
-- `savedAt`
-- `partType`
-
-Record:
+Part Recorderはv0.12-devで主UIから退役したが、保存済みTakeを失わないためStoreは削除しない。
 
 ```text
 takeSchemaVersion: 1
@@ -85,52 +69,96 @@ name
 partType
 trackIds[]
 source
-  fileName
-  origin
 mimeType
 durationSeconds
 eventCount
 audioBytes
 ```
 
-`audioBytes`はMediaRecorderで得たBlobをArrayBufferへ変換したもの。
+新しい主要WorkflowではTake作成を推奨しない。
+将来Store削除を行う場合は、明示Export / Migrationを用意してから別Versionで実施する。
 
-## v1 / v2 → v3 Migration
-DB version 3へのUpgradeで以下を行う。
+## Stem Storage
 
-1. `savedMidis`が既に存在する場合はそのまま維持する
-2. `savedClips`が既に存在する場合はそのまま維持する
+Database:
+`midi-analyzer-stems`
+
+Version:
+`1`
+
+Store:
+`stems`
+
+Audio BlobはSongProject JSONへ埋め込まずIndexedDBに保持する。
+
+新規Stem metadata:
+
+```text
+id
+name
+type
+sourceFileName
+mimeType
+size
+duration
+conversionStatus
+analysisStatus
+source
+provenance
+  type
+  sourceTitle
+  sourceProjectId
+  importedFrom
+createdAt
+updatedAt
+blob
+```
+
+`provenance.type`はMoises / RipX / self / reference / other / unknown等。
+既存Stem recordにprovenanceが無い場合も読み込める。旧`source`から推定できる場合だけ補完する。
+
+MoisesをStem分離の主入口とし、AnalyzerはImport / 保存 / Solo / Mute / Basic Pitch / 分析を担当する。
+
+## Migration
+
+### MIDI DB v1/v2 → v3
+
+既存のMigrationを維持する。
+
+1. `savedMidis`を保持
+2. `savedClips`を保持
 3. 既存recordを削除・変換しない
-4. 新しい`savedTakes` Storeだけを追加する
-5. Storeが存在しない新規環境では必要なStoreを作成する
+4. `savedTakes`だけ追加
 
-Migrationによって元MIDI / Clip dataを上書きしない。
-`fake-indexeddb`でv1およびv2 DBを作成後、v3へUpgradeして既存recordが残ることを自動テストする。
+### v0.12 provenance
 
-## 保存OFF時
-MIDI Importの保存OFFでは、元MIDI / Songを`savedMidis`へ永続化しない。
+Clip / StemへのProvenance追加はoptional fieldのためDB Versionを上げない。
 
-ClipはImport保存設定とは独立し、Library Tabで明示的に保存ボタンを押した場合だけ`savedClips`へ保存する。
-TakeもImport保存設定とは独立し、Recorder Tabで録音した場合だけ`savedTakes`へ保存する。
+- 既存Clip v1を上書きしない
+- 既存Stemを上書きしない
+- 新規Clip / StemからProvenanceを保存
+- 読み取り時はfield欠落を許容
 
 ## 削除
-- MIDI削除 → `savedMidis`対象recordのみ削除
-- Clip削除 → `savedClips`対象recordのみ削除
-- Take削除 → `savedTakes`対象recordのみ削除
-- 一方の削除で他Storeを連鎖削除しない
+
+- MIDI削除 → `savedMidis`のみ
+- Clip削除 → `savedClips`のみ
+- Take削除 → `savedTakes`のみ
+- Stem削除機能を追加する場合もStem Storeのみ
 
 ## エラー方針
-IndexedDB保存に失敗してもMIDI Import成功結果は破棄しない。
-MIDI保存失敗 / Clip保存失敗 / Take保存失敗は別に表示する。
-録音失敗時も既存Analyzer結果を破棄しない。
+
+保存失敗で解析成功結果を破棄しない。
+MIDI / Clip / Stem / legacy Takeの保存失敗は別々に扱う。
 
 ## Testing
-Node unit testでは`fake-indexeddb`を利用する。
-確認対象:
-- v1→v3 migration
-- v2→v3 migration
-- 既存`savedMidis` / `savedClips` record保持
+
+- v1→v3 / v2→v3 Migration
+- 既存MIDI / Clip保持
 - MIDI CRUD
 - Clip CRUD
-- Take CRUD
-- savedAt降順一覧
+- legacy Take CRUD
+- Clip v1互換
+- Clip v2 Provenance
+- Stem Provenance normalization
+- Legacy Stem provenance fallback
