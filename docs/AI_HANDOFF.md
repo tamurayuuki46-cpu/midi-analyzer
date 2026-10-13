@@ -138,3 +138,5 @@ v1.0:
 
 ## Cloud Browser回帰修正 v0.11-dev
 公開v0.10で短いWAVの変換は完了したが、正規化のorigin許可漏れで解析へ渡せなかった。basic-pitchを許可し、Noteの出所を保持する統合回帰を追加。DB変更なし。
+
+公開v0.11でCloud Browserの短いWAV→Basic Pitch→既存解析、Quantize再取込、変換MIDI保存が成功。全14解析タブ・MIDI保存・移調・Stem保存/Solo/Mute、Demo↔Arrangement往復も確認。スマホ幅は別CIで検証し、実機確認とは区別する。

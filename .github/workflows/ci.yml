@@ -41,3 +41,17 @@ jobs:
         run: |
           test -f dist/basic-pitch-model/model.json
           test -f dist/basic-pitch-model/group1-shard1of1.bin
+
+      - name: Mobile Chromium regression
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8081 --directory dist > /tmp/analyzer-server.log 2>&1 &
+          ANALYZER_URL=http://127.0.0.1:8081/ node scripts/browser-mobile.mjs
+
+      - name: Upload mobile evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-mobile-evidence
+          path: test-results/

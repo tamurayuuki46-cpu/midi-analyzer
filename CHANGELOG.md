@@ -2,6 +2,7 @@
 更新日: 2026-10-13
 
 【追加】
+・360/390/430pxのMIDI取込・全解析タブ・Key変更・保存/再読込・Console回帰をCIへ追加。
 ・Basic Pitch生成MIDI→既存Parser→正規化→Analysis Bundleの統合回帰テスト。
 
 【変更】
