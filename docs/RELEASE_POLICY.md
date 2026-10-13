@@ -8,6 +8,12 @@
 - `main`: 自動テスト合格版。unit test、production build、回帰CI、Basic Pitch model assets確認などが成功した統合版を置く。Android実機未確認でもmainへ統合してよい。
 - `stable tag`: 実機確認済み版。Android実機の主要操作・保存・PWA更新・Audio→MIDI長時間処理を確認し、MIDI連携対象がある場合はCubasis / Cubase取込確認まで済んだ版だけに付与する。
 
+## 公開
+
+- GitHub Pagesの公開元は`main`のみとする。
+- `develop`へのpushでは公開しない。
+- main merge後にUnit tests / Production buildを再実行してからPages Deployする。
+
 ## main統合前
 
 1. Versionとdevelop headを確認。
