@@ -1,5 +1,6 @@
 import { transcribeAudioFile } from '../audio/basicPitchTranscriber.js';
 import { noteEventsToMidi } from '../audio/noteEventsToMidi.js';
+import { updateStemStatus } from '../storage/stemStore.js';
 
 const root = document.querySelector('#audio-to-midi-root');
 const midiInput = document.querySelector('#midi-file');
@@ -82,14 +83,8 @@ function render() {
     if (lastMidiFile) downloadFile(lastMidiFile);
   });
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const audioFile = fileInput.files?.[0];
-    if (!audioFile) {
-      status.textContent = 'Audioファイルを選んでください。';
-      status.dataset.tone = 'error';
-      return;
-    }
+  async function convert(audioFile, context = {}) {
+    if (!audioFile) throw new Error('Audioファイルがありません。');
 
     activeController?.abort();
     activeController = new AbortController();
@@ -107,7 +102,7 @@ function render() {
         signal: controller.signal,
         onProgress(update) {
           progress.value = Math.max(0, Math.min(1, Number(update.progress) || 0));
-          status.textContent = update.message || '処理中…';
+          status.textContent = `${context.stemName ? `${context.stemName}: ` : ''}${update.message || '処理中…'}`;
         },
       });
       if (controller.signal.aborted) return;
@@ -123,8 +118,23 @@ function render() {
       downloadButton.disabled = false;
       status.dataset.tone = 'success';
       status.textContent = `変換完了: ${result.notes.length} notes / ${formatTime(result.durationSeconds)}。既存MIDI Analyzerへ渡します。`;
+
+      if (context.stemId) {
+        await updateStemStatus(context.stemId, {
+          conversionStatus: 'converted',
+          analysisStatus: 'midi-generated',
+        });
+        window.dispatchEvent(new CustomEvent('stem-status-changed', { detail: { stemId: context.stemId } }));
+      }
+
       window.dispatchEvent(new CustomEvent('basic-pitch-notes-ready', {
-        detail: { notes: result.notes, bpm, fileName: audioFile.name },
+        detail: {
+          notes: result.notes,
+          bpm,
+          fileName: audioFile.name,
+          stemId: context.stemId || null,
+          stemType: context.stemType || null,
+        },
       }));
 
       if (setGeneratedMidi(lastMidiFile) && midiForm) {
@@ -137,6 +147,12 @@ function render() {
         status.dataset.tone = 'neutral';
         status.textContent = 'Audio→MIDIをキャンセルしました。Audioは外部送信していません。';
       } else {
+        if (context.stemId) {
+          try {
+            await updateStemStatus(context.stemId, { conversionStatus: 'failed' });
+            window.dispatchEvent(new CustomEvent('stem-status-changed', { detail: { stemId: context.stemId } }));
+          } catch {}
+        }
         status.dataset.tone = 'error';
         status.textContent = `Audio→MIDIに失敗しました: ${error?.message || 'unknown error'}`;
       }
@@ -146,6 +162,25 @@ function render() {
       cancelButton.disabled = true;
       if (!lastMidiFile) progress.value = 0;
     }
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const audioFile = fileInput.files?.[0];
+    if (!audioFile) {
+      status.textContent = 'Audioファイルを選んでください。';
+      status.dataset.tone = 'error';
+      return;
+    }
+    await convert(audioFile);
+  });
+
+  window.addEventListener('stem-basic-pitch-request', async (event) => {
+    const detail = event.detail || {};
+    if (!detail.file) return;
+    status.dataset.tone = 'neutral';
+    status.textContent = `${detail.stemName || 'Stem'} をBasic Pitchで変換します。`;
+    await convert(detail.file, detail);
   });
 }
 
