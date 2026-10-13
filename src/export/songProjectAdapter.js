@@ -39,6 +39,10 @@ function referenceFromSong(song) {
   };
 }
 
+function referenceKey(item) {
+  return item?.id || item?.storage?.recordId || `${item?.type || 'reference'}:${item?.name || item?.sourceFileName || ''}`;
+}
+
 function emptyArrangement() {
   return {
     reharmonization: null,
@@ -78,7 +82,7 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
     export: { lastDraftMidiAt: null, lastSongMidiAt: null },
     compatibility: {
       midiAnalyzer: {
-        appVersion: 'v0.9-dev',
+        appVersion: 'v0.10-dev',
         source: clone(song?.source ?? {}),
         warnings: clone(demo.warnings),
         analysisBundle: clone(bundle),
@@ -93,6 +97,25 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
   };
 
   return Object.freeze({ project: Object.freeze(songProject), warnings: demo.warnings });
+}
+
+export function mergeReferenceMetadata(songProject, items = [], options = {}) {
+  if (!songProject || songProject.kind !== SONG_PROJECT_KIND || songProject.schemaVersion !== SONG_PROJECT_SCHEMA_VERSION) {
+    throw new Error('Song Project v1ではありません。');
+  }
+  const next = clone(songProject);
+  const existing = Array.isArray(next.reference?.items) ? next.reference.items : [];
+  const merged = new Map(existing.map((item) => [referenceKey(item), item]));
+  for (const item of items || []) {
+    if (!item) continue;
+    merged.set(referenceKey(item), clone(item));
+  }
+  next.reference = {
+    ...(next.reference ?? {}),
+    items: [...merged.values()],
+  };
+  next.updatedAt = nowIso(options.now);
+  return next;
 }
 
 export function mergeAnalyzerAnalysisIntoSongProject(songProject, song, bundle, options = {}) {
