@@ -46,7 +46,7 @@ function fixtureBundle(key = 'E major') {
   };
 }
 
-test('Analyzer creates a new SongProject v1 that Demo Composer can consume', () => {
+test('Analyzer creates a canonical SongProject v1 that the app family can consume', () => {
   const result = buildSongProjectFromAnalysis(fixtureSong(), fixtureBundle(), {
     projectId: 'analysis-song-1',
     title: 'Reference Analysis',
@@ -57,6 +57,12 @@ test('Analyzer creates a new SongProject v1 that Demo Composer can consume', () 
   assert.equal(project.kind, 'song-project');
   assert.equal(project.schemaVersion, 1);
   assert.equal(project.projectId, 'analysis-song-1');
+  assert.equal(project.lineage.rootProjectId, 'analysis-song-1');
+  assert.equal(project.lineage.sourceApp, 'midi-analyzer');
+  assert.equal(project.lineage.createdFrom, 'analysis-import');
+  assert.deepEqual(project.intent.references, []);
+  assert.deepEqual(project.assets.files, []);
+  assert.equal(project.export.lastDawHandoffAt, null);
   assert.equal(project.basic.bpm, 126);
   assert.equal(project.basic.key, 'E');
   assert.equal(project.basic.scale, 'major');
@@ -68,12 +74,12 @@ test('Analyzer creates a new SongProject v1 that Demo Composer can consume', () 
   assert.equal(project.composition.drums.length, 1);
   assert.equal(project.reference.items[0].type, 'midi');
   assert.equal(project.reference.items[0].name, 'reference.mid');
-  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.11-dev');
+  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.12-dev');
   assert.equal(project.compatibility.demoComposer.legacyProject.schemaVersion, 3);
   assert.equal(project.compatibility.demoComposer.legacyProject.basic.key, 'E');
 });
 
-test('Analyzer merge owns analysis/reference/basic but preserves composition and arrangement', () => {
+test('Analyzer merge owns analysis/reference and preserves sheet/composition/arrangement/assets/basic by default', () => {
   const initial = buildSongProjectFromAnalysis(fixtureSong(), fixtureBundle(), {
     projectId: 'analysis-song-2',
     title: 'Existing Song',
@@ -81,6 +87,13 @@ test('Analyzer merge owns analysis/reference/basic but preserves composition and
   }).project;
 
   const existing = structuredClone(initial);
+  existing.intent = {
+    scene: '夜の帰り道', purpose: '', references: [{ title: 'Ref Song', artist: 'Ref Artist', note: '' }],
+    genre: ['J-POP'], mood: ['浮遊感'], constraints: [], experiments: [],
+    vocal: { isVocalSong: true, lyricsTheme: '前進', lyricalImage: '', direction: '', range: { low: null, high: null, note: '' } },
+    notes: '作曲シートで決めた内容',
+  };
+  existing.basic = { ...existing.basic, bpm: 140, key: 'C', scale: 'major' };
   existing.composition = {
     chords: [{ root: 0, quality: 'major', degree: 'I', startTick: 0, durationTick: 1920 }],
     melody: [{ id: 'user-melody', pitch: 72, startTick: 0, durationTick: 480, velocity: 100 }],
@@ -97,19 +110,48 @@ test('Analyzer merge owns analysis/reference/basic but preserves composition and
     selectedAlternatives: { id: 'B' },
     decisions: [{ sectionId: 'chorus', reason: 'keep decision' }],
   };
+  existing.assets = { files: [{ id: 'audio-1', type: 'audio', role: 'reference', name: 'ref.wav', path: 'assets/ref.wav', external: true }] };
+  existing.reference.items.unshift({ id: 'sheet-ref', type: 'reference', name: '作曲シート参考曲' });
 
-  const compositionBefore = structuredClone(existing.composition);
-  const arrangementBefore = structuredClone(existing.arrangement);
+  const before = {
+    lineage: structuredClone(existing.lineage),
+    intent: structuredClone(existing.intent),
+    basic: structuredClone(existing.basic),
+    composition: structuredClone(existing.composition),
+    arrangement: structuredClone(existing.arrangement),
+    history: structuredClone(existing.history),
+    assets: structuredClone(existing.assets),
+    export: structuredClone(existing.export),
+  };
   const merged = mergeAnalyzerAnalysisIntoSongProject(existing, fixtureSong(), fixtureBundle('A major'), {
     now: '2026-10-13T01:05:00.000Z',
   });
 
-  assert.deepEqual(merged.composition, compositionBefore);
-  assert.deepEqual(merged.arrangement, arrangementBefore);
+  assert.deepEqual(merged.lineage, before.lineage);
+  assert.deepEqual(merged.intent, before.intent);
+  assert.deepEqual(merged.basic, before.basic, 'existing BPM/Key must not be overwritten by analysis by default');
+  assert.deepEqual(merged.composition, before.composition);
+  assert.deepEqual(merged.arrangement, before.arrangement);
+  assert.deepEqual(merged.history, before.history);
+  assert.deepEqual(merged.assets, before.assets);
+  assert.deepEqual(merged.export, before.export);
   assert.equal(merged.analysis.keyCandidates[0].value, 'A major');
-  assert.equal(merged.basic.key, 'A');
-  assert.equal(merged.reference.items[0].name, 'reference.mid');
+  assert.equal(merged.reference.items.some((item) => item.id === 'sheet-ref'), true, 'existing references must survive');
+  assert.equal(merged.reference.items.some((item) => item.name === 'reference.mid'), true, 'analyzed MIDI reference must be added');
   assert.equal(merged.updatedAt, '2026-10-13T01:05:00.000Z');
+});
+
+test('Analyzer can explicitly update basic metadata when creating/importing by choice', () => {
+  const initial = buildSongProjectFromAnalysis(fixtureSong(), fixtureBundle(), {
+    projectId: 'analysis-song-basic',
+    now: '2026-10-13T01:00:00.000Z',
+  }).project;
+  const existing = structuredClone(initial);
+  existing.basic = { ...existing.basic, bpm: 90, key: 'C', scale: 'minor' };
+  const merged = mergeAnalyzerAnalysisIntoSongProject(existing, fixtureSong(), fixtureBundle('A major'), { updateBasic: true });
+  assert.equal(merged.basic.bpm, 126);
+  assert.equal(merged.basic.key, 'A');
+  assert.equal(merged.basic.scale, 'major');
 });
 
 test('reference metadata can be appended without embedding audio or changing composition', () => {
