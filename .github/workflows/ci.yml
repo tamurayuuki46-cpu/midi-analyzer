@@ -3,11 +3,13 @@ name: CI
 on:
   push:
     branches:
+      - main
       - develop
       - 'chatgpt/**'
       - 'claude/**'
   pull_request:
     branches:
+      - main
       - develop
 
 permissions:
