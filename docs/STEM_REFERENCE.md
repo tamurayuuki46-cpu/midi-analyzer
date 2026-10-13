@@ -35,8 +35,8 @@ Reference metadata例:
   "name": "Bass Stem",
   "sourceFileName": "bass.wav",
   "duration": 123.4,
-  "conversionStatus": "not-converted",
-  "analysisStatus": "not-analyzed",
+  "conversionStatus": "converted",
+  "analysisStatus": "midi-generated",
   "storage": {
     "kind": "indexeddb",
     "database": "midi-analyzer-stems",
@@ -54,12 +54,32 @@ Reference metadata例:
 - Solo
 - Mute
 - conversion status / analysis status表示
+- 保存済みStemをBasic Pitchへ直接送信
+
+## Song Project同期
+
+Song Project v1を書き出す時点で、現在端末に保存されているStem metadataを`reference.items`へ自動同期します。
+
+- Audio Blobは含めない
+- IndexedDBのrecordIdのみ参照として残す
+- 同じStem idは重複追加せず最新metadataで更新する
+- composition / arrangementは変更しない
+
+## Stem → Basic Pitch
+
+保存済みStemカードの「Basic Pitchへ送る」から、そのBlobを端末内Audio→MIDI処理へ直接渡します。
+
+変換成功時:
+
+- `conversionStatus: converted`
+- `analysisStatus: midi-generated`
+
+へ更新し、生成MIDIは通常のMIDI Analyzer解析経路へ渡します。
 
 ## 未対応
 
-- StemからBasic Pitchへ直接送るボタン
-- SongProject.referenceへの自動同期
 - storage quota / evictionの詳細UI
 - File System Access API利用
+- Android実機での長尺Stem / Basic Pitchメモリ検証
 
-これらはAndroid Chrome実機のstorage quota確認後に拡張します。
+Android Chrome実機確認後にstorage管理を追加拡張します。
