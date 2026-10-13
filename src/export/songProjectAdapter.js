@@ -74,6 +74,14 @@ function referenceKey(item) {
   return item?.id || item?.storage?.recordId || `${item?.type || 'reference'}:${item?.name || item?.sourceFileName || ''}`;
 }
 
+function mergedReference(baseReference, incomingReference) {
+  const existing = Array.isArray(baseReference?.items) ? baseReference.items : [];
+  const incoming = Array.isArray(incomingReference?.items) ? incomingReference.items : [];
+  const items = new Map(existing.map((item) => [referenceKey(item), clone(item)]));
+  for (const item of incoming) items.set(referenceKey(item), clone(item));
+  return { ...(clone(baseReference) || {}), items: [...items.values()] };
+}
+
 function emptyArrangement() {
   return {
     reharmonization: null,
@@ -140,16 +148,7 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
 export function mergeReferenceMetadata(songProject, items = [], options = {}) {
   if (!isSongProject(songProject)) throw new Error('Song Project v1ではありません。');
   const next = clone(songProject);
-  const existing = Array.isArray(next.reference?.items) ? next.reference.items : [];
-  const merged = new Map(existing.map((item) => [referenceKey(item), item]));
-  for (const item of items || []) {
-    if (!item) continue;
-    merged.set(referenceKey(item), clone(item));
-  }
-  next.reference = {
-    ...(next.reference ?? {}),
-    items: [...merged.values()],
-  };
+  next.reference = mergedReference(next.reference, { items });
   next.updatedAt = nowIso(options.now);
   return next;
 }
@@ -175,13 +174,13 @@ export function mergeAnalyzerAnalysisIntoSongProject(songProject, song, bundle, 
 
   next.updatedAt = nowIso(options.now);
   next.analysis = clone(generated.project.analysis);
-  next.reference = clone(generated.project.reference);
+  next.reference = mergedReference(next.reference, generated.project.reference);
   next.compatibility = {
     ...(next.compatibility ?? {}),
     midiAnalyzer: clone(generated.project.compatibility.midiAnalyzer),
   };
 
-  if (options.updateBasic !== false) {
+  if (options.updateBasic === true) {
     next.basic = {
       ...(next.basic ?? {}),
       bpm: generated.project.basic.bpm,
