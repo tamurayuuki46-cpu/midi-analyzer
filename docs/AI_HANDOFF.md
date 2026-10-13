@@ -25,14 +25,13 @@ MIDI Analyzerの役割は2つだけ。
 正本: `docs/ROLE_BOUNDARY.md`
 
 MoisesをStem分離の主入口とし、MIDI AnalyzerはMoises / RipX / Audio等から受け取った素材を保存・素材化・Audio→MIDI・分析する。
-
 MIDI Analyzer自身がComposition / Arrangementの所有者にならない。
 
-## v0.12-devでの境界整理
+## v0.12-devで完成した境界整理
 
 ### Part Recorder
 
-v0.7で実装したPart Recorderは主UIから退役。
+v0.7で実装したPart Recorderは主UIから退役済み。
 
 - Recorder TabをMain navigationから除外
 - `mountRecorderTab`をmain flowから除外
@@ -65,7 +64,6 @@ v0.7で実装したPart Recorderは主UIから退役。
 - recordedAt
 
 検索対象にも含める。
-
 既存Clip v1は自動変換・削除しない。provenance無しでも表示・検索可能。
 
 ### Stem Provenance
@@ -140,7 +138,6 @@ MIDI Analyzer owner:
 - `arrangement`
 
 Demo Composer SchemaやCompositionをAnalyzer都合で変更しない。
-
 参考曲をそのまま自作Compositionへ自動変換しない。
 
 ## 触らない部分
@@ -156,15 +153,23 @@ Demo Composer SchemaやCompositionをAnalyzer都合で変更しない。
 - Mixer / Mastering / Plugin Hostingを追加しない
 - 本格Composition / Arrangement機能を追加しない
 
-## 現在の開発Branch
+## 現在の開発状態
 
-`chatgpt/workflow-boundary-cleanup`
+開発統合Branch: `develop`
 
-変更前復元点:
-`restore/before-workflow-boundary-2026-10-13`
+統合済み:
+- PR #30: `refactor: focus MIDI Analyzer on materials and understanding (v0.12-dev)`
+- `develop` merge commit: `1c31a35655fc068b063585f13caae4454ac05df0`
+- PR head `fac93c5216a8ea80e99f654d6a21996787ca6470` のCIは成功済み
 
-PR:
-`#30 refactor: focus MIDI Analyzer on materials and understanding (v0.12-dev)`
+現在のdevelopはv0.12-dev。main/publicはv0.11-devのままで未変更。
+
+復元点:
+- `restore/before-workflow-boundary-2026-10-13`
+- `restore/v0.12-workflow-boundary-feature-complete`
+
+v0.12-devのコード・自動テスト・正本docsの開発統合は完了。
+次に必要なのはAndroid / Moises Audio / Cubasis / Cubase等の実機工程。
 
 ## Git運用
 
@@ -187,5 +192,6 @@ PR:
 
 既存milestoneに加え:
 - `restore/before-workflow-boundary-2026-10-13`
+- `restore/v0.12-workflow-boundary-feature-complete`
 
-v0.12-devがdevelop統合後、feature-complete復元点を追加する。
+stable tagは実機確認前に作成しない。
