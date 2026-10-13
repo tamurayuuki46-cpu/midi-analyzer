@@ -6,7 +6,7 @@ function note(id, pitch, startTick, durationTick, velocity, trackId, channel = 0
   return { id, pitch, startTick, durationTick, velocity, trackId, channel, origin: 'midi' };
 }
 
-function makeSong() {
+function makeSong(origin = 'midi') {
   const ppq = 480;
   const barTicks = ppq * 4;
   const notes = [];
@@ -32,7 +32,7 @@ function makeSong() {
 
   return {
     schemaVersion: '0.1',
-    source: { fileName: 'library.mid', origin: 'midi' },
+    source: { fileName: 'library.mid', origin },
     ppq,
     tempoMap: [{ tick: 0, microsecondsPerBeat: 500000, bpm: 120, implicit: true }],
     timeSignatures: [{ tick: 0, numerator: 4, denominator: 4, implicit: true }],
@@ -56,14 +56,21 @@ test('buildFourBarRanges returns every contiguous 4-bar slice', () => {
   assert.ok(ranges.every((range) => range.complete));
 });
 
-test('melody clip rebases notes and assigns automatic BPM/Key tags', () => {
+test('melody clip rebases notes, tags and provenance', () => {
   const clip = buildClipRecord(makeSong(), {
     type: 'melody',
     startBar: 2,
     id: 'melody-clip',
     savedAt: '2026-10-13T00:00:00.000Z',
+    provenance: {
+      type: 'reference',
+      sourceTitle: 'Reference Song A - chorus',
+      sourceProjectId: 'ref-project-1',
+      usedInProjectIds: ['my-song-1', 'my-song-1'],
+    },
     tags: { genre: 'J-POP', mood: 'bright', custom: 'verse, hook, verse' },
   });
+  assert.equal(clip.clipSchemaVersion, 2);
   assert.equal(clip.type, 'melody');
   assert.equal(clip.range.startBar, 2);
   assert.equal(clip.range.endBar, 5);
@@ -73,6 +80,18 @@ test('melody clip rebases notes and assigns automatic BPM/Key tags', () => {
   assert.equal(clip.tags.bpm, 120);
   assert.ok(clip.tags.key.length > 0);
   assert.deepEqual(clip.tags.custom, ['verse', 'hook']);
+  assert.equal(clip.provenance.type, 'reference');
+  assert.equal(clip.provenance.sourceTitle, 'Reference Song A - chorus');
+  assert.equal(clip.provenance.sourceProjectId, 'ref-project-1');
+  assert.deepEqual(clip.provenance.usedInProjectIds, ['my-song-1']);
+  assert.equal(clip.provenance.createdBy, 'midi-analyzer');
+});
+
+test('provenance can be inferred from Moises/RipX/audio origins', () => {
+  assert.equal(buildClipRecord(makeSong('moises-stem'), { id: 'm' }).provenance.type, 'moises-stem');
+  assert.equal(buildClipRecord(makeSong('ripx'), { id: 'r' }).provenance.type, 'ripx');
+  assert.equal(buildClipRecord(makeSong('audio-basic-pitch'), { id: 'a' }).provenance.type, 'audio-to-midi');
+  assert.equal(buildClipRecord(makeSong('midi'), { id: 'u' }).provenance.type, 'unknown');
 });
 
 test('chord and drum clips keep the appropriate part context', () => {
@@ -94,21 +113,30 @@ test('motif clip carries motif candidates without changing source song', () => {
   assert.equal(song.notes[0].startTick, originalFirstTick);
 });
 
-test('filterClipRecords matches metadata, tags and chord names with AND tokens', () => {
+test('filterClipRecords matches provenance, metadata, tags and chord names with AND tokens', () => {
   const song = makeSong();
   const first = buildClipRecord(song, {
     type: 'chord',
     id: 'first',
+    provenance: { type: 'reference', sourceTitle: 'Song A Chorus' },
     tags: { genre: 'J-POP', mood: 'bright', key: 'C major', custom: 'chorus favorite' },
   });
   const second = buildClipRecord(song, {
     type: 'bass',
     id: 'second',
+    provenance: { type: 'self', sourceProjectId: 'demo-123' },
     tags: { genre: 'Rock', mood: 'dark', custom: 'verse' },
   });
   assert.deepEqual(filterClipRecords([first, second], 'J-POP chorus').map((item) => item.id), ['first']);
+  assert.deepEqual(filterClipRecords([first, second], 'reference Song A').map((item) => item.id), ['first']);
+  assert.deepEqual(filterClipRecords([first, second], 'self demo-123').map((item) => item.id), ['second']);
   assert.deepEqual(filterClipRecords([first, second], 'bass dark').map((item) => item.id), ['second']);
   const chordName = first.chordProgression[0]?.value;
   assert.ok(chordName);
   assert.deepEqual(filterClipRecords([first, second], chordName).map((item) => item.id).includes('first'), true);
+
+  // Existing v1 records without provenance remain searchable/renderable.
+  const legacy = { ...first, clipSchemaVersion: 1 };
+  delete legacy.provenance;
+  assert.deepEqual(filterClipRecords([legacy], 'J-POP').map((item) => item.id), ['first']);
 });
