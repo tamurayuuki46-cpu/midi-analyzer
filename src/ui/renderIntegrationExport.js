@@ -1,5 +1,7 @@
 import './postV07Features.css';
 import { buildDemoComposerProject, buildSongProjectFromAnalysis, exportAnalysisCsv, exportAnalysisJson, exportAnalysisMarkdown, exportChordDegreeText } from '../export/index.js';
+import { mergeReferenceMetadata } from '../export/songProjectAdapter.js';
+import { listStemMetadata, stemToReferenceMetadata } from '../storage/stemStore.js';
 
 function safeName(value) {
   return String(value || 'midi-analysis').replace(/\.(mid|midi)$/i, '').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_').slice(0, 80) || 'midi-analysis';
@@ -31,12 +33,21 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
   const demo = buildDemoComposerProject(song, bundle, { title: baseName });
   const common = buildSongProjectFromAnalysis(song, bundle, { title: baseName });
 
+  async function songProjectWithReferences() {
+    try {
+      const stems = await listStemMetadata();
+      return mergeReferenceMetadata(common.project, stems.map(stemToReferenceMetadata));
+    } catch {
+      return common.project;
+    }
+  }
+
   root.innerHTML = `
     <div class="feature-stack">
       <div>
         <p class="eyebrow">INTEGRATION / EXPORT</p>
         <h3>解析結果を書き出す</h3>
-        <p class="feature-note">共通Song Project v1、JSON / CSV / Markdown / Chord・Degree Text、Demo Composer互換project.jsonを生成します。元MIDIは変更しません。</p>
+        <p class="feature-note">共通Song Project v1、JSON / CSV / Markdown / Chord・Degree Text、Demo Composer互換project.jsonを生成します。Song Projectには端末保存Stemのmetadataだけを同期し、Audio Blobは埋め込みません。</p>
       </div>
       <div class="export-grid">
         <button class="export-button" type="button" data-export-kind="song-project">Song Project v1</button>
@@ -54,11 +65,14 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
 
   const status = root.querySelector('[data-export-status]');
 
-  function payload(kind) {
-    if (kind === 'song-project') return { name: `${baseName}_song_project_v1.json`, text: `${JSON.stringify(common.project, null, 2)}\n`, type: 'application/json;charset=utf-8' };
-    if (kind === 'json') return { name: `${baseName}_analysis_v0.9.json`, text: exportAnalysisJson(bundle), type: 'application/json;charset=utf-8' };
-    if (kind === 'csv') return { name: `${baseName}_analysis_v0.9.csv`, text: exportAnalysisCsv(bundle), type: 'text/csv;charset=utf-8' };
-    if (kind === 'markdown') return { name: `${baseName}_report_v0.9.md`, text: exportAnalysisMarkdown(bundle, { metrics, explanation }), type: 'text/markdown;charset=utf-8' };
+  async function payload(kind) {
+    if (kind === 'song-project') {
+      const project = await songProjectWithReferences();
+      return { name: `${baseName}_song_project_v1.json`, text: `${JSON.stringify(project, null, 2)}\n`, type: 'application/json;charset=utf-8' };
+    }
+    if (kind === 'json') return { name: `${baseName}_analysis_v0.10.json`, text: exportAnalysisJson(bundle), type: 'application/json;charset=utf-8' };
+    if (kind === 'csv') return { name: `${baseName}_analysis_v0.10.csv`, text: exportAnalysisCsv(bundle), type: 'text/csv;charset=utf-8' };
+    if (kind === 'markdown') return { name: `${baseName}_report_v0.10.md`, text: exportAnalysisMarkdown(bundle, { metrics, explanation }), type: 'text/markdown;charset=utf-8' };
     if (kind === 'chords') return { name: `${baseName}_chords_degree.txt`, text: exportChordDegreeText(bundle), type: 'text/plain;charset=utf-8' };
     if (kind === 'demo') return { name: `${baseName}_demo_composer_project.json`, text: JSON.stringify(demo.project, null, 2), type: 'application/json;charset=utf-8' };
     return null;
@@ -70,14 +84,14 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
     const kind = button.dataset.exportKind;
     try {
       if (kind === 'share') {
-        const item = payload('song-project');
+        const item = await payload('song-project');
         const file = new File([item.text], item.name, { type: item.type });
         if (navigator.canShare && !navigator.canShare({ files: [file] })) throw new Error('この端末ではファイル共有に対応していません。');
         await navigator.share({ title: 'MIDI Analyzer Export', text: 'Song Project v1', files: [file] });
-        status.textContent = '共通Song Projectを端末の共有メニューへ渡しました。';
+        status.textContent = 'Stem metadataを含む共通Song Projectを端末の共有メニューへ渡しました。';
         return;
       }
-      const item = payload(kind);
+      const item = await payload(kind);
       if (!item) return;
       downloadText(item.name, item.text, item.type);
       status.textContent = `${item.name} を書き出しました。`;
@@ -86,5 +100,10 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
     }
   });
 
-  return Object.freeze({ songProject: common.project, demoProject: demo.project, warnings: common.warnings });
+  return Object.freeze({
+    songProject: common.project,
+    getSongProject: songProjectWithReferences,
+    demoProject: demo.project,
+    warnings: common.warnings,
+  });
 }
