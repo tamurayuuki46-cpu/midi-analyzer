@@ -22,6 +22,7 @@ Version: v0.10-dev
 ・Stem変換状態の保存を追加
 ・Song Project Export時にStem metadataをreference.itemsへ自動同期
 ・Basic Pitch / Key transpose / MIDI re-export / Stem Blob分離 / reference metadataの自動テストを追加
+・Release Policyを追加し、mainを自動テスト合格版、stable tagを実機確認済み版と定義
 
 【変更】
 ・端末共有の既定対象をDemo Composer project.jsonからSong Project v1へ変更
@@ -30,6 +31,7 @@ Version: v0.10-dev
 ・Stem Audio BlobはSongProject JSONではなく`midi-analyzer-stems` IndexedDBへ分離
 ・一般MIDIのKey変更ではChannel 10 Drumsを移調対象から除外
 ・Analysis Exportのファイル名Versionをv0.10へ更新
+・Git運用を `develop=開発統合` / `main=自動テスト合格版` / `stable tag=Android・Cubasis/Cubase実機確認済み版` へ変更
 
 【修正】
 ・Analyzer再解析時にcomposition / arrangementを上書きしないOwnership保護を追加
@@ -39,4 +41,4 @@ Version: v0.10-dev
 【未対応】
 ・Basic Pitch Web Worker化
 ・Android実機での長尺Basic Pitchメモリ検証
-・本番Deploy / develop・mainへの統合
+・stable tag（実機確認後に作成）
