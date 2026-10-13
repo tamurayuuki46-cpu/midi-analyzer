@@ -51,6 +51,22 @@ function storageTargets() {
   return libraryRoot ? [libraryRoot] : [savedRoot];
 }
 
+function ensureMidiKeyToolsRoot() {
+  const harmonyPanel = resultRoot.querySelector('#analysis-panel-harmony');
+  if (!harmonyPanel || harmonyPanel.querySelector('[data-midi-key-tools-root]')) return;
+  const section = document.createElement('section');
+  section.className = 'panel';
+  section.setAttribute('aria-labelledby', 'midi-key-tools-title');
+  section.innerHTML = `
+    <div class="panel-heading">
+      <div><p class="eyebrow">KEY CHANGE / MATERIAL</p><h2 id="midi-key-tools-title">Key変更・Song Projectへ適合</h2></div>
+      <span class="status-pill">Non-destructive</span>
+    </div>
+    <div data-midi-key-tools-root></div>
+  `;
+  harmonyPanel.append(section);
+}
+
 async function refreshSavedMidiList() {
   const targets = storageTargets();
   if (!isIndexedDbAvailable()) {
@@ -99,6 +115,7 @@ form.addEventListener('submit', async (event) => {
     const result = await importMidiFile(file, { origin: originSelect.value });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
+    ensureMidiKeyToolsRoot();
     savedRoot.hidden = true;
     savedRoot.replaceChildren();
     const tabsRoot = resultRoot.querySelector('[data-analysis-tabs]');
@@ -139,6 +156,12 @@ form.addEventListener('submit', async (event) => {
       bassController?.refreshChordContext();
     });
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
+    window.dispatchEvent(new CustomEvent('midi-analyzer-song-ready', {
+      detail: {
+        song: result.song,
+        detectedKey: keyAnalysis.candidates?.[0]?.value ?? null,
+      },
+    }));
     await refreshSavedMidiList();
 
     if (saveCheckbox.checked) {

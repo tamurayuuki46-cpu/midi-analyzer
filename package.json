@@ -1,6 +1,6 @@
 {
   "name": "midi-analyzer",
-  "version": "0.9.0-dev",
+  "version": "0.10.0-dev",
   "private": true,
   "description": "Android-first MIDI analysis PWA for composition learning and decision support",
   "type": "module",
@@ -12,6 +12,7 @@
     "bridge": "node bridge/server.mjs"
   },
   "dependencies": {
+    "@spotify/basic-pitch": "1.0.1",
     "midi-file": "1.2.4"
   },
   "devDependencies": {

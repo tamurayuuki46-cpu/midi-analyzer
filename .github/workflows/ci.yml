@@ -34,3 +34,8 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Verify Basic Pitch local model assets
+        run: |
+          test -f dist/basic-pitch-model/model.json
+          test -f dist/basic-pitch-model/group1-shard1of1.bin
