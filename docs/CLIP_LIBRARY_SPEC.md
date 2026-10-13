@@ -1,13 +1,18 @@
 # CLIP_LIBRARY_SPEC.md
 
 ## Version
-v0.6-dev
+v0.12-dev
+
+更新日: 2026-10-13
 
 ## 目的
+
 読み込んだMIDIから、作曲で再利用・比較しやすい4小節単位の素材を端末内Libraryへ保存する。
+MIDI Analyzerの「素材を集める」責務として、素材の音楽内容だけでなく**出自（provenance）**も追跡する。
 元MIDIやNormalized Songは変更しない。
 
 ## Clip Type
+
 - Chord
 - Melody
 - Bass
@@ -15,63 +20,84 @@ v0.6-dev
 - Motif
 
 ## 4小節切り出し
-- `buildAnalysisWindows()`から小節境界を取得する
-- 4小節以上の曲では、連続するすべての4小節Rangeを選択可能にする
-  - 例: 8小節 → 1–4 / 2–5 / 3–6 / 4–7 / 5–8
+
+- `buildAnalysisWindows()`から小節境界を取得
+- 4小節以上では連続する全4小節Rangeを選択可能
 - 4小節未満は曲全体をpartial Clipとして扱う
 - Range境界にまたがるNoteはClip境界で切る
-- Clip内Noteの`startTick`はRange先頭を0として相対化する
+- Clip内`startTick`はRange先頭を0として相対化
 - 元SongのNoteは変更しない
 
-## Track選択
-初期ScopeではroleHint /既存heuristicに基づく既定Trackを使う。
-
-- Chord: Chord Analyzer既定Track群
-- Melody: Melody既定Track
-- Bass: Bass既定Track
-- Drum: Drum Track、なければRhythm既定Track
-- Motif: Melody既定Track
-
-手動Track選択は将来拡張。
-
 ## 自動Metadata
-Clip保存時に以下を自動保存する。
 
 - source fileName / origin
 - startBar / endBar / tick Range
 - PPQ
 - type
-- selected trackIds
-- clip notes
+- trackIds
+- notes
 - BPM
 - Key第1候補
 - Top 1 Chord progression
-- Motif typeではMotif候補
+- Motif候補（Motif Clip）
 
 Key / ChordはAnalyzer候補であり確定情報ではない。
 
+## Material Provenance
+
+v0.12-devからClip Schema 2として追加する。
+
+`provenance.type`:
+
+- `self` — 自作
+- `reference` — 参考曲由来
+- `moises-stem` — Moises Stem由来
+- `audio-to-midi` — Audio→MIDI由来
+- `ripx` — RipX由来
+- `book` — 書籍由来
+- `plugin` — Plugin由来
+- `manual` — 手入力
+- `other`
+- `unknown`
+
+Provenance:
+
+```text
+provenance
+  type
+  sourceTitle
+  sourceProjectId
+  usedInProjectIds[]
+  importedFrom
+  createdBy
+  recordedAt
+```
+
+`sourceTitle`は元曲・素材名。
+`sourceProjectId`は自作素材の場合の元Project。
+`usedInProjectIds`は将来、どの曲で再利用したかを追跡するための配列。
+
+Moises / RipX / Audio→MIDIは`Song.source.origin`から自動推定できる場合は自動設定する。ユーザー指定を優先する。
+
 ## ユーザーTag
-任意で以下を保存できる。
 
 - name
 - Genre
 - Mood
-- custom tags（カンマ区切り、重複除去、最大20件）
-
-## Chord進行DB
-すべてのClipへRange内Top 1 Chord progressionをcontextとして保存する。
-Chord Clipではこの進行を主なLibrary内容として表示・検索する。
-
-例:
-`C → G → Am → F`
+- custom tags（重複除去、最大20件）
 
 ## 検索
-空白区切りの複数tokenをAND検索する。
-検索対象:
 
+空白区切りtokenのAND検索。
+
+検索対象:
 - Clip名
 - type
 - source fileName
+- provenance type
+- sourceTitle
+- sourceProjectId
+- usedInProjectIds
 - Genre
 - Mood
 - BPM
@@ -80,13 +106,14 @@ Chord Clipではこの進行を主なLibrary内容として表示・検索する
 - Chord名
 
 ## Storage
-IndexedDB Database `midi-analyzer` version 2。
-`savedClips` Object Storeを追加する。
 
-Clip record:
+IndexedDB Database `midi-analyzer` の`savedClips` Storeを継続利用する。
+DB VersionはProvenance追加だけでは上げない。
+
+Clip Schema 2:
 
 ```text
-clipSchemaVersion: 1
+clipSchemaVersion: 2
 id
 savedAt
 type
@@ -94,52 +121,53 @@ name
 source
   fileName
   origin
+provenance
+  type
+  sourceTitle
+  sourceProjectId
+  usedInProjectIds[]
+  importedFrom
+  createdBy
+  recordedAt
 range
-  startBar
-  endBar
-  startTick
-  endTick
-  barCount
-  complete
-  lengthTicks
 ppq
 trackIds
 notes
 chordProgression
 motifs
 tags
-  genre
-  mood
-  bpm
-  key
-  custom[]
 ```
 
-## Migration
-v1の`savedMidis` Storeを削除・上書きしない。
-v1→v2 Upgradeでは`savedClips`だけを追加し、既存MIDI recordをそのまま維持する。
+## v1互換
+
+既存`clipSchemaVersion: 1` recordは自動削除・自動上書きしない。
+Provenanceが無いv1 Clipも一覧・検索・削除できる。
+UIでは出自未設定として扱う。
+
+保存済みv1 Clipを強制Migrationしない。新規保存だけSchema 2とする。
 
 ## UI
-Library Tabを以下に分ける。
 
+Library Tab:
 1. 保存済みMIDI
-2. Clip Library
+2. 素材Clip Library
 
-Clip Library内:
-- type select
-- 4小節Range select
-- optional name / Genre / Mood / custom tags
-- Save button
-- search input
-- Clip card list
-- Delete button
+素材保存時:
+- type
+- Range
+- 出自
+- 元曲 / 素材名
+- 元Project ID
+- name / Genre / Mood / custom tag
 
-Androidでは1column優先。削除は確認dialog後に実行する。
+を指定できる。
+
+Androidは1column優先。削除前に確認する。
 
 ## 非対応
-- ClipからMIDI binaryを書き出す
-- Clip編集
-- Note移動 / Quantize
+
+- Clip内の本格MIDI編集
 - Cloud同期
-- Demo Composer送信
-- Track手動対応付け
+- 参考曲Clipを自動的に自作Compositionへ変換
+
+素材の本格的な作曲利用はDemo Composerへ渡す。
