@@ -123,6 +123,9 @@ function render() {
       downloadButton.disabled = false;
       status.dataset.tone = 'success';
       status.textContent = `変換完了: ${result.notes.length} notes / ${formatTime(result.durationSeconds)}。既存MIDI Analyzerへ渡します。`;
+      window.dispatchEvent(new CustomEvent('basic-pitch-notes-ready', {
+        detail: { notes: result.notes, bpm, fileName: audioFile.name },
+      }));
 
       if (setGeneratedMidi(lastMidiFile) && midiForm) {
         midiForm.requestSubmit();
