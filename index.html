@@ -16,6 +16,7 @@
         <p>MIDIはそのまま解析し、AudioはBasic Pitchで端末内MIDI化してから既存解析へ渡します。</p>
       </header>
       <div id="audio-to-midi-root"></div>
+      <div id="audio-note-tools-root"></div>
       <section class="panel" aria-labelledby="import-title">
         <div class="panel-heading"><div><p class="eyebrow">MIDI IMPORT</p><h2 id="import-title">MIDI Import</h2></div></div>
         <form id="import-form" class="form-stack">
@@ -31,6 +32,7 @@
       <div id="result" aria-live="polite"></div>
     </main>
     <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/ui/basicPitchNoteTools.js"></script>
     <script type="module" src="/src/ui/audioToMidiEntry.js"></script>
   </body>
 </html>
