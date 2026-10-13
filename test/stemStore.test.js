@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { indexedDB } from 'fake-indexeddb';
-import { getStem, listStemMetadata, saveStemFile, stemToReferenceMetadata } from '../src/storage/stemStore.js';
+import { getStem, listStemMetadata, saveStemFile, stemToReferenceMetadata, updateStemStatus } from '../src/storage/stemStore.js';
 
 globalThis.indexedDB=indexedDB;
 if(!globalThis.crypto)globalThis.crypto={randomUUID:()=>`test-${Date.now()}`};
@@ -21,4 +21,16 @@ test('stem store keeps Blob separately and exposes metadata-only reference',asyn
  assert.equal(reference.type,'stem');
  assert.equal(reference.storage.kind,'indexeddb');
  assert.equal('blob' in reference,false);
+});
+
+test('stem conversion status updates preserve the stored Blob',async()=>{
+ const file=new Blob(['more-audio'],{type:'audio/wav'});Object.defineProperty(file,'name',{value:'vocal.wav'});
+ const saved=await saveStemFile(file,{type:'vocal',name:'Vocal Stem'});
+ const updated=await updateStemStatus(saved.id,{conversionStatus:'converted',analysisStatus:'midi-generated'});
+ assert.equal(updated.conversionStatus,'converted');
+ assert.equal(updated.analysisStatus,'midi-generated');
+ assert.equal(updated.blob,undefined);
+ const full=await getStem(saved.id);
+ assert.ok(full.blob instanceof Blob);
+ assert.equal(await full.blob.text(),'more-audio');
 });
