@@ -1,5 +1,18 @@
 # VERSION_HISTORY
 
+## v0.10-dev — 2026-10-13
+状態: SongProject v1 / Basic Pitch / Key変更 / Stem連携実装、自動テスト・Production Build合格。Git運用を変更し、`main`を自動テスト合格版、`stable tag`をAndroid実機および必要なCubasis/Cubase実機確認済み版とする。
+
+復元ポイント:
+- `backup/v0.9-dev_before_songproject`
+- `backup/v0.10-dev_songproject-integrated`
+
+main統合候補develop:
+- `cca7e8a684abef325fa42ce080ff75c9c6dc2d61`
+
+stable tag:
+- 未作成（実機確認後）
+
 ## v0.9-dev — 2026-10-13
 状態: v0.7 Integration / v0.8 Explainability / v0.9 Metrics実装完了 / 103 tests pass / Bridge構文・Production Build確認済み
 
