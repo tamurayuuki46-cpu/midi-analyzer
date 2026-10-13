@@ -1,0 +1,22 @@
+{
+  "name": "midi-analyzer",
+  "version": "0.10.0-dev",
+  "private": true,
+  "description": "Android-first MIDI analysis PWA for composition learning and decision support",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test && node --check bridge/server.mjs",
+    "bridge": "node bridge/server.mjs"
+  },
+  "dependencies": {
+    "@spotify/basic-pitch": "1.0.1",
+    "midi-file": "1.2.4"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "6.2.5",
+    "vite": "8.3.4"
+  }
+}

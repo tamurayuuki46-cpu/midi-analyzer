@@ -1,0 +1,42 @@
+.playback-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.playback-button {
+  min-height: 52px;
+  border: 1px solid #d4d4d8;
+  border-radius: 14px;
+  background: #fff;
+  color: #18181b;
+  padding: 11px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.playback-button-primary {
+  border-color: #18181b;
+  background: #18181b;
+  color: #fff;
+}
+
+.playback-button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.playback-status {
+  min-height: 1.5em;
+  margin: 12px 0 0;
+  font-weight: 700;
+  color: #3f3f46;
+  line-height: 1.45;
+}
+
+.playback-note {
+  margin: 9px 0 0;
+  color: #71717a;
+  font-size: .82rem;
+  line-height: 1.55;
+}

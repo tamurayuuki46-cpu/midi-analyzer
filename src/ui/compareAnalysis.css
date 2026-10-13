@@ -1,0 +1,75 @@
+.compare-analysis-stack,
+.compare-subsection { display: grid; gap: 12px; }
+.compare-subsection + .compare-subsection {
+  padding-top: 16px;
+  border-top: 1px solid #e4e4e7;
+}
+.compare-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.compare-heading h3 { margin: 0; }
+.compare-file-field {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #d4d4d8;
+  border-radius: 12px;
+}
+.compare-file-field > span { font-weight: 800; }
+.compare-file-field input { width: 100%; }
+.compare-file-field small,
+.compare-status { color: #71717a; }
+.compare-status { margin: 0; font-weight: 700; }
+.compare-summary-grid,
+.compare-metric-grid,
+.compare-trend-grid { display: grid; gap: 10px; }
+.compare-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.compare-song-card,
+.compare-metric-card,
+.compare-trend-grid article {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #fff;
+}
+.compare-song-card { display: grid; gap: 5px; }
+.compare-song-card > span,
+.compare-metric-card > span,
+.compare-trend-grid span {
+  color: #71717a;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.compare-song-card p {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.compare-highlight-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.compare-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.compare-metric-card { display: grid; gap: 8px; }
+.compare-metric-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.compare-metric-values div { display: grid; gap: 2px; }
+.compare-metric-values small,
+.compare-metric-card > small,
+.compare-trend-grid small { color: #71717a; }
+.compare-trend-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.compare-trend-grid article { display: grid; gap: 4px; }
+
+@media (max-width: 600px) {
+  .compare-summary-grid,
+  .compare-metric-grid { grid-template-columns: 1fr; }
+  .compare-trend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 360px) {
+  .compare-trend-grid { grid-template-columns: 1fr; }
+}
