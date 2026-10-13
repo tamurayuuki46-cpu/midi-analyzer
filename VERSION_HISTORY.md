@@ -1,3 +1,18 @@
+## v0.11-dev
+更新日: 2026-10-13
+
+【追加】
+・Basic Pitch生成MIDI→既存Parser→正規化→Analysis Bundleの統合回帰テスト。
+
+【変更】
+・Normalized Song/Noteのoriginに既存Audio UIが使うbasic-pitchを許可。旧originと保存データを保持。
+
+【修正】
+・Audio変換完了後に「未対応のoriginです: basic-pitch」となり解析・Note編集結果の反映が失敗する問題を修正。
+
+【未対応】
+・Android実機、長尺Audio、MP3/M4A、Cubasis/Cubase実機確認。stable tag未作成。
+
 # VERSION_HISTORY
 
 ## v0.10-dev — 2026-10-13 main統合・公開後の整合性修正

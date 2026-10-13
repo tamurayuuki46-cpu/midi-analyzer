@@ -3,9 +3,9 @@
 Androidスマートフォン中心の作曲支援PWA。MIDIを読み込み、Key / Chord / Melody / Bass / Rhythm / Motif / Section / 転調 / 比較 / パート詳細 / 可視化 / Clip Library / Part Recording / Export / Explainability / Higher-level Metricsを作曲判断へ応用するためのアプリです。
 
 ## 現在Version
-`v0.10-dev`
+`v0.11-dev`
 
-公開中Version: `v0.10-dev`
+公開中Version: `v0.11-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -157,6 +157,6 @@ plain HTML/CSS/JavaScript + Vite。React等のFrameworkは導入していませ�
 
 重要仕様は `docs/` を正本とします。
 
-## v0.10-dev 共通基盤
+## v0.11-dev 共通基盤
 
 SongProject v1 Adapter、Basic Pitchによる端末内Audio→MIDI、Note Edit / Quantize、Key Transpose / Degree Preserve / 12 Key生成、Channel 10 Drums移調除外、SongProject Keyへの整合、Stem IndexedDB保存 / Solo / Mute / Basic Pitch連携を実装。Android実機の長尺Audio・保存・音声形式確認は未完了。
