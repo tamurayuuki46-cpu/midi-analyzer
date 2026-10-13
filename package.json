@@ -12,6 +12,7 @@
     "bridge": "node bridge/server.mjs"
   },
   "dependencies": {
+    "@spotify/basic-pitch": "1.0.1",
     "midi-file": "1.2.4"
   },
   "devDependencies": {
