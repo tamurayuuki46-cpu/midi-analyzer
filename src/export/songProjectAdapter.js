@@ -16,6 +16,37 @@ function notesForRole(project, role) {
   return clone(project?.tracks?.find((track) => track.role === role)?.notes ?? []);
 }
 
+function emptyIntent() {
+  return {
+    scene: '',
+    purpose: '',
+    references: [],
+    genre: [],
+    mood: [],
+    constraints: [],
+    experiments: [],
+    vocal: {
+      isVocalSong: null,
+      lyricsTheme: '',
+      lyricalImage: '',
+      direction: '',
+      range: { low: null, high: null, note: '' },
+    },
+    notes: '',
+  };
+}
+
+function createLineage(projectId) {
+  return {
+    rootProjectId: projectId,
+    parentProjectId: null,
+    sourceApp: 'midi-analyzer',
+    createdFrom: 'analysis-import',
+    forkReason: null,
+    revision: 1,
+  };
+}
+
 function analysisFromBundle(bundle) {
   return {
     keyCandidates: clone(bundle?.key?.candidates ?? []),
@@ -43,6 +74,14 @@ function referenceKey(item) {
   return item?.id || item?.storage?.recordId || `${item?.type || 'reference'}:${item?.name || item?.sourceFileName || ''}`;
 }
 
+function mergedReference(baseReference, incomingReference) {
+  const existing = Array.isArray(baseReference?.items) ? baseReference.items : [];
+  const incoming = Array.isArray(incomingReference?.items) ? incomingReference.items : [];
+  const items = new Map(existing.map((item) => [referenceKey(item), clone(item)]));
+  for (const item of incoming) items.set(referenceKey(item), clone(item));
+  return { ...(clone(baseReference) || {}), items: [...items.values()] };
+}
+
 function emptyArrangement() {
   return {
     reharmonization: null,
@@ -54,6 +93,10 @@ function emptyArrangement() {
   };
 }
 
+export function isSongProject(value) {
+  return Boolean(value && value.kind === SONG_PROJECT_KIND && value.schemaVersion === SONG_PROJECT_SCHEMA_VERSION);
+}
+
 export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
   const demo = buildDemoComposerProject(song, bundle, options);
   const stamp = nowIso(options.now);
@@ -63,9 +106,11 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
     kind: SONG_PROJECT_KIND,
     schemaVersion: SONG_PROJECT_SCHEMA_VERSION,
     projectId,
-    title: demo.project.metadata.title,
+    title: options.title ?? demo.project.metadata.title,
     createdAt: stamp,
     updatedAt: stamp,
+    lineage: createLineage(projectId),
+    intent: emptyIntent(),
     basic: clone(demo.project.basic),
     analysis: analysisFromBundle(bundle),
     composition: {
@@ -79,10 +124,11 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
     arrangement: emptyArrangement(),
     history: { version: 1, changes: [] },
     reference: referenceFromSong(song),
-    export: { lastDraftMidiAt: null, lastSongMidiAt: null },
+    assets: { files: [] },
+    export: { lastDraftMidiAt: null, lastSongMidiAt: null, lastDawHandoffAt: null },
     compatibility: {
       midiAnalyzer: {
-        appVersion: 'v0.11-dev',
+        appVersion: 'v0.12-dev',
         source: clone(song?.source ?? {}),
         warnings: clone(demo.warnings),
         analysisBundle: clone(bundle),
@@ -100,32 +146,26 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
 }
 
 export function mergeReferenceMetadata(songProject, items = [], options = {}) {
-  if (!songProject || songProject.kind !== SONG_PROJECT_KIND || songProject.schemaVersion !== SONG_PROJECT_SCHEMA_VERSION) {
-    throw new Error('Song Project v1ではありません。');
-  }
+  if (!isSongProject(songProject)) throw new Error('Song Project v1ではありません。');
   const next = clone(songProject);
-  const existing = Array.isArray(next.reference?.items) ? next.reference.items : [];
-  const merged = new Map(existing.map((item) => [referenceKey(item), item]));
-  for (const item of items || []) {
-    if (!item) continue;
-    merged.set(referenceKey(item), clone(item));
-  }
-  next.reference = {
-    ...(next.reference ?? {}),
-    items: [...merged.values()],
-  };
+  next.reference = mergedReference(next.reference, { items });
   next.updatedAt = nowIso(options.now);
   return next;
 }
 
 export function mergeAnalyzerAnalysisIntoSongProject(songProject, song, bundle, options = {}) {
-  if (!songProject || songProject.kind !== SONG_PROJECT_KIND || songProject.schemaVersion !== SONG_PROJECT_SCHEMA_VERSION) {
-    throw new Error('Song Project v1ではありません。');
-  }
+  if (!isSongProject(songProject)) throw new Error('Song Project v1ではありません。');
 
   const next = clone(songProject);
-  const compositionBefore = JSON.stringify(next.composition);
-  const arrangementBefore = JSON.stringify(next.arrangement);
+  const preserved = {
+    lineage: clone(next.lineage),
+    intent: clone(next.intent),
+    composition: clone(next.composition),
+    arrangement: clone(next.arrangement),
+    history: clone(next.history),
+    assets: clone(next.assets),
+    export: clone(next.export),
+  };
   const generated = buildSongProjectFromAnalysis(song, bundle, {
     ...options,
     projectId: next.projectId,
@@ -134,13 +174,13 @@ export function mergeAnalyzerAnalysisIntoSongProject(songProject, song, bundle, 
 
   next.updatedAt = nowIso(options.now);
   next.analysis = clone(generated.project.analysis);
-  next.reference = clone(generated.project.reference);
+  next.reference = mergedReference(next.reference, generated.project.reference);
   next.compatibility = {
     ...(next.compatibility ?? {}),
     midiAnalyzer: clone(generated.project.compatibility.midiAnalyzer),
   };
 
-  if (options.updateBasic !== false) {
+  if (options.updateBasic === true) {
     next.basic = {
       ...(next.basic ?? {}),
       bpm: generated.project.basic.bpm,
@@ -151,11 +191,10 @@ export function mergeAnalyzerAnalysisIntoSongProject(songProject, song, bundle, 
     };
   }
 
-  if (JSON.stringify(next.composition) !== compositionBefore) {
-    throw new Error('Analyzer merge modified composition unexpectedly.');
-  }
-  if (JSON.stringify(next.arrangement) !== arrangementBefore) {
-    throw new Error('Analyzer merge modified arrangement unexpectedly.');
+  for (const [key, before] of Object.entries(preserved)) {
+    if (JSON.stringify(next[key]) !== JSON.stringify(before)) {
+      throw new Error(`Analyzer merge modified ${key} unexpectedly.`);
+    }
   }
 
   return next;
