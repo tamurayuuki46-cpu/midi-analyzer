@@ -12,9 +12,12 @@ Version: v0.12-dev
 ・Moises → MIDI Analyzer → Demo Composerの素材Workflowを正本化。
 ・README / ROLE_BOUNDARY / STORAGE_SPEC / CLIP_LIBRARY_SPEC / AI_HANDOFFを新責務へ同期。
 ・Tabを14→13へ整理。
+・PR #30でv0.12-devを`develop`へ統合。`main` / 公開版はv0.11-devのまま未変更。
+・PR #31で統合後のAI_HANDOFFと復元点記録を同期。
 
 【修正】
 ・役割外だったRecorderがAnalyzerの主導線を分断していた情報設計を修正。
+・統合後もAI_HANDOFFが作業Branch / 未統合状態を指していた記録を修正。
 
 【互換性】
 ・既存`savedTakes`を削除しない。
@@ -24,8 +27,10 @@ Version: v0.12-dev
 
 【復元ポイント】
 ・`restore/before-workflow-boundary-2026-10-13`
+・`restore/v0.12-workflow-boundary-feature-complete`
 
 【未対応】
-・Android実機でMoises由来WAV/MP3/M4A、長尺Audio、quota、Provenance入力を確認。
+・Android実機でMoises由来WAV/MP3/M4A、長尺Audio、quota、Cancel/retry、Provenance入力を確認。
 ・Cubasis / Cubase実機回帰。
+・v0.9 Metrics係数の実曲チューニング。
 ・stable tag作成（実機確認後のみ）。

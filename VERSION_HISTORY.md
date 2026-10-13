@@ -1,3 +1,38 @@
+## v0.12-dev
+更新日: 2026-10-13
+
+【追加】
+・MIDI Analyzerの正式責務を「素材を集める / 曲を理解する」の2本柱へ固定。
+・Clip素材にProvenanceを追加。自作 / 参考曲 / Moises Stem / Audio→MIDI / RipX / 書籍 / Plugin / 手入力等の出自を記録・検索可能化。
+・Stemに後方互換のProvenance metadataを追加し、Moisesを主な外部分離入口として整理。
+・Clip v2 / Stem provenanceの自動テストを追加。
+
+【変更】
+・Part RecorderをMain UI / Tabから退役し、Tabを14→13へ整理。
+・Moises → MIDI Analyzer → Demo Composerの素材Workflowを正本化。
+・README / ROLE_BOUNDARY / STORAGE_SPEC / CLIP_LIBRARY_SPEC / AI_HANDOFFを新責務へ同期。
+・`develop`へPR #30で統合済み。`main` / 公開版はv0.11-devのまま未変更。
+
+【修正】
+・RecorderがAnalyzerの主導線を分断していた情報設計を修正。
+・統合後のAI_HANDOFFをPR #31で同期し、未統合に見える記載を解消。
+
+【互換性】
+・既存`savedTakes`を削除しない。
+・IndexedDB `midi-analyzer` version 3を維持。
+・既存Clip Schema 1を自動変換・削除しない。
+・Stem DB version 1を維持し、旧Stemのprovenance欠落を許容。
+
+【復元ポイント】
+・`restore/before-workflow-boundary-2026-10-13`
+・`restore/v0.12-workflow-boundary-feature-complete`
+
+【未対応】
+・Android実機でMoises由来WAV/MP3/M4A、長尺Audio、quota、Cancel/retry、Provenance入力を確認。
+・Cubasis / Cubase実機回帰。
+・v0.9 Metrics係数の実曲チューニング。
+・stable tag作成（実機確認後のみ）。
+
 ## v0.11-dev
 更新日: 2026-10-13
 
