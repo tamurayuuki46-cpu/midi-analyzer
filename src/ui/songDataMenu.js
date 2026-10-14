@@ -1,4 +1,5 @@
 import { sheetSummary } from './compositionSheetSummary.js';
+import { attachSongMemoPad } from './songMemoPad.js';
 const STYLE_ID = 'song-data-menu-style';
 
 function ensureStyles() {
@@ -87,6 +88,11 @@ export function mountSongDataMenu(options = {}) {
     setSaveEnabled(enabled){ buttons.save.disabled = !enabled; },
     setNextEnabled(enabled){ buttons.next.disabled = !enabled; },
     setNextLabel(value){ if (value) nextLabel.textContent = value; },
+  });
+  attachSongMemoPad({
+    menuRoot: root,
+    getProject: options.getMemoProject || options.getSheetProject,
+    onError(error){ controller.setStatus(error?.message || 'メモ帳を開けませんでした。','error'); },
   });
   controller.setSaveEnabled(options.saveEnabled !== false);
   controller.setNextEnabled(options.nextEnabled !== false);

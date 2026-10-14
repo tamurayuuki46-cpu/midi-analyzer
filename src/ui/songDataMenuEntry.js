@@ -4,6 +4,7 @@ import { mountSongDataMenu } from './songDataMenu.js';
 const SOURCE_KEY = 'midi-analyzer-song-project-source-v1';
 let pendingSongProject = readPending();
 let analysisReady = false;
+let memoProject = pendingSongProject;
 
 function readPending() {
   try {
@@ -18,6 +19,7 @@ function readPending() {
 
 function storePending(value) {
   pendingSongProject = value;
+  memoProject = value;
   try { sessionStorage.setItem(SOURCE_KEY, JSON.stringify(value)); } catch {}
 }
 
@@ -61,6 +63,7 @@ document.body.append(picker);
 
 const controller = mountSongDataMenu({
   getSheetProject: ()=>pendingSongProject,
+  getMemoProject: ()=>memoProject || pendingSongProject,
   currentLabel: pendingSongProject?.title || '未選択',
   saveEnabled: false,
   nextEnabled: false,
@@ -115,9 +118,12 @@ window.addEventListener('midi-analyzer-song-ready', async (event) => {
   controller.setSaveEnabled(true);
   controller.setNextEnabled(true);
   if (pendingSongProject) {
+    memoProject = pendingSongProject;
     controller.setCurrent(pendingSongProject.title || 'Untitled Project');
     await applyPendingToExport();
   } else {
-    controller.setCurrent(event.detail?.song?.source?.fileName || '解析中の曲');
+    const fileName = event.detail?.song?.source?.fileName || '解析中の曲';
+    memoProject = { projectId: `midi-analyzer:${fileName}`, title: fileName };
+    controller.setCurrent(fileName);
   }
 });
