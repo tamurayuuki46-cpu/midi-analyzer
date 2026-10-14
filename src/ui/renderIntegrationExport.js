@@ -157,9 +157,9 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
       const nameBase = safeName(project.title || baseName);
       return { name: `${nameBase}_song_project_v1.json`, text: `${JSON.stringify(project, null, 2)}\n`, type: 'application/json;charset=utf-8', project };
     }
-    if (kind === 'json') return { name: `${baseName}_analysis_v0.14.json`, text: exportAnalysisJson(bundle), type: 'application/json;charset=utf-8' };
-    if (kind === 'csv') return { name: `${baseName}_analysis_v0.14.csv`, text: exportAnalysisCsv(bundle), type: 'text/csv;charset=utf-8' };
-    if (kind === 'markdown') return { name: `${baseName}_report_v0.14.md`, text: exportAnalysisMarkdown(bundle, { metrics, explanation }), type: 'text/markdown;charset=utf-8' };
+    if (kind === 'json') return { name: `${baseName}_analysis_v0.15.json`, text: exportAnalysisJson(bundle), type: 'application/json;charset=utf-8' };
+    if (kind === 'csv') return { name: `${baseName}_analysis_v0.15.csv`, text: exportAnalysisCsv(bundle), type: 'text/csv;charset=utf-8' };
+    if (kind === 'markdown') return { name: `${baseName}_report_v0.15.md`, text: exportAnalysisMarkdown(bundle, { metrics, explanation }), type: 'text/markdown;charset=utf-8' };
     if (kind === 'chords') return { name: `${baseName}_chords_degree.txt`, text: exportChordDegreeText(bundle), type: 'text/plain;charset=utf-8' };
     if (kind === 'demo') return { name: `${baseName}_demo_composer_project.json`, text: JSON.stringify(demo.project, null, 2), type: 'application/json;charset=utf-8' };
     return null;

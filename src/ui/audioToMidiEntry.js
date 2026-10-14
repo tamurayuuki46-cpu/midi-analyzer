@@ -1,3 +1,4 @@
+import './songDataMenuEntry.js';
 import { transcribeAudioFile } from '../audio/basicPitchTranscriber.js';
 import { noteEventsToMidi } from '../audio/noteEventsToMidi.js';
 import { updateStemStatus } from '../storage/stemStore.js';
