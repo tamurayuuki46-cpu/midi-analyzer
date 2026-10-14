@@ -42,7 +42,6 @@ try {
     await page.locator('#midi-file').setInputFiles({ name: 'mobile-regression.mid', mimeType: 'audio/midi', buffer: Buffer.from(midi) });
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
-    await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
 
     const beginnerPanel = page.locator('.beginner-mode-panel');
     await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
@@ -60,6 +59,7 @@ try {
 
     await beginnerPanel.getByRole('button', { name: '詳細モード', exact: true }).click();
     assert.equal(await page.locator('[data-analysis-tabs]').isVisible(), true, 'Detailed tabs must become visible');
+    await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
     assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.analysis-mode.v1') === 'detail'), 'Detail preference must persist locally');
 
     const expectedTabs = ['概要', 'Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Export', 'AI', 'Metrics', 'Parts'];
