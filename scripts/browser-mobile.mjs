@@ -66,7 +66,7 @@ try {
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
 
-    assert.equal(await beginnerStart.isHidden(), true, 'Beginner start chooser must get out of the way after import');
+    await beginnerStart.waitFor({ state: 'hidden' });
     const beginnerPanel = page.locator('.beginner-mode-panel');
     await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
     await beginnerPanel.getByRole('heading', { name: '良いところ', exact: true }).waitFor();
