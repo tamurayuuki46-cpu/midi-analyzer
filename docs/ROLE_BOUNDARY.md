@@ -1,28 +1,39 @@
-# MIDI Analyzer Role Boundary
+# MIDI Archive/Analyzer Role Boundary
 
-更新日: 2026-10-13
+更新日: 2026-10-15
 
 ## 一言定義
 
-MIDI Analyzerの役割は次の2つだけ。
+MIDI Archive/Analyzerの役割は次の2つだけ。
 
-1. 素材を集める
+1. 素材を集める・保存する
 2. 曲を理解する
 
-MIDI Analyzerは作曲アプリでも編曲アプリでもない。
+MIDI Archive/Analyzerは作曲アプリでも編曲アプリでもない。
 
 ## 正式Workflow
 
 作曲シート
-→ 必要なら Moises → MIDI Analyzer
+→ 必要なら Moises → MIDI Archive/Analyzer
 → Demo Composer
 → Arrangement Lab
 → 必要なら Cubasis
 → PC DAW（必須）
 
-MoisesはStem分離の主入口。AnalyzerはMoises等で得たStem / Audio / MIDIを受け取り、素材化・分析する。
+MoisesはStem分離の主入口。Archive/AnalyzerはMoises等で得たStem / Audio / MIDIを受け取り、保存・素材化・分析する。
 
-## 1. 素材を集める
+## 初心者UI原則
+
+トップ画面では最初に次の2択だけを強く見せる。
+
+- MIDIを保存・整理する
+- MIDIを解析する
+
+Audio→MIDI / Note Tools / Stem Referenceなどは詳細ツールとして初期状態では隠し、必要な時だけ表示する。
+
+MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復の5項目要約を先に表示する。詳細13タブは削除せず、詳細モードとして保持する。
+
+## 1. 素材を集める・保存する
 
 残す機能:
 - MIDI Import / 保存
@@ -93,31 +104,38 @@ Scoreは品質判定ではなく理解のための候補値とする。
 
 理由:
 - Analyzer内部の簡易SynthをAudio録音する機能で、素材収集にも曲理解にも中核ではない
-- Moises→Analyzer→Demo ComposerというWorkflowを分断する
+- Moises→Archive/Analyzer→Demo ComposerというWorkflowを分断する
 - Preview / MIDI Export / DAW側のAudio化と役割が重なる
 
 既存`savedTakes`データは破壊しない。IndexedDB storeとmigrationは当面残し、互換性を維持する。
 
 ### Stem分離
 
-AnalyzerをStem分離サービス化しない。
-Moisesを主入口とし、AnalyzerはStemの受け入れ・管理・Audio→MIDIを担当する。
+Archive/AnalyzerをStem分離サービス化しない。
+Moisesを主入口とし、Archive/AnalyzerはStemの受け入れ・管理・Audio→MIDIを担当する。
 
 ### Demo Composer Project Export
 
-Analyzerが参考曲を丸ごと「自分の作曲Project」に変換する導線にはしない。
-今後はsource typeを明確にし、参考曲はAnalysis / Reference / Clipとして渡す。自作MIDIなど明示された素材のみComposition変換を許可する方向へ整理する。
+Archive/Analyzerが参考曲を丸ごと「自分の作曲Project」に変換する導線にはしない。
+source typeを明確にし、参考曲はAnalysis / Reference / Clipとして渡す。自作MIDIなど明示された素材のみComposition変換を許可する方向へ整理する。
 
 ## UI原則
 
 トップレベルの意味を2つにする。
 
-- 素材を集める
+- 素材を集める・保存する
 - 曲を理解する
 
 細かいTabはこの2群の下位機能として扱う。
 ユーザーが「次に何をすればよいか」迷わないことを、機能数より優先する。
 
-## 変更前復元点
+## 互換性
 
-`restore/before-workflow-boundary-2026-10-13`
+- Repository名 `midi-analyzer` は変更しない。
+- 公開URL `/midi-analyzer/` は変更しない。
+- IndexedDB / SongProject / Clip / Stem / localStorageの既存形式は維持する。
+- 表示名変更でデータmigrationを発生させない。
+
+## v0.18変更前復元点
+
+`restore/develop-before-midi-archive-analyzer-v0.18-20261015`

@@ -1,7 +1,7 @@
 {
-  "name": "MIDI Analyzer",
-  "short_name": "MIDI Analyzer",
-  "description": "MIDIをスマホで読み込み、作曲上の特徴を理解するための分析PWA",
+  "name": "MIDI Archive/Analyzer",
+  "short_name": "MIDI Archive/Analyzer",
+  "description": "MIDIや作曲素材をスマホで保存・整理し、作曲上の特徴を理解するための分析PWA",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

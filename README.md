@@ -1,29 +1,44 @@
-# MIDI Analyzer
+# MIDI Archive/Analyzer
 
 Androidスマートフォン中心の作曲支援PWAです。
 
-MIDI Analyzerの役割は次の2つだけです。
+MIDI Archive/Analyzerの役割は次の2つだけです。
 
-1. **素材を集める**
+1. **素材を集める・保存する**
 2. **曲を理解する**
 
 作曲や編曲そのものは担当しません。正式Workflowは次です。
 
-`作曲シート → 必要なら Moises → MIDI Analyzer → Demo Composer → Arrangement Lab → 必要なら Cubasis → PC DAW（必須）`
+`作曲シート → 必要なら Moises → MIDI Archive/Analyzer → Demo Composer → Arrangement Lab → 必要なら Cubasis → PC DAW（必須）`
 
 詳細: `docs/ROLE_BOUNDARY.md`
 
 ## 現在Version
 
-`v0.17-dev`
+`v0.18-dev`
 
-公開中Version: `v0.15-dev`
+公開中Version: `v0.17-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
+Repository名と公開URLのslugは互換性のため`midi-analyzer`のまま維持します。表示名だけ`MIDI Archive/Analyzer`へ変更しています。
+
 `develop`は開発統合、`main`は自動テスト・build・回帰CI合格版かつGitHub Pages公開元です。stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
 
-## 1. 素材を集める
+## 初心者モード
+
+v0.18-devでは、アプリを開いた最初の画面で次の2択を表示します。
+
+1. **MIDIを保存・整理する** — 端末保存をONにしてArchiveとして残す。
+2. **MIDIを解析する** — 保存せず、その場で特徴を確認することもできる。
+
+初心者時はAudio→MIDI / Note Tools / Stem Referenceなどの詳細ツールを初期状態で隠し、必要な時だけ「詳細ツールを表示」で開きます。
+
+MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、「良いところ」「改善するとよいところ」「次に試すこと（最大3件）」を表示します。必要になった時だけ詳細モードへ切り替え、従来の13解析タブを使えます。
+
+詳細: `docs/BEGINNER_MODE.md`
+
+## 1. 素材を集める・保存する
 
 - MIDI Import / 端末保存
 - Audio Import
@@ -54,10 +69,6 @@ MIDI Analyzerの役割は次の2つだけです。
 
 ## 2. 曲を理解する
 
-v0.17-devでは、MIDI読み込み後に**初心者モード**を最初に表示します。Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、「良いところ」「改善するとよいところ」「次に試すこと（最大3件）」を表示します。これは品質・人気・正解の採点ではなく、既存Analyzerの候補値を初心者向けに言い換える表示レイヤーです。
-
-必要になった時だけ**詳細モード**へ切り替えると、従来の解析機能をそのまま使えます。
-
 - Key / Scale候補
 - Chord / Degree / Chord Detail
 - Melody / Bass / Rhythm分析
@@ -82,11 +93,17 @@ Higher-level Metricsは品質・人気・正解の採点ではありません。
 
 **Moises = 音源を分ける**
 
-**MIDI Analyzer = 分けた素材を集める・理解する**
+**MIDI Archive/Analyzer = 分けた素材を保存・整理する / 理解する**
 
-MIDI Analyzer自身をStem分離サービスにはしません。Moises等で書き出したStemを受け取り、保存・試聴・Audio→MIDI・分析へつなぎます。
+MIDI Archive/Analyzer自身をStem分離サービスにはしません。Moises等で書き出したStemを受け取り、保存・試聴・Audio→MIDI・分析へつなぎます。
 
 ## 画面構成
+
+読み込み前:
+- 初心者スタート: Archive / Analyzeの2択
+- 保存済みMIDIを見る
+- 詳細ツール表示切替
+- MIDI Import
 
 MIDI読み込み直後:
 - 初心者モード: Key / 音域 / 音の動き / リズム / 反復
@@ -117,20 +134,21 @@ v0.7で実装したPart Recorderは、2026-10-13の責務整理で**主UIから�
 
 理由:
 - Analyzer内部の簡易Synth Audio録音は「素材を集める / 曲を理解する」の中核ではない
-- Moises → Analyzer → Demo Composerの流れを分断する
+- Moises → Archive/Analyzer → Demo Composerの流れを分断する
 - Preview / MIDI Export / DAW側のAudio化と役割が重なる
 
 既存`savedTakes`は削除しません。IndexedDB Store / Migration /旧コードは互換性のため当面保持します。
 
 ## Demo Composerとの役割分担
 
-MIDI AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
+MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 
 曲そのもののChord / Melody / Bass / Drum / Counter Melodyを作る所有者はDemo Composerです。参考曲を丸ごと自分のCompositionとして扱う導線は今後縮小し、source typeを明確にします。
 
 ## 保存方針
 
 - MIDI Import時の端末保存は初期OFF
+- 初心者スタートでArchiveを選んだ時だけ端末保存をONにする
 - 初心者 / 詳細モードの表示設定はlocalStorageへ端末内保存
 - Clipは明示保存時のみ
 - Stemは明示Import時のみ
@@ -141,6 +159,7 @@ MIDI AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 ## 実装済み主要機能
 
 - `.mid` / `.midi` Import / Normalized Song
+- 読み込み前の初心者スタート
 - 初心者モード / 詳細モード
 - 初心者向け5項目要約 / 良いところ / 改善候補 / 次に試すこと
 - IndexedDB MIDI保存 / 一覧 / 削除
@@ -188,12 +207,15 @@ plain HTML/CSS/JavaScript + Vite。
 9. `docs/STORAGE_SPEC.md`
 10. `docs/INTEGRATION_EXPORT_SPEC.md`
 11. `docs/ROADMAP.md`
-12. `CHANGELOG.md`
+12. `CHANGELOG_v0.18.md`
 
 重要仕様は`docs/`を正本とします。
 
-## v0.17-dev Scope
+## v0.18-dev Scope
 
+- 表示名をMIDI Archive/Analyzerへ変更
+- 最初の画面をArchive / Analyzeの2択にする
+- 詳細ツールを初心者時は隠す
 - MIDI読み込み後の初心者モードを主導線にする
 - Key / 音域 / 音の動き / リズム / 反復を5項目へ要約
 - 良いところ / 改善するとよいところ / 次に試すこと最大3件を表示

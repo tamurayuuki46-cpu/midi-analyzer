@@ -1,0 +1,15 @@
+.beginner-start-panel { overflow:hidden; }
+.beginner-start-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.beginner-start-heading h2 { margin:0; }
+.beginner-start-heading p:not(.eyebrow) { margin:6px 0 0; color:#52525b; line-height:1.55; }
+.beginner-start-grid { display:grid; gap:10px; }
+.beginner-start-action { width:100%; min-height:84px; display:grid; grid-template-columns:40px 1fr; gap:11px; align-items:start; text-align:left; border:1px solid #d4d4d8; border-radius:14px; padding:13px; background:#fff; color:#18181b; cursor:pointer; }
+.beginner-start-action:hover, .beginner-start-action:focus-visible { border-color:#4f46e5; outline:2px solid #c7d2fe; outline-offset:1px; }
+.beginner-start-number { display:grid; place-items:center; width:40px; height:40px; border-radius:50%; background:#4f46e5; color:#fff; font-weight:900; }
+.beginner-start-action strong { display:block; font-size:1rem; }
+.beginner-start-action small { display:block; margin-top:5px; color:#71717a; line-height:1.45; }
+.beginner-start-secondary { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.beginner-start-secondary button { min-width:0; border:1px solid #d4d4d8; border-radius:12px; padding:10px 12px; background:#fafafa; font-weight:750; cursor:pointer; }
+.beginner-start-note { margin:12px 0 0; padding:11px 12px; border-radius:12px; background:#fffbeb; color:#52525b; line-height:1.5; font-size:.9rem; }
+@media (min-width:560px) { .beginner-start-grid { grid-template-columns:1fr 1fr; } }
+@media (max-width:420px) { .beginner-start-heading { display:grid; } .beginner-start-secondary { grid-template-columns:1fr; } }
