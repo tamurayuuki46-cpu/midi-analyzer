@@ -26,18 +26,49 @@ try {
     await page.getByText('③ 編曲', { exact: true }).waitFor();
     await page.getByText('④ DAWへ', { exact: true }).waitFor();
     await page.getByText('① MIDI解析は必須ではありません。', { exact: true }).waitFor();
+
+    const songDataTrigger = page.locator('.song-data-trigger');
+    await songDataTrigger.waitFor();
+    await songDataTrigger.click();
+    const songDataPanel = page.locator('.song-data-panel');
+    await songDataPanel.getByText('保存した曲を開く', { exact: true }).waitFor();
+    assert.equal(await songDataPanel.locator('[data-action="save"]').isDisabled(), true, 'Save must be disabled before analysis');
+    assert.equal(await songDataPanel.locator('[data-action="next"]').isDisabled(), true, 'Next must be disabled before analysis');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Song data menu overflows at ${width}px`);
+    await page.locator('.song-data-close').click();
+
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Global flow overflows at ${width}px`);
 
     await page.locator('#midi-file').setInputFiles({ name: 'mobile-regression.mid', mimeType: 'audio/midi', buffer: Buffer.from(midi) });
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
-    await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
 
-    for (const name of ['Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Recorder', 'Export', 'AI', 'Metrics', 'Parts']) {
+    const beginnerPanel = page.locator('.beginner-mode-panel');
+    await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
+    await beginnerPanel.getByRole('heading', { name: '良いところ', exact: true }).waitFor();
+    await beginnerPanel.getByRole('heading', { name: '改善するとよいところ', exact: true }).waitFor();
+    await beginnerPanel.getByRole('heading', { name: '次に試すこと', exact: true }).waitFor();
+    assert.equal(await beginnerPanel.locator('[data-beginner-metric]').count(), 5, 'Beginner mode must show five core metrics');
+    assert.equal(await page.locator('[data-analysis-tabs]').isHidden(), true, 'Detailed tabs must start hidden in beginner mode');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner mode overflows at ${width}px`);
+
+    await songDataTrigger.click();
+    assert.equal(await songDataPanel.locator('[data-action="save"]').isEnabled(), true, 'Save must enable after analysis');
+    assert.equal(await songDataPanel.locator('[data-action="next"]').isEnabled(), true, 'Next must enable after analysis');
+    await page.locator('.song-data-close').click();
+
+    await beginnerPanel.getByRole('button', { name: '詳細モード', exact: true }).click();
+    assert.equal(await page.locator('[data-analysis-tabs]').isVisible(), true, 'Detailed tabs must become visible');
+    await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.analysis-mode.v1') === 'detail'), 'Detail preference must persist locally');
+
+    const expectedTabs = ['概要', 'Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Export', 'AI', 'Metrics', 'Parts'];
+    for (const name of expectedTabs) {
       await page.getByRole('tab', { name, exact: true }).click();
-      assert.ok(await page.getByRole('tabpanel', { name, exact: true }).isVisible(), `${name} panel missing`);
+      await page.getByRole('tabpanel', { name, exact: true }).waitFor({ state: 'visible' });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name} overflows at ${width}px`);
     }
+    assert.equal(await page.getByRole('tab', { name: 'Recorder', exact: true }).count(), 0, 'Recorder must stay retired from the main workflow');
 
     await page.getByRole('tab', { name: 'Export', exact: true }).click();
     await page.getByRole('heading', { name: 'Demo Composerへ渡す', exact: true }).waitFor();
@@ -67,12 +98,20 @@ try {
     const output = await fs.readFile(await download.path());
     assert.equal(output.subarray(0, 4).toString(), 'MThd');
 
-    await page.getByRole('tab', { name: '概要', exact: true }).click();
+    await page.getByRole('tab', { name: 'Library', exact: true }).click();
+    await page.getByText('素材の出自', { exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Material Library overflows at ${width}px`);
+
+    await beginnerPanel.getByRole('button', { name: '初心者モード', exact: true }).click();
+    assert.equal(await page.locator('[data-analysis-tabs]').isHidden(), true, 'Beginner mode must hide detailed tabs again');
+    assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.analysis-mode.v1') === 'beginner'), 'Beginner preference must persist locally');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner return overflows at ${width}px`);
     await page.screenshot({ path: `test-results/analyzer-mobile-${width}.png` });
+
     await page.reload();
     await page.getByRole('region', { name: '保存済みMIDI', exact: true }).getByText('mobile-regression.mid', { exact: true }).waitFor();
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('Analyzer 360/390/430px five-stage flow / import / 13 tabs / handoff / transpose / storage regression passed');
+  console.log('Analyzer 360/390/430px beginner/detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
 } finally { await browser.close(); }

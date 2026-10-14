@@ -1,4 +1,4 @@
-import { getStem, listStemMetadata, saveStemFile, STEM_TYPES } from '../storage/stemStore.js';
+import { getStem, listStemMetadata, saveStemFile, STEM_SOURCE_TYPES, STEM_TYPES } from '../storage/stemStore.js';
 
 const root = document.querySelector('#stem-reference-root');
 const urls = new Map();
@@ -10,6 +10,17 @@ function releaseUrls() {
 
 function typeOptions() {
   return STEM_TYPES.map((type) => `<option value="${type}">${type}</option>`).join('');
+}
+
+function sourceOptions() {
+  const labels = { moises: 'Moises', ripx: 'RipX', self: '自作', reference: '参考曲', other: 'その他', unknown: '未設定' };
+  return STEM_SOURCE_TYPES.map((type) => `<option value="${type}" ${type === 'moises' ? 'selected' : ''}>${labels[type] ?? type}</option>`).join('');
+}
+
+function sourceLabel(item) {
+  const type = item?.provenance?.type || 'unknown';
+  const labels = { moises: 'Moises', ripx: 'RipX', self: '自作', reference: '参考曲', other: 'その他', unknown: '未設定' };
+  return labels[type] ?? type;
 }
 
 async function durationOf(file) {
@@ -58,7 +69,7 @@ async function renderList() {
         <div>
           <strong>${item.name}</strong>
           <p>${item.type} · ${item.duration ? item.duration.toFixed(1) + 's' : 'duration unknown'} · ${(item.size / 1024 / 1024).toFixed(1)}MB</p>
-          <small>Convert: ${item.conversionStatus} / Analysis: ${item.analysisStatus}</small>
+          <small>出自: ${sourceLabel(item)}${item.provenance?.sourceTitle ? ` / ${item.provenance.sourceTitle}` : ''} · Convert: ${item.conversionStatus} / Analysis: ${item.analysisStatus}</small>
         </div>
         <audio controls preload="metadata" src="${url}"></audio>
         <div class="button-row">
@@ -77,13 +88,16 @@ function init() {
   if (!root) return;
   root.innerHTML = `
     <section class="panel" aria-labelledby="stem-ref-title">
-      <div class="panel-heading"><div><p class="eyebrow">STEM / REFERENCE</p><h2 id="stem-ref-title">外部分離Stemを読み込む</h2></div></div>
-      <p class="helper-note">Moises / RipX等で書き出したStemを端末内IndexedDBへ保存します。Audio BlobはSong Project JSONへ埋め込みません。</p>
+      <div class="panel-heading"><div><p class="eyebrow">STEM / MATERIAL</p><h2 id="stem-ref-title">外部分離Stemを素材として集める</h2></div></div>
+      <p class="helper-note">Moisesを主な分離入口とし、Moises / RipX等で書き出したStemをMIDI Analyzerへ集めます。Audio BlobはSong Project JSONへ埋め込みません。</p>
       <form data-stem-form class="form-stack">
         <div class="field"><label>Stem Audio</label><input data-stem-file type="file" accept="audio/*" required></div>
         <div class="controls-row">
-          <label class="field"><span>Type</span><select data-stem-type>${typeOptions()}</select></label>
+          <label class="field"><span>Part</span><select data-stem-type>${typeOptions()}</select></label>
+          <label class="field"><span>出自</span><select data-stem-source>${sourceOptions()}</select></label>
           <label class="field"><span>Name</span><input data-stem-name placeholder="Vocal / Bassなど"></label>
+          <label class="field"><span>元曲 / 素材名</span><input data-stem-source-title placeholder="参考曲A / 自作曲A"></label>
+          <label class="field"><span>元Project ID（任意）</span><input data-stem-project-id placeholder="自作Projectの場合"></label>
         </div>
         <button class="primary-button" type="submit">端末にStem保存</button>
       </form>
@@ -103,14 +117,22 @@ function init() {
       status.dataset.tone = 'neutral';
       status.textContent = 'Stemを端末に保存中…';
       const duration = await durationOf(file);
+      const provenanceType = root.querySelector('[data-stem-source]').value;
       await saveStemFile(file, {
         type: root.querySelector('[data-stem-type]').value,
         name: root.querySelector('[data-stem-name]').value.trim() || file.name,
         duration,
+        source: provenanceType === 'moises' ? 'moises-import' : `${provenanceType}-import`,
+        provenance: {
+          type: provenanceType,
+          sourceTitle: root.querySelector('[data-stem-source-title]').value,
+          sourceProjectId: root.querySelector('[data-stem-project-id]').value,
+        },
       });
       status.dataset.tone = 'success';
-      status.textContent = 'Stemを端末内IndexedDBへ保存しました。Song Project JSONにはAudioを埋め込んでいません。';
+      status.textContent = 'Stemを素材として端末内IndexedDBへ保存しました。Song Project JSONにはAudioを埋め込んでいません。';
       form.reset();
+      root.querySelector('[data-stem-source]').value = 'moises';
       await renderList();
     } catch (error) {
       status.dataset.tone = 'error';
@@ -131,7 +153,7 @@ function init() {
       if (!stem?.blob) throw new Error('Stem Audioを読み込めませんでした。');
       const file = new File([stem.blob], stem.sourceFileName || `${stem.name}.audio`, { type: stem.mimeType || stem.blob.type || 'audio/*' });
       window.dispatchEvent(new CustomEvent('stem-basic-pitch-request', {
-        detail: { file, stemId: stem.id, stemName: stem.name, stemType: stem.type },
+        detail: { file, stemId: stem.id, stemName: stem.name, stemType: stem.type, provenance: stem.provenance ?? null },
       }));
       status.dataset.tone = 'success';
       status.textContent = `${stem.name} をBasic Pitchへ渡しました。端末内で変換します。`;

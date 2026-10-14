@@ -1,14 +1,11 @@
-# v0.14-dev Version History
+# v0.14-dev VERSION HISTORY
 
 更新日: 2026-10-14
 
-- 公開main基準: `v0.13-dev`
-- 公開候補: `v0.14-dev`
-- Release Branch: `release/mobile-first-flow-v0.14`
-- 復元点: `restore/main-before-mobile-first-flow-20261014`
-- SongProject: v1（変更なし）
-- IndexedDB / MIDI / Clip / Stem / Recorder Take: 互換性維持
-
-主変更は5段階の初心者導線と、Exportで「保存 → Demo Composerを開く」の主ボタンを1つずつ切り替えるUI。公開mainのRecorderタブは維持し、360 / 390 / 430px回帰で確認する。
-
-stable tagはAndroid実機および必要なCubasis/Cubase実機確認まで作成しない。
+- ベース: develop `a088a58e9a4dc58f598b17363f401b091604254a`
+- 作業Branch: `feature/mobile-first-flow-v0.14`
+- 変更前復元点: `restore/develop-before-mobile-first-flow-20261014`
+- 機能完成復元点: `restore/feature-mobile-first-flow-v0.14-complete-20261014`
+- SongProject v1据え置き
+- IndexedDB / MIDI / Clip / Stem Schema据え置き
+- stable tag未作成。Android実機＋必要なCubasis/Cubase実機確認後のみ作成する。

@@ -74,7 +74,7 @@ test('Analyzer creates a canonical SongProject v1 that the app family can consum
   assert.equal(project.composition.drums.length, 1);
   assert.equal(project.reference.items[0].type, 'midi');
   assert.equal(project.reference.items[0].name, 'reference.mid');
-  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.12-dev');
+  assert.equal(project.compatibility.midiAnalyzer.appVersion, 'v0.16-dev');
   assert.equal(project.compatibility.demoComposer.legacyProject.schemaVersion, 3);
   assert.equal(project.compatibility.demoComposer.legacyProject.basic.key, 'E');
 });

@@ -399,5 +399,5 @@
 - 実MIDIによるKey / Chord係数・Basic Analysis heuristic・Playback音量調整
 - 保存済みMIDIの「開く」
 
-## 記入シート簡易表示 v0.6 — 2026-10-14
-右上「曲データ」から読み込んだSongProjectの記入内容を参照。解析とSchemaを維持。
+## 記入シート簡易版 v0.6 — 2026-10-14
+右上「曲データ」から読み込んだSongProjectの記入用シートを参照。解析・Schema・本体Versionは維持。

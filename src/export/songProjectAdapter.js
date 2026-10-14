@@ -128,7 +128,7 @@ export function buildSongProjectFromAnalysis(song, bundle, options = {}) {
     export: { lastDraftMidiAt: null, lastSongMidiAt: null, lastDawHandoffAt: null },
     compatibility: {
       midiAnalyzer: {
-        appVersion: 'v0.12-dev',
+        appVersion: 'v0.16-dev',
         source: clone(song?.source ?? {}),
         warnings: clone(demo.warnings),
         analysisBundle: clone(bundle),

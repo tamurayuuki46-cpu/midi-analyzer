@@ -21,12 +21,31 @@ function typeLabel(type) {
   return labels[type] ?? type;
 }
 
+function provenanceLabel(type) {
+  const labels = {
+    self: '自作',
+    reference: '参考曲由来',
+    'moises-stem': 'Moises Stem',
+    'audio-to-midi': 'Audio→MIDI',
+    ripx: 'RipX',
+    book: '書籍',
+    plugin: 'Plugin',
+    manual: '手入力',
+    other: 'その他',
+    unknown: '未設定',
+  };
+  return labels[type] ?? '未設定';
+}
+
 function rangeLabel(range) {
   return `${range.startBar}–${range.endBar}小節${range.complete ? '' : '（曲末まで）'}`;
 }
 
 function tagValues(record) {
   return [
+    `出自: ${provenanceLabel(record.provenance?.type)}`,
+    record.provenance?.sourceTitle && `元素材: ${record.provenance.sourceTitle}`,
+    record.provenance?.sourceProjectId && `Project: ${record.provenance.sourceProjectId}`,
     record.tags?.genre && `Genre: ${record.tags.genre}`,
     record.tags?.mood && `Mood: ${record.tags.mood}`,
     record.tags?.bpm && `BPM: ${record.tags.bpm}`,
@@ -80,9 +99,9 @@ export function mountClipLibrary(root, song) {
     <div class="clip-library">
       <form class="clip-form" data-clip-form>
         <div>
-          <p class="eyebrow">4-BAR CLIP</p>
-          <h3>分析結果をClip Libraryへ保存</h3>
-          <p class="helper-note">元MIDIは変更しません。選択区間を端末内Library用データとして保存します。</p>
+          <p class="eyebrow">4-BAR MATERIAL</p>
+          <h3>分析結果を素材Libraryへ保存</h3>
+          <p class="helper-note">元MIDIは変更しません。選択区間と素材の出自を端末内Libraryへ保存します。</p>
         </div>
         <div class="clip-form-grid">
           <label class="clip-field"><span>種類</span><select name="type">
@@ -95,21 +114,35 @@ export function mountClipLibrary(root, song) {
           <label class="clip-field"><span>区間</span><select name="startBar" ${ranges.length ? '' : 'disabled'}>
             ${ranges.map((range) => `<option value="${range.startBar}">${escapeHtml(rangeLabel(range))}</option>`).join('')}
           </select></label>
+          <label class="clip-field"><span>素材の出自</span><select name="provenanceType">
+            <option value="unknown">未設定</option>
+            <option value="self">自作</option>
+            <option value="reference">参考曲由来</option>
+            <option value="moises-stem">Moises Stem</option>
+            <option value="audio-to-midi">Audio→MIDI</option>
+            <option value="ripx">RipX</option>
+            <option value="book">書籍</option>
+            <option value="plugin">Plugin</option>
+            <option value="manual">手入力</option>
+            <option value="other">その他</option>
+          </select></label>
+          <label class="clip-field"><span>元曲 / 素材名（任意）</span><input name="sourceTitle" maxlength="100" placeholder="例: 参考曲A サビ"></label>
+          <label class="clip-field"><span>元Project ID（任意）</span><input name="sourceProjectId" maxlength="100" placeholder="自作Projectの場合"></label>
           <label class="clip-field"><span>名前（任意）</span><input name="name" maxlength="80" placeholder="例: サビ王道進行"></label>
           <label class="clip-field"><span>Genre（任意）</span><input name="genre" maxlength="40" placeholder="J-POP"></label>
           <label class="clip-field"><span>Mood（任意）</span><input name="mood" maxlength="40" placeholder="切ない / bright"></label>
           <label class="clip-field"><span>タグ（カンマ区切り）</span><input name="custom" maxlength="160" placeholder="サビ, 浮遊感, favorite"></label>
         </div>
-        <p class="helper-note">BPM / Keyは選択区間から自動タグ付けします。Chord進行もLibrary検索用に同時保存します。</p>
+        <p class="helper-note">BPM / Key / Chord進行は自動保存。出自も検索対象になるため、あとから「参考曲」「Moises」「自作」などで絞れます。</p>
         <div class="clip-form-actions">
-          <button class="clip-save-button" type="submit" ${ranges.length ? '' : 'disabled'}>Clipを保存</button>
+          <button class="clip-save-button" type="submit" ${ranges.length ? '' : 'disabled'}>素材Clipを保存</button>
           <p class="clip-status" data-clip-status aria-live="polite"></p>
         </div>
       </form>
 
       <label class="clip-search">
-        <span>Clip検索</span>
-        <input type="search" data-clip-search placeholder="例: J-POP bright C major chorus">
+        <span>素材検索</span>
+        <input type="search" data-clip-search placeholder="例: J-POP reference chorus / moises bass">
       </label>
       <div data-clip-list></div>
     </div>
@@ -137,6 +170,11 @@ export function mountClipLibrary(root, song) {
         type: data.get('type'),
         startBar: Number(data.get('startBar')),
         name: data.get('name'),
+        provenance: {
+          type: data.get('provenanceType'),
+          sourceTitle: data.get('sourceTitle'),
+          sourceProjectId: data.get('sourceProjectId'),
+        },
         tags: {
           genre: data.get('genre'),
           mood: data.get('mood'),
@@ -145,7 +183,7 @@ export function mountClipLibrary(root, song) {
       });
       await saveClipRecord(record);
       await refresh();
-      status.textContent = `${typeLabel(record.type)} Clipを端末内へ保存しました。`;
+      status.textContent = `${typeLabel(record.type)}素材を端末内へ保存しました。`;
       form.querySelector('[name="name"]').value = '';
       form.querySelector('[name="custom"]').value = '';
     } catch (error) {
@@ -163,12 +201,12 @@ export function mountClipLibrary(root, song) {
   root.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-delete-clip]');
     if (!button) return;
-    if (!globalThis.confirm('このClipを端末から削除します。よろしいですか？')) return;
+    if (!globalThis.confirm('この素材Clipを端末から削除します。よろしいですか？')) return;
     button.disabled = true;
     try {
       await deleteSavedClip(button.dataset.deleteClip);
       await refresh();
-      status.textContent = 'Clipを削除しました。';
+      status.textContent = '素材Clipを削除しました。';
     } catch (error) {
       status.textContent = `削除できませんでした: ${error.message}`;
       button.disabled = false;
@@ -176,7 +214,7 @@ export function mountClipLibrary(root, song) {
   });
 
   refresh().catch((error) => {
-    status.textContent = `Clip Libraryを読み込めませんでした: ${error.message}`;
+    status.textContent = `素材Libraryを読み込めませんでした: ${error.message}`;
   });
 
   return Object.freeze({ refresh, getRecords: () => Object.freeze([...records]) });

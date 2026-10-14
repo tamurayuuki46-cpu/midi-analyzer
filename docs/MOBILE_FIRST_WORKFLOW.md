@@ -1,23 +1,29 @@
-# Mobile-first Workflow — public main
+# Mobile-first Workflow
 
 更新日: 2026-10-14
 
-`⓪ 作曲シート → ① MIDI解析（任意） → ② Demo Composer → ③ Arrangement Lab → ④ DAW`
+MIDI Analyzerは全体Workflowの任意工程として扱う。
 
-MIDI Analyzerは①の任意工程。解析せず②へ進んでもよい。
+`⓪ 作曲シート → ① MIDI解析（任意） → ② 作曲 → ③ 編曲 → ④ DAWへ`
 
-## ⓪ 作曲シート
+## MIDI Analyzerの役割
 
-公開mainではDemo ComposerのMusic Project HomeにあるClaude Artifact作曲シート登録欄へ案内する。未公開の内蔵Sheet Moduleは参照しない。
+- 参考MIDI・素材を理解したい時だけ使う。
+- MIDI解析なしでもDemo Composerへ進める。
+- Exportの初心者導線は `曲データを保存 → Demo Composerを開く → Demo Composerで反映` とする。
+- SongProject v1 JSONは端末バックアップとして必ず保存する。
+- 同一Chromeでは `music-project-songproject-handoff-v1` を補助的に利用する。
+- 自動反映は行わない。
 
-## ① MIDI解析
+## スマホUI原則
 
-MIDIを読み込み、必要な分析を行う。Exportでは「1. 曲データを保存」が最初の主操作。SongProject v1 JSONを必ず端末バックアップとして保存し、同じChromeではlocalStorageにも補助的に一時保存する。
+- 画面内で主操作として強調するボタンは1つにする。
+- Exportでは保存前は「曲データを保存」、保存後は「Demo Composerを開く」を主操作にする。
+- 詳細Exportは「もっと詳しい書き出し」に収納する。
+- 360 / 390 / 430pxで横overflowとConsole errorを回帰確認する。
 
-保存成功後は「2. Demo Composerを開く」だけを主操作へ切り替える。Demo Composer側でユーザーが明示的に「受け取った曲を反映」を押す。自動反映しない。
+## 互換性
 
-## 公開main互換
-
-公開mainにはRecorderタブが残るため、Mobile Chromium回帰でもRecorderを含む全タブを確認する。develop側のRecorder退役仕様はこのReleaseへ混ぜない。
-
-SongProject v1 / MIDI / Clip / Stem / IndexedDB / Recorder Takeの既存データを維持する。
+- SongProject v1を変更しない。
+- IndexedDB / MIDI / Clip / Stem Schemaを変更しない。
+- 既存のAnalysis / CSV / Markdown / Chord Text / legacy project.json Exportを維持する。
