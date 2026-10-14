@@ -15,9 +15,9 @@ MIDI Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.12-dev`
+`v0.17-dev`
 
-公開中Version: `v0.11-dev`
+公開中Version: `v0.15-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -54,6 +54,10 @@ MIDI Analyzerの役割は次の2つだけです。
 
 ## 2. 曲を理解する
 
+v0.17-devでは、MIDI読み込み後に**初心者モード**を最初に表示します。Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、「良いところ」「改善するとよいところ」「次に試すこと（最大3件）」を表示します。これは品質・人気・正解の採点ではなく、既存Analyzerの候補値を初心者向けに言い換える表示レイヤーです。
+
+必要になった時だけ**詳細モード**へ切り替えると、従来の解析機能をそのまま使えます。
+
 - Key / Scale候補
 - Chord / Degree / Chord Detail
 - Melody / Bass / Rhythm分析
@@ -84,6 +88,13 @@ MIDI Analyzer自身をStem分離サービスにはしません。Moises等で書
 
 ## 画面構成
 
+MIDI読み込み直後:
+- 初心者モード: Key / 音域 / 音の動き / リズム / 反復
+- 良いところ / 改善するとよいところ
+- 次に試すこと（最大3件）
+- 初心者モード / 詳細モード切替
+
+詳細モード:
 - 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll
 - Harmony: Key / Chord / Degree / Chord Detail / Key素材化
 - Melody: 主旋律基本分析 / 裏メロ分析
@@ -98,7 +109,7 @@ MIDI Analyzer自身をStem分離サービスにはしません。Moises等で書
 - Metrics: 浮遊感 / サビらしさ / 驚き度 / 反復と変化 / 裏メロ存在感 / 編曲密度
 - Parts: Track役割候補
 
-タブは横スクロールでき、左右矢印・Home・Endにも対応します。
+詳細タブは横スクロールでき、左右矢印・Home・Endにも対応します。
 
 ## Part Recorderの扱い
 
@@ -120,6 +131,7 @@ MIDI AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 ## 保存方針
 
 - MIDI Import時の端末保存は初期OFF
+- 初心者 / 詳細モードの表示設定はlocalStorageへ端末内保存
 - Clipは明示保存時のみ
 - Stemは明示Import時のみ
 - 既存Takeは互換性のため保持
@@ -129,6 +141,8 @@ MIDI AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 ## 実装済み主要機能
 
 - `.mid` / `.midi` Import / Normalized Song
+- 初心者モード / 詳細モード
+- 初心者向け5項目要約 / 良いところ / 改善候補 / 次に試すこと
 - IndexedDB MIDI保存 / 一覧 / 削除
 - Piano Roll / Playback
 - Key / Scale / Chord / Degree
@@ -169,22 +183,22 @@ plain HTML/CSS/JavaScript + Vite。
 4. `docs/AI_HANDOFF.md`
 5. `docs/PRODUCT_SPEC.md`
 6. `docs/ANALYSIS_SPEC.md`
-7. `docs/CLIP_LIBRARY_SPEC.md`
-8. `docs/STORAGE_SPEC.md`
-9. `docs/INTEGRATION_EXPORT_SPEC.md`
-10. `docs/ROADMAP.md`
-11. `CHANGELOG.md`
+7. `docs/BEGINNER_MODE.md`
+8. `docs/CLIP_LIBRARY_SPEC.md`
+9. `docs/STORAGE_SPEC.md`
+10. `docs/INTEGRATION_EXPORT_SPEC.md`
+11. `docs/ROADMAP.md`
+12. `CHANGELOG.md`
 
 重要仕様は`docs/`を正本とします。
 
-## v0.12-dev Scope
+## v0.17-dev Scope
 
-- Analyzer責務を「素材を集める / 曲を理解する」へ固定
-- Part Recorderを主UIから退役（既存Take dataは保持）
-- Clip素材のProvenance追加
-- Moises / RipX / Audio→MIDI等の素材出自を検索可能化
-- Stem provenance追加
-- MoisesをStem分離の主入口として位置付け
-- 既存v1 Clip / Take / MIDI / Stemとの互換性を維持
+- MIDI読み込み後の初心者モードを主導線にする
+- Key / 音域 / 音の動き / リズム / 反復を5項目へ要約
+- 良いところ / 改善するとよいところ / 次に試すこと最大3件を表示
+- 詳細13タブを削除せず、詳細モードとして保持
+- SongProject v1 / IndexedDB v3 / Clip / Stem / Memoとの互換性を維持
+- 360 / 390 / 430pxのChromium回帰をCIで継続する
 
-Android実機の長尺Audio、Stem保存、Audio形式、360/390/430px主要導線は継続確認対象です。
+Android実機のタッチ操作、PWA再起動後のモード保持、長尺Audio、Stem保存、Audio形式は継続確認対象です。
