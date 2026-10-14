@@ -26,12 +26,28 @@ try {
     await page.getByText('③ 編曲', { exact: true }).waitFor();
     await page.getByText('④ DAWへ', { exact: true }).waitFor();
     await page.getByText('① MIDI解析は必須ではありません。', { exact: true }).waitFor();
+
+    const songDataTrigger = page.locator('.song-data-trigger');
+    await songDataTrigger.waitFor();
+    await songDataTrigger.click();
+    const songDataPanel = page.locator('.song-data-panel');
+    await songDataPanel.getByText('保存した曲を開く', { exact: true }).waitFor();
+    assert.equal(await songDataPanel.locator('[data-action="save"]').isDisabled(), true, 'Save must be disabled before analysis');
+    assert.equal(await songDataPanel.locator('[data-action="next"]').isDisabled(), true, 'Next must be disabled before analysis');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Song data menu overflows at ${width}px`);
+    await page.locator('.song-data-close').click();
+
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Global flow overflows at ${width}px`);
 
     await page.locator('#midi-file').setInputFiles({ name: 'mobile-regression.mid', mimeType: 'audio/midi', buffer: Buffer.from(midi) });
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
     await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+
+    await songDataTrigger.click();
+    assert.equal(await songDataPanel.locator('[data-action="save"]').isEnabled(), true, 'Save must enable after analysis');
+    assert.equal(await songDataPanel.locator('[data-action="next"]').isEnabled(), true, 'Next must enable after analysis');
+    await page.locator('.song-data-close').click();
 
     const expectedTabs = ['概要', 'Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Export', 'AI', 'Metrics', 'Parts'];
     for (const name of expectedTabs) {
@@ -80,5 +96,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('Analyzer 360/390/430px five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('Analyzer 360/390/430px song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
 } finally { await browser.close(); }
