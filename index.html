@@ -6,15 +6,32 @@
     <meta name="theme-color" content="#f4f4f5" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="作曲素材を集め、曲を理解するためのAndroid-first MIDI Analyzer" />
-    <title>MIDI Analyzer v0.13-dev</title>
+    <title>MIDI Analyzer v0.14-dev</title>
+    <style>
+      .app-flow-strip{margin:0 0 16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+      .app-flow-step{box-sizing:border-box;border:1px solid #d4d4d8;border-radius:12px;padding:9px 8px;text-align:center;font-size:.78rem;line-height:1.35;background:#fff;color:inherit;text-decoration:none}
+      .app-flow-step.current{border:2px solid #4f46e5;font-weight:800;background:#f5f3ff}
+      .app-flow-step.optional{border-style:dashed}
+      .app-flow-step small{display:block;color:#646872}
+      .analysis-optional-note{margin:0 0 16px;padding:10px 12px;border:1px dashed #d97706;border-radius:12px;background:#fffbeb;line-height:1.55}
+      @media(max-width:560px){.app-flow-strip{grid-template-columns:1fr}.app-flow-step{display:flex;align-items:center;justify-content:space-between;text-align:left}.app-flow-step.current{order:-1}}
+    </style>
   </head>
   <body>
     <main class="app-shell">
       <header class="app-header">
-        <p class="eyebrow">MIDI ANALYZER · v0.13-dev</p>
+        <p class="eyebrow">MIDI ANALYZER · v0.14-dev</p>
         <h1>素材を集める / 曲を理解する</h1>
         <p>MIDIはそのまま解析し、AudioやMoises等のStemは端末内で素材化・Audio→MIDIして分析へつなげます。</p>
       </header>
+      <nav class="app-flow-strip" aria-label="曲づくり全体の流れ">
+        <a class="app-flow-step" href="https://tamurayuuki46-cpu.github.io/demo-composer/sheet-app/"><span>⓪ 作曲シート</span><small>方向を決める</small></a>
+        <span class="app-flow-step current optional" aria-current="step"><span>① MIDI解析</span><small>今ここ・任意</small></span>
+        <a class="app-flow-step" href="https://tamurayuuki46-cpu.github.io/demo-composer/"><span>② 作曲</span><small>Demo Composer</small></a>
+        <a class="app-flow-step" href="https://tamurayuuki46-cpu.github.io/demo-composer/arranger/"><span>③ 編曲</span><small>Arrangement Lab</small></a>
+        <span class="app-flow-step"><span>④ DAWへ</span><small>Cubasis / Cubase</small></span>
+      </nav>
+      <p class="analysis-optional-note"><strong>① MIDI解析は必須ではありません。</strong> 参考MIDIを調べたい時だけ使い、そのまま② Demo Composerへ進んでもOKです。</p>
       <div id="audio-to-midi-root"></div>
       <div id="audio-note-tools-root"></div>
       <div id="stem-reference-root"></div>
