@@ -55,11 +55,12 @@ async function waitForOpenButton() {
 
 const picker = document.createElement('input');
 picker.type = 'file';
-picker.accept = '.json,application/json';
+picker.accept = '.json,.txt,application/json,text/plain';
 picker.hidden = true;
 document.body.append(picker);
 
 const controller = mountSongDataMenu({
+  getSheetProject: ()=>pendingSongProject,
   currentLabel: pendingSongProject?.title || '未選択',
   saveEnabled: false,
   nextEnabled: false,
