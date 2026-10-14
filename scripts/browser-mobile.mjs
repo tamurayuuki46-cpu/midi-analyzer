@@ -18,6 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.18-dev$/, 'Browser title must use the new app name');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -26,6 +27,28 @@ try {
     await page.getByText('③ 編曲', { exact: true }).waitFor();
     await page.getByText('④ DAWへ', { exact: true }).waitFor();
     await page.getByText('① MIDI解析は必須ではありません。', { exact: true }).waitFor();
+
+    const beginnerStart = page.locator('.beginner-start-panel');
+    await beginnerStart.getByRole('heading', { name: 'まず、やりたいことを1つ選ぶ', exact: true }).waitFor();
+    await beginnerStart.getByRole('button', { name: /MIDIを保存・整理する/ }).waitFor();
+    await beginnerStart.getByRole('button', { name: /MIDIを解析する/ }).waitFor();
+    assert.equal(await page.locator('#audio-to-midi-root').evaluate((el) => el.hidden), true, 'Audio→MIDI tools must start hidden in beginner start mode');
+    assert.equal(await page.locator('#audio-note-tools-root').evaluate((el) => el.hidden), true, 'Audio note tools must start hidden in beginner start mode');
+    assert.equal(await page.locator('#stem-reference-root').evaluate((el) => el.hidden), true, 'Stem tools must start hidden in beginner start mode');
+
+    await beginnerStart.getByRole('button', { name: /MIDIを保存・整理する/ }).click();
+    assert.equal(await page.locator('#save-midi').isChecked(), true, 'Archive action must enable device save');
+    await beginnerStart.getByRole('button', { name: /MIDIを解析する/ }).click();
+    assert.equal(await page.locator('#save-midi').isChecked(), false, 'Analyze action must keep device save optional');
+
+    const detailToolsButton = beginnerStart.getByRole('button', { name: '詳細ツールを表示', exact: true });
+    await detailToolsButton.click();
+    assert.equal(await page.locator('#audio-to-midi-root').evaluate((el) => el.hidden), false, 'Detail start mode must reveal advanced tools');
+    assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.start-mode.v1') === 'detail'), 'Start detail preference must persist locally');
+    await beginnerStart.getByRole('button', { name: '詳細ツールを隠す', exact: true }).click();
+    assert.equal(await page.locator('#audio-to-midi-root').evaluate((el) => el.hidden), true, 'Returning to beginner start mode must hide advanced tools');
+    assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.start-mode.v1') === 'beginner'), 'Start beginner preference must persist locally');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner start overflows at ${width}px`);
 
     const songDataTrigger = page.locator('.song-data-trigger');
     await songDataTrigger.waitFor();
@@ -43,6 +66,7 @@ try {
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
 
+    assert.equal(await beginnerStart.isHidden(), true, 'Beginner start chooser must get out of the way after import');
     const beginnerPanel = page.locator('.beginner-mode-panel');
     await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
     await beginnerPanel.getByRole('heading', { name: '良いところ', exact: true }).waitFor();
@@ -113,5 +137,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('Analyzer 360/390/430px beginner/detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / beginner analysis / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
 } finally { await browser.close(); }
