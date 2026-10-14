@@ -51,6 +51,13 @@ function demoComposerUrl() {
   return new URL('/demo-composer/?handoff=midi-analyzer', window.location.origin).href;
 }
 
+function setHandoffPrimary(root, primary, label) {
+  root.querySelectorAll('.handoff-primary').forEach((button) => button.classList.remove('handoff-primary'));
+  primary?.classList.add('handoff-primary');
+  const now = root.querySelector('[data-handoff-now]');
+  if (now && label) now.textContent = label;
+}
+
 export function mountIntegrationExport(root, song, bundle, metrics, explanation) {
   if (!root) return null;
   const baseName = safeName(song?.source?.fileName);
@@ -77,6 +84,7 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
         <p class="eyebrow">NEXT STEP</p>
         <h3 id="handoff-title">Demo Composerへ渡す</h3>
         <p class="feature-note">初心者はここだけ使えばOKです。SongProject JSONをバックアップとして保存し、同じChromeならDemo Composerへ一時受け渡しも行います。</p>
+        <div class="handoff-now"><span>今やること</span><strong data-handoff-now>曲データを保存</strong></div>
         <ol class="handoff-steps">
           <li><strong>曲データを保存</strong><span>解析結果をSongProject v1へまとめます</span></li>
           <li><strong>Demo Composerを開く</strong><span>受け取り候補が表示されます</span></li>
@@ -149,9 +157,9 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
       const nameBase = safeName(project.title || baseName);
       return { name: `${nameBase}_song_project_v1.json`, text: `${JSON.stringify(project, null, 2)}\n`, type: 'application/json;charset=utf-8', project };
     }
-    if (kind === 'json') return { name: `${baseName}_analysis_v0.13.json`, text: exportAnalysisJson(bundle), type: 'application/json;charset=utf-8' };
-    if (kind === 'csv') return { name: `${baseName}_analysis_v0.13.csv`, text: exportAnalysisCsv(bundle), type: 'text/csv;charset=utf-8' };
-    if (kind === 'markdown') return { name: `${baseName}_report_v0.13.md`, text: exportAnalysisMarkdown(bundle, { metrics, explanation }), type: 'text/markdown;charset=utf-8' };
+    if (kind === 'json') return { name: `${baseName}_analysis_v0.14.json`, text: exportAnalysisJson(bundle), type: 'application/json;charset=utf-8' };
+    if (kind === 'csv') return { name: `${baseName}_analysis_v0.14.csv`, text: exportAnalysisCsv(bundle), type: 'text/csv;charset=utf-8' };
+    if (kind === 'markdown') return { name: `${baseName}_report_v0.14.md`, text: exportAnalysisMarkdown(bundle, { metrics, explanation }), type: 'text/markdown;charset=utf-8' };
     if (kind === 'chords') return { name: `${baseName}_chords_degree.txt`, text: exportChordDegreeText(bundle), type: 'text/plain;charset=utf-8' };
     if (kind === 'demo') return { name: `${baseName}_demo_composer_project.json`, text: JSON.stringify(demo.project, null, 2), type: 'application/json;charset=utf-8' };
     return null;
@@ -164,11 +172,13 @@ export function mountIntegrationExport(root, song, bundle, metrics, explanation)
       downloadText(item.name, item.text, item.type);
       const shared = saveHandoff(item.project);
       handoffOpen.disabled = false;
+      setHandoffPrimary(root, handoffOpen, 'Demo Composerを開く');
       handoffStatus.textContent = shared
         ? '保存しました。次に「Demo Composerを開く」を押してください。同じChromeなら受け取り候補が自動表示されます。'
         : '保存しました。Demo Composerを開き、保存したSongProject JSONを選んでください。';
       status.textContent = `${item.name} を書き出しました。`;
     } catch (error) {
+      setHandoffPrimary(root, handoffSave, '曲データを保存');
       handoffStatus.textContent = `保存できませんでした: ${error.message}`;
     } finally {
       handoffSave.disabled = false;

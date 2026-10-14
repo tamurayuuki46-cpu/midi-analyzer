@@ -19,6 +19,15 @@ try {
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
+    await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
+    await page.getByText('① MIDI解析', { exact: true }).waitFor();
+    await page.getByText('今ここ・任意', { exact: true }).waitFor();
+    await page.getByText('② 作曲', { exact: true }).waitFor();
+    await page.getByText('③ 編曲', { exact: true }).waitFor();
+    await page.getByText('④ DAWへ', { exact: true }).waitFor();
+    await page.getByText('① MIDI解析は必須ではありません。', { exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Global flow overflows at ${width}px`);
+
     await page.locator('#midi-file').setInputFiles({ name: 'mobile-regression.mid', mimeType: 'audio/midi', buffer: Buffer.from(midi) });
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
@@ -34,11 +43,19 @@ try {
 
     await page.getByRole('tab', { name: 'Export', exact: true }).click();
     await page.getByRole('heading', { name: 'Demo Composerへ渡す', exact: true }).waitFor();
+    const handoffCard = page.locator('.handoff-card');
+    assert.equal(await handoffCard.locator('.handoff-primary').count(), 1, 'Handoff must expose one primary action');
+    assert.equal(await handoffCard.locator('[data-handoff-now]').textContent(), '曲データを保存');
+    assert.equal(await handoffCard.locator('[data-handoff-save]').evaluate((el) => el.classList.contains('handoff-primary')), true);
+
     const handoffDownloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: '1. 曲データを保存', exact: true }).click();
     const handoffDownload = await handoffDownloadPromise;
     assert.match(handoffDownload.suggestedFilename(), /_song_project_v1\.json$/);
     assert.equal(await page.getByRole('button', { name: '2. Demo Composerを開く', exact: true }).isEnabled(), true);
+    assert.equal(await handoffCard.locator('.handoff-primary').count(), 1, 'Handoff must keep one primary action after save');
+    assert.equal(await handoffCard.locator('[data-handoff-open]').evaluate((el) => el.classList.contains('handoff-primary')), true);
+    assert.equal(await handoffCard.locator('[data-handoff-now]').textContent(), 'Demo Composerを開く');
     const handoff = await page.evaluate(() => JSON.parse(localStorage.getItem('music-project-songproject-handoff-v1')));
     assert.equal(handoff.kind, 'music-project-songproject-handoff');
     assert.equal(handoff.targetApp, 'demo-composer');
@@ -63,5 +80,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('Analyzer 360/390/430px import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('Analyzer 360/390/430px five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
 } finally { await browser.close(); }
