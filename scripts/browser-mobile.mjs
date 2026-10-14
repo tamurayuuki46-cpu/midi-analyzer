@@ -12,7 +12,7 @@ await fs.mkdir('test-results', { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
   for (const width of [360, 390, 430]) {
-    const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true });
+    const context = await browser.newContext({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true, acceptDownloads: true });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -23,17 +23,33 @@ try {
     await page.locator('#save-midi').check();
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
     await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+
     for (const name of ['Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Recorder', 'Export', 'AI', 'Metrics', 'Parts']) {
       await page.getByRole('tab', { name, exact: true }).click();
       assert.ok(await page.getByRole('tabpanel', { name, exact: true }).isVisible(), `${name} panel missing`);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name} overflows at ${width}px`);
     }
+
+    await page.getByRole('tab', { name: 'Export', exact: true }).click();
+    await page.getByRole('heading', { name: 'Demo Composerへ渡す', exact: true }).waitFor();
+    const handoffDownloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: '1. 曲データを保存', exact: true }).click();
+    const handoffDownload = await handoffDownloadPromise;
+    assert.match(handoffDownload.suggestedFilename(), /_song_project_v1\.json$/);
+    assert.equal(await page.getByRole('button', { name: '2. Demo Composerを開く', exact: true }).isEnabled(), true);
+    const handoff = await page.evaluate(() => JSON.parse(localStorage.getItem('music-project-songproject-handoff-v1')));
+    assert.equal(handoff.kind, 'music-project-songproject-handoff');
+    assert.equal(handoff.targetApp, 'demo-composer');
+    assert.equal(handoff.songProject.kind, 'song-project');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Handoff guide overflows at ${width}px`);
+
     await page.getByRole('tab', { name: 'Harmony', exact: true }).click();
     const pending = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Target Key MIDI', exact: true }).click();
     const download = await pending;
     const output = await fs.readFile(await download.path());
     assert.equal(output.subarray(0, 4).toString(), 'MThd');
+
     await page.getByRole('tab', { name: '概要', exact: true }).click();
     await page.screenshot({ path: `test-results/analyzer-mobile-${width}.png` });
     await page.reload();
@@ -41,5 +57,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('Analyzer 360/390/430px import / analysis tabs / transpose / storage regression passed');
+  console.log('Analyzer 360/390/430px import / analysis tabs / handoff / transpose / storage regression passed');
 } finally { await browser.close(); }
