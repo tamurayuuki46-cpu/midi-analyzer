@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f4f4f5" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="作曲素材を集め、曲を理解するためのAndroid-first MIDI Analyzer" />
-    <title>MIDI Analyzer v0.16-dev</title>
+    <title>MIDI Analyzer v0.17-dev</title>
     <style>
       .app-flow-strip{margin:0 0 16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
       .app-flow-step{box-sizing:border-box;border:1px solid #d4d4d8;border-radius:12px;padding:9px 8px;text-align:center;font-size:.78rem;line-height:1.35;background:#fff;color:inherit;text-decoration:none}
@@ -20,7 +20,7 @@
   <body>
     <main class="app-shell">
       <header class="app-header">
-        <p class="eyebrow">MIDI ANALYZER · v0.16-dev</p>
+        <p class="eyebrow">MIDI ANALYZER · v0.17-dev</p>
         <h1>素材を集める / 曲を理解する</h1>
         <p>MIDIはそのまま解析し、AudioやMoises等のStemは端末内で素材化・Audio→MIDIして分析へつなげます。</p>
       </header>
@@ -50,6 +50,7 @@
       <div id="result" aria-live="polite"></div>
     </main>
     <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/ui/beginnerModeEntry.js"></script>
     <script type="module" src="/src/ui/midiKeyTools.js"></script>
     <script type="module" src="/src/ui/basicPitchNoteTools.js"></script>
     <script type="module" src="/src/ui/audioToMidiEntry.js"></script>
