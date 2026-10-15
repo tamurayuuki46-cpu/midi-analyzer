@@ -73,8 +73,8 @@ function ensureDetailPanel() {
     panel.setAttribute('aria-labelledby', 'note-function-title');
     panel.innerHTML = `
       <div class="panel-heading">
-        <div><p class="eyebrow">NOTE FUNCTION</p><h2 id="note-function-title">Chord Tone / Scale Tone / 経過候補</h2></div>
-        <span class="status-pill">v0.21</span>
+        <div><p class="eyebrow">NOTE FUNCTION II</p><h2 id="note-function-title">Chord / Scale / 解決・着地候補</h2></div>
+        <span class="status-pill">v0.22</span>
       </div>
       <div data-note-function-root></div>
     `;
@@ -110,6 +110,27 @@ function temporalMeaning(result) {
   return `${parts.join(' / ')}。前後の音程とChord Toneへの解決から見た候補で、確定ラベルではありません。`;
 }
 
+function resolutionMeaning(result) {
+  const resolution = result.resolution;
+  if (!resolution.evaluated) {
+    return '近い次音までChord文脈を追えるChord外音が少ないため、解決傾向はまだ保留です。';
+  }
+  const ratio = Math.round(resolution.ratio * 100);
+  const beatText = result.beatContext.nonChordStrong || result.beatContext.nonChordWeak
+    ? `Chord外音の発音位置は強拍 ${result.beatContext.nonChordStrong} / 弱拍 ${result.beatContext.nonChordWeak}。`
+    : '';
+  return `近い次音まで追えたChord外音 ${resolution.evaluated}件のうち、次のChord Toneへ進む候補は ${resolution.resolved}件（${ratio}%）です。${beatText} 強い/弱いは品質評価ではなく発音位置の文脈です。`;
+}
+
+function landingMeaning(result) {
+  const landing = result.phraseLanding;
+  if (!landing.count) return '長めの休符・曲末など、フレーズ着地として扱える場所はまだ見つかっていません。';
+  const degrees = landing.topDegrees?.length
+    ? ` Degree上位: ${landing.topDegrees.map((item) => `${item.value}×${item.count}`).join(' / ')}。`
+    : '';
+  return `着地点候補 ${landing.count}件。Chord Tone ${landing.chordTone}件、Scale Tone ${landing.scaleTone}件、Scale外 ${landing.nonScaleTone}件。${degrees}`;
+}
+
 function minorScaleSelector(result) {
   if (result.key?.scale !== 'minor') return '';
   const current = result.scaleBasis?.id ?? 'natural-minor';
@@ -124,6 +145,42 @@ function minorScaleSelector(result) {
       <small>Scale Tone判定の比較基準だけを切り替えます。Key候補や元MIDIは変更しません。</small>
     </label>
   `;
+}
+
+function resolutionEvidence(result) {
+  const rows = result.notes
+    .filter((note) => note.resolutionCandidate || note.suspensionCandidate || note.anticipationCandidate)
+    .slice(0, 6)
+    .map((note) => {
+      const labels = [];
+      if (note.resolutionCandidate) {
+        const item = note.resolutionCandidate;
+        labels.push(`Resolution → MIDI ${item.targetPitch} / ${item.deltaBeats}拍 / ${item.direction}`);
+      }
+      if (note.suspensionCandidate) {
+        const item = note.suspensionCandidate;
+        labels.push(`Suspension ${item.fromChord}→${item.toChord} / ${item.delayBeats}拍後に解決`);
+      }
+      if (note.anticipationCandidate) {
+        const item = note.anticipationCandidate;
+        labels.push(`Anticipation → ${item.nextChord} / ${item.leadBeats}拍先取り`);
+      }
+      return `<li><strong>tick ${note.startTick} · MIDI ${note.pitch}</strong><span>${escapeHtml(labels.join(' / '))}</span></li>`;
+    });
+  if (!rows.length) return '<p class="note-function-empty-evidence">このMIDIでは追加の解決候補Evidenceはまだありません。</p>';
+  return `<ul class="note-function-evidence-list">${rows.join('')}</ul>`;
+}
+
+function landingEvidence(result) {
+  const rows = result.phraseLanding.landings.slice(0, 5).map((item) => {
+    const reason = {
+      'phrase-gap': '長めの休符前',
+      'last-note': '曲末',
+      'section-boundary': 'Section境界',
+    }[item.reason] ?? item.reason;
+    return `<li><strong>${escapeHtml(reason)} · MIDI ${item.pitch}</strong><span>${escapeHtml(item.degree ?? 'Degree未判定')} / ${escapeHtml(item.chord ?? 'Chord未判定')} / ${escapeHtml(item.relation)}</span></li>`;
+  });
+  return rows.length ? `<ul class="note-function-evidence-list">${rows.join('')}</ul>` : '';
 }
 
 function renderDetail(result) {
@@ -152,8 +209,9 @@ function renderDetail(result) {
       ${metric('Chord内・Scale外', `${relation.chordOnly}音`, '借用和音・7th等でも起こり得ます')}
       ${metric('両方の外側', `${relation.outsideBoth}音`, '経過音・アプローチ等の候補として観察')}
     </div>
-    <section class="note-function-resolution" aria-labelledby="note-function-resolution-title">
-      <div><p class="eyebrow">TEMPORAL CANDIDATES</p><h3 id="note-function-resolution-title">前後の動きから見るChord外音</h3></div>
+
+    <section class="note-function-resolution" aria-labelledby="note-function-temporal-title">
+      <div><p class="eyebrow">TEMPORAL CANDIDATES</p><h3 id="note-function-temporal-title">前後の動きから見るChord外音</h3></div>
       <div class="note-function-resolution-grid">
         <article><strong>${fn.passing}</strong><span>Passing候補</span><small>Chord Tone間を同方向のStepでつなぐ</small></article>
         <article><strong>${fn.neighbor}</strong><span>Neighbor候補</span><small>Chord ToneからStepで離れて同じ音へ戻る</small></article>
@@ -162,12 +220,37 @@ function renderDetail(result) {
       </div>
       <p>${escapeHtml(temporalMeaning(result))}</p>
     </section>
+
+    <section class="note-function-resolution" aria-labelledby="note-function-resolution-title">
+      <div><p class="eyebrow">RESOLUTION / CHORD CHANGE</p><h3 id="note-function-resolution-title">緊張から解決へどう動くか</h3></div>
+      <div class="note-function-resolution-grid">
+        <article><strong>${result.resolution.resolved}/${result.resolution.evaluated}</strong><span>Resolution候補</span><small>近い次音がChord Toneへ進む候補</small></article>
+        <article><strong>${result.beatContext.nonChordStrong}/${result.beatContext.nonChordWeak}</strong><span>Chord外音 強拍 / 弱拍</span><small>musicalBeat基準。良し悪しではありません</small></article>
+        <article><strong>${result.suspension.candidates}</strong><span>Suspension候補</span><small>旧Chord Toneを保持し、新Chord上で緊張→Step解決</small></article>
+        <article><strong>${result.anticipation.candidates}</strong><span>Anticipation候補</span><small>次Chord Toneを切替前に先取り</small></article>
+      </div>
+      <p>${escapeHtml(resolutionMeaning(result))}</p>
+      ${resolutionEvidence(result)}
+    </section>
+
+    <section class="note-function-resolution" aria-labelledby="note-function-landing-title">
+      <div><p class="eyebrow">PHRASE LANDING</p><h3 id="note-function-landing-title">フレーズの着地点</h3></div>
+      <div class="note-function-resolution-grid">
+        <article><strong>${result.phraseLanding.count}</strong><span>着地点候補</span><small>長めの休符前・曲末・指定Section境界</small></article>
+        <article><strong>${result.phraseLanding.chordTone}</strong><span>Chord Tone着地</span><small>着地時点のChordとの関係</small></article>
+        <article><strong>${result.phraseLanding.scaleTone}</strong><span>Scale Tone着地</span><small>現在のKey / Scale基準</small></article>
+        <article><strong>${result.phraseLanding.nonScaleTone}</strong><span>Scale外着地</span><small>色付け・次への接続候補として観察</small></article>
+      </div>
+      <p>${escapeHtml(landingMeaning(result))}</p>
+      ${landingEvidence(result)}
+    </section>
+
     ${chord.provisionalCount ? `<p class="note-function-assumption">Chord未選択区間では第1候補を仮使用しています（${chord.provisionalCount}発音）。HarmonyでChordを選ぶと再計算します。</p>` : ''}
     <div class="note-function-legend">
       <article><strong>Chord Tone</strong><small>その瞬間のChord構成音に含まれるかを見る。</small></article>
       <article><strong>Scale Tone</strong><small>現在のKey / Scaleの音階内に含まれるかを見る。</small></article>
-      <article><strong>Chord外・Scale内</strong><small>コード構成音ではないが、Keyの音階には含まれる音。</small></article>
-      <article><strong>Chord内・Scale外</strong><small>Chordには含まれるが、現在のKey候補の基本音階からは外れる音。</small></article>
+      <article><strong>Resolution候補</strong><small>Chord外音のあと、近い時間内にChord Toneへ進む動きを見る。</small></article>
+      <article><strong>Chord change候補</strong><small>Suspension / AnticipationはChord切替とDurationも含めて保守的に候補化する。</small></article>
     </div>
     <p class="note-function-help">${escapeHtml(relationshipMeaning(result))}</p>
     <p class="helper-note">${escapeHtml(result.note)}</p>
@@ -176,11 +259,10 @@ function renderDetail(result) {
 
 function beginnerActions(result) {
   const actions = [];
-  if (result.nonChordFunction.passing || result.nonChordFunction.neighbor || result.nonChordFunction.approach) {
-    actions.push('Chord外音が次のChord Toneへどう解決するかPiano Rollで確認する');
-  }
+  if (result.resolution.resolved) actions.push('外音からChord Toneへ戻る速さ・方向をPiano Rollで確認する');
+  if (result.suspension.candidates) actions.push('Suspension候補で、解決を少し早める/遅らせる比較案を試す');
+  if (result.anticipation.candidates) actions.push('Anticipation候補を残す案とChord切替後へ移す案を比べる');
   if (result.relationship.scaleOnly) actions.push('コード外・Scale内の音を残す案とChord Toneへ寄せる案を比べる');
-  if (result.relationship.chordOnly) actions.push('Chord内・Scale外の音が和音の色として聞こえる箇所を確認する');
   if (result.relationship.outsideBoth) actions.push('両方の外側の音を外す案と残す案をA/Bで比べる');
   if (!actions.length) actions.push('Chord ToneとScale Toneの違いを詳細モードで確認する');
   return actions.slice(0, 2);
@@ -196,13 +278,12 @@ function renderBeginner(result) {
   card.dataset.beginnerMetric = 'note-function';
   const scaleValue = percent(result.scaleTone.ratio, result.scaleTone.evaluated);
   const chordValue = percent(result.chordTone.ratio, result.chordTone.evaluated);
-  const fn = result.nonChordFunction;
   const actions = beginnerActions(result);
   card.innerHTML = `
     <span class="metric-kicker">Metric</span>
     <strong>音の役割: Scale ${escapeHtml(scaleValue)} / Chord ${escapeHtml(chordValue)}</strong>
-    <small>Passing ${fn.passing} / Neighbor ${fn.neighbor} / Approach ${fn.approach} 候補</small>
-    <div class="metric-meaning"><span>Meaning</span><p>${escapeHtml(relationshipMeaning(result))} ${escapeHtml(temporalMeaning(result))}</p></div>
+    <small>Resolve ${result.resolution.resolved}/${result.resolution.evaluated} · Suspension ${result.suspension.candidates} · Anticipation ${result.anticipation.candidates} · Landing ${result.phraseLanding.count}</small>
+    <div class="metric-meaning"><span>Meaning</span><p>${escapeHtml(relationshipMeaning(result))} ${escapeHtml(resolutionMeaning(result))}</p></div>
     <div class="metric-actions"><span>Action</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></div>
   `;
   grid.append(card);

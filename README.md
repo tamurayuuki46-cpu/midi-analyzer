@@ -15,7 +15,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.21-dev`
+`v0.22-dev`
 
 公開中Version: `v0.18-dev`
 
@@ -36,25 +36,24 @@ Repository名と公開URLのslugは互換性のため`midi-analyzer`のまま維
 
 MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復に加え、**音の役割**を表示します。各項目を `Metric → Meaning → Action` の順で読み、Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。
 
-v0.21-devの「音の役割」では、Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを別概念として扱い、さらに前後のMelody Noteから次を候補表示します。
+## v0.22-dev: Resolution / Landing Analysis
 
-- Passing Tone候補
-- Neighbor Tone候補
-- Approach Note候補
+v0.21までのChord Tone / Non-Chord Tone、Scale Tone / Non-Scale Tone、Passing / Neighbor / Approach候補を維持し、v0.22では「緊張がどこへ解決するか」「Chord changeをどうまたぐか」「フレーズがどこへ着地するか」まで分析します。
 
-これらは確定ラベルではありません。時間間隔が離れすぎている場合や条件が不足する場合は、無理に分類しません。
+追加した候補:
+- **Resolution** — Chord外音から近い次のChord Toneへの移動
+- **Strong / Weak beat context** — musicalBeat基準の発音位置
+- **Suspension** — 旧Chord Toneを保持し、新Chord上で一時的にChord外となって近接Chord Toneへ解決する候補
+- **Anticipation** — 次Chord ToneをChord切替前に先取りする候補
+- **Phrase Landing** — 長めの休符前・曲末等の着地点とDegree / Chord / Scale文脈
 
-minor KeyではScale Toneの比較基準を次から選べます。
+Resolutionでは、target pitch / tick、解決までのtick / musicalBeat、半音距離、上行 / 下行、stepwiseかをEvidenceとして保持します。Suspension / AnticipationもChord境界・Duration・時間条件が不足する場合は断定しません。
 
-- Natural Minor
-- Harmonic Minor
-- Melodic Minor（上行基準）
+4/4だけでなく6/8等のcompound meterでは、denominator単位3つを1 musicalBeatとして扱います。
 
-比較基準を切り替えてもKey候補、元MIDI、Normalized Song、SongProjectは変更しません。
+Piano Rollはread-onlyのまま、Chord × Scale色分けに加えてResolution / Suspension / Anticipation候補を輪郭で補助表示します。
 
-参考曲の分析結果は、具体的なNote列やChord列をコピーするのではなく、音域・旋律の動き・発音位置・反復・外音の解決傾向など抽象化した `Reference Insight` として扱います。
-
-詳細: `docs/BEGINNER_MODE.md`, `docs/ANALYSIS_SPEC.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
+詳細: `docs/ANALYSIS_SPEC.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
 
 ## 1. 素材を集める・保存する
 
@@ -94,6 +93,10 @@ minor KeyではScale Toneの比較基準を次から選べます。
 - Scale Tone / Non-Scale Tone
 - Chord Tone × Scale Toneの関係
 - Passing / Neighbor / Approach候補
+- Resolution候補 + Evidence
+- Strong / Weak musicalBeat context
+- Suspension / Anticipation候補
+- Phrase Landing / Degree summary
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll上の音の役割可視化
 - Motif / Section / 区間Key / 転調候補
@@ -134,14 +137,14 @@ MIDI Archive/Analyzer自身をStem分離サービスにはしません。Moises�
 MIDI読み込み直後:
 - 初心者モード: Key / 音域 / 音の動き / リズム / 反復 / 音の役割
 - 各MetricのMeaning
-- 任意のAction（最大3件を主表示）
+- 任意のAction
 - Reference Insight（抽象特徴のみ）
 - 初心者モード / 詳細モード切替
 
 詳細モード:
 - 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll / 音の役割色分け
 - Harmony: Key / Chord / Degree / Chord Detail / Key素材化
-- Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach候補 / 裏メロ分析
+- Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach / Resolution・Suspension・Anticipation / Phrase Landing / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
 - Structure: Motif / Section / 区間Key / 転調候補
@@ -157,20 +160,13 @@ MIDI読み込み直後:
 
 ## Part Recorderの扱い
 
-v0.7で実装したPart Recorderは、2026-10-13の責務整理で**主UIから退役**しました。
-
-理由:
-- Analyzer内部の簡易Synth Audio録音は「素材を集める / 曲を理解する」の中核ではない
-- Moises → Archive/Analyzer → Demo Composerの流れを分断する
-- Preview / MIDI Export / DAW側のAudio化と役割が重なる
-
-既存`savedTakes`は削除しません。IndexedDB Store / Migration /旧コードは互換性のため当面保持します。
+v0.7で実装したPart Recorderは責務整理で**主UIから退役**しました。既存`savedTakes`は削除せず、IndexedDB Store / Migration /旧コードは互換性のため保持します。
 
 ## Demo Composerとの役割分担
 
 MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 
-曲そのもののChord / Melody / Bass / Drum / Counter Melodyを作る所有者はDemo Composerです。参考曲を丸ごと自分のCompositionとして扱う導線は今後縮小し、source typeを明確にします。
+曲そのもののChord / Melody / Bass / Drum / Counter Melodyを作る所有者はDemo Composerです。参考曲を丸ごと自分のCompositionとして扱う導線は縮小し、source typeを明確にします。
 
 ## 保存方針
 
@@ -183,37 +179,15 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 - Audio BlobをSong Project JSONへ直接埋め込まない
 - 解析・Explainabilityを外部へ自動送信しない
 
-## 実装済み主要機能
+## データ安全性
 
-- `.mid` / `.midi` Import / Normalized Song
-- 読み込み前の初心者スタート
-- 初心者モード / 詳細モード
-- 初心者向けMetric → Meaning → Action
-- Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneの独立分析
-- Passing / Neighbor / Approach候補
-- Natural / Harmonic / Melodic Minor比較
-- Piano Roll音役割可視化
-- Reference Insight → 自分の曲で試す
-- IndexedDB MIDI保存 / 一覧 / 削除
-- Piano Roll / Playback
-- Key / Scale / Chord / Degree
-- Melody / Bass / Rhythm / Motif / Section分析
-- Slash Chord / Chord extension候補
-- Compare / Personal Trend
-- Visualization
-- Clip Library
-- 素材Provenance
-- Basic Pitch Audio→MIDI
-- Note Edit / Quantize
-- Key Transpose / Degree Preserve / 12 Key生成
-- Stem IndexedDB / Solo / Mute / Basic Pitch連携
-- Moises等のStem provenance
-- Analysis JSON / CSV / Markdown / Chord-Degree Text Export
-- RipX Bridge
-- Explainability
-- Higher-level Metrics
-- SongProject v1 Adapter
-- GitHub Actions CI / GitHub Pages
+v0.22ではSchemaを変更しません。
+- Normalized Song変更なし
+- SongProject v1変更なし
+- IndexedDB `midi-analyzer` version 3維持
+- Stem DB version 1維持
+- 元MIDI由来Noteを分析目的で自動修正しない
+- Candidateを自動確定しない
 
 ## 開発
 
@@ -238,23 +212,13 @@ plain HTML/CSS/JavaScript + Vite。
 8. `docs/NOTE_FUNCTION_ANALYSIS.md`
 9. `docs/CLIP_LIBRARY_SPEC.md`
 10. `docs/STORAGE_SPEC.md`
-11. `docs/INTEGRATION_EXPORT_SPEC.md`
-12. `docs/ROADMAP.md`
-13. `CHANGELOG_v0.21.md`
+11. `docs/RELEASE_POLICY.md`
 
-重要仕様は`docs/`を正本とします。
+## v0.22復元ポイント
 
-## v0.21-dev Scope
+- 変更前develop: `fc29b0613adb5ca826c2fff72487a1423c4658ad`
+- Restore branch: `restore/develop-before-resolution-landing-v0.22-20261015`
+- Feature branch: `chatgpt/resolution-landing-v0.22`
+- PR: `#55`
 
-- v0.20のChord Tone × Scale Tone独立分析を維持
-- Chord外音にPassing / Neighbor / Approach候補を追加
-- 候補は前後2音・Step幅・Chord Toneへの解決を使い、条件不足では分類を保留
-- minor Scale基準をNatural / Harmonic / Melodic Minor上行形から選択可能化
-- Piano RollへChord × Scale関係の色分けを追加
-- Piano RollへPassing / Neighbor / Approach候補の輪郭表示を追加
-- Melody Track / Key / Chord / Chord分析Track / Minor Scale基準変更で再計算
-- 元MIDI / Normalized Song / SongProject v1 / IndexedDB v3を変更しない
-- Schema変更なし
-- 360 / 390 / 430pxのChromium回帰をCIで継続する
-
-Android実機のタッチ操作、PWA再起動後のモード保持、長尺Audio、Stem保存、Audio形式は継続確認対象です。
+stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
