@@ -209,17 +209,16 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - v0.22統合commit: `6224947576ec3e925adb7c8881b0bbe02c41b3a7`
 - feature-complete milestone: `chatgpt/v0.22-feature-complete-milestone`
 
-## v0.23-dev 統合 / 公開状態
+## v0.23-dev 統合・公開状態
 - Issue: `#57`（完了）
 - 実装PR: `#58`（developへ統合済み）
-- 文書同期PR: `#59`（developへ統合済み）
 - 実装前develop commit: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
 - 変更前復元点: `restore/develop-before-insight-v0.23-20261015`
 - v0.23統合commit: `41a6b0e53725aaf39fd67d4ad2085986cb00cbff`
 - feature-complete milestone: `chatgpt/v0.23-feature-complete-milestone`
-- main公開前復元点: `restore/main-before-v0.23-publish-20261015`
-- main公開PR: `#60`
-- main公開commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
+- 公開PR: `#60`
+- 公開main commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
+- 公開前main復元点: `restore/main-before-v0.23-publish-20261015`
 - GitHub Pages Deploy: success
 - Schema変更なし
 
@@ -230,9 +229,9 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - Mobile Chromium 360 / 390 / 430px regression: success
 - Structure v0.23 Insight表示: success
 - 統合後develop CI: success
-- PR #60公開前CI: success
-- main統合後CI: success
-- GitHub Pages build/deploy: success
+- 公開PR #60 CI: success
+- 公開main CI: success
+- GitHub Pages build / deploy: success
 
 ## Git運用
 - `develop`: 開発統合

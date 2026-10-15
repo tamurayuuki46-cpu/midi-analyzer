@@ -248,11 +248,9 @@ plain HTML/CSS/JavaScript + Vite。
 - Restore branch: `restore/develop-before-insight-v0.23-20261015`
 - Feature branch: `chatgpt/insight-v0.23`
 - Issue: `#57`
-- develop実装PR: `#58`
-- develop文書同期PR: `#59`
-- main公開前Restore branch: `restore/main-before-v0.23-publish-20261015`
-- main公開PR: `#60`
-- main公開commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
+- 公開PR: `#60`
+- 公開main commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
+- 公開前main復元Branch: `restore/main-before-v0.23-publish-20261015`
 - GitHub Pages Deploy: success
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
