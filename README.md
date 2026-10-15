@@ -15,7 +15,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.18-dev`
+`v0.19-dev`
 
 公開中Version: `v0.17-dev`
 
@@ -27,16 +27,18 @@ Repository名と公開URLのslugは互換性のため`midi-analyzer`のまま維
 
 ## 初心者モード
 
-v0.18-devでは、アプリを開いた最初の画面で次の2択を表示します。
+v0.19-devでは、アプリを開いた最初の画面で次の2択を表示します。
 
 1. **MIDIを保存・整理する** — 端末保存をONにしてArchiveとして残す。
 2. **MIDIを解析する** — 保存せず、その場で特徴を確認することもできる。
 
 初心者時はAudio→MIDI / Note Tools / Stem Referenceなどの詳細ツールを初期状態で隠し、必要な時だけ「詳細ツールを表示」で開きます。
 
-MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、「良いところ」「改善するとよいところ」「次に試すこと（最大3件）」を表示します。必要になった時だけ詳細モードへ切り替え、従来の13解析タブを使えます。
+MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、各項目を `Metric → Meaning → Action` の順で表示します。Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。必要になった時だけ詳細モードへ切り替え、従来の13解析タブを使えます。
 
-詳細: `docs/BEGINNER_MODE.md`
+参考曲の分析結果は、具体的なNote列やChord列をコピーするのではなく、音域・旋律の動き・発音位置・反復の使い方など抽象化した `Reference Insight` として「この特徴を自分の曲で試す」へつなげます。
+
+詳細: `docs/BEGINNER_MODE.md`, `docs/ANALYSIS_SPEC.md`
 
 ## 1. 素材を集める・保存する
 
@@ -86,6 +88,8 @@ MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項
 - Personal Trend
 - Explainability / 「この曲から学べること」
 - Higher-level Metrics + Evidence
+- Metric → Meaning → Action
+- Reference Insight → 自分の曲で試す
 
 Higher-level Metricsは品質・人気・正解の採点ではありません。理解のための候補値と根拠です。
 
@@ -107,8 +111,9 @@ MIDI Archive/Analyzer自身をStem分離サービスにはしません。Moises�
 
 MIDI読み込み直後:
 - 初心者モード: Key / 音域 / 音の動き / リズム / 反復
-- 良いところ / 改善するとよいところ
-- 次に試すこと（最大3件）
+- 各MetricのMeaning
+- 任意のAction（最大3件を主表示）
+- Reference Insight（抽象特徴のみ）
 - 初心者モード / 詳細モード切替
 
 詳細モード:
@@ -161,7 +166,8 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 - `.mid` / `.midi` Import / Normalized Song
 - 読み込み前の初心者スタート
 - 初心者モード / 詳細モード
-- 初心者向け5項目要約 / 良いところ / 改善候補 / 次に試すこと
+- 初心者向け5項目のMetric → Meaning → Action
+- Reference Insight → 自分の曲で試す
 - IndexedDB MIDI保存 / 一覧 / 削除
 - Piano Roll / Playback
 - Key / Scale / Chord / Degree
@@ -207,20 +213,21 @@ plain HTML/CSS/JavaScript + Vite。
 9. `docs/STORAGE_SPEC.md`
 10. `docs/INTEGRATION_EXPORT_SPEC.md`
 11. `docs/ROADMAP.md`
-12. `CHANGELOG_v0.18.md`
+12. `CHANGELOG_v0.19.md`
 
 重要仕様は`docs/`を正本とします。
 
-## v0.18-dev Scope
+## v0.19-dev Scope
 
-- 表示名をMIDI Archive/Analyzerへ変更
-- 最初の画面をArchive / Analyzeの2択にする
-- 詳細ツールを初心者時は隠す
-- MIDI読み込み後の初心者モードを主導線にする
-- Key / 音域 / 音の動き / リズム / 反復を5項目へ要約
-- 良いところ / 改善するとよいところ / 次に試すこと最大3件を表示
+- v0.18のArchive / Analyze初心者導線を維持
+- Key / 音域 / 音の動き / リズム / 反復を5つのMetricとして表示
+- 各MetricへMeaningと任意Actionを付与
+- 「良いところ / 改善点」という採点的な見出しを主要導線から外す
+- 参考曲は具体Note / Chordのコピーではなく抽象化したReference Insightとして扱う
+- Actionは最大3件程度を主表示し、実行しない / 保留も許容する
 - 詳細13タブを削除せず、詳細モードとして保持
 - SongProject v1 / IndexedDB v3 / Clip / Stem / Memoとの互換性を維持
+- Schema変更なし
 - 360 / 390 / 430pxのChromium回帰をCIで継続する
 
 Android実機のタッチ操作、PWA再起動後のモード保持、長尺Audio、Stem保存、Audio形式は継続確認対象です。
