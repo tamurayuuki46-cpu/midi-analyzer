@@ -13,9 +13,15 @@
 
 ## 次期開発版
 - Version: `v0.25-dev`
+- Develop integration PR: `#70`（merged）
+- Develop merge commit: `b091317d4903318e2cf0ae0ee9b0c6a19815c09c`
 - Feature branch: `chatgpt/midi-analyzer-v0.25-intent-loop`
+- Final milestone branch: `chatgpt/v0.25-final-milestone-20261015`
 - Restore branch: `restore/develop-before-intent-loop-v0.25-20261015`
-- Status: Intent-driven Experiment Loop実装・CI検証中
+- Feature branch CI #705: success
+- PR CI #707: success
+- Develop integration CI #708: success
+- Status: Intent-driven Experiment Loopはdevelopへ統合済み
 - Public: 未公開。main / GitHub Pagesはv0.24-devを維持する。
 
 ## 復元
@@ -24,6 +30,7 @@
 - v0.24 feature-complete milestone: `chatgpt/v0.24-feature-complete-milestone`
 - v0.24 dev-complete milestone: `chatgpt/v0.24-dev-complete-milestone`
 - v0.25開発前復元Branch: `restore/develop-before-intent-loop-v0.25-20261015`
+- v0.25 final milestone: `chatgpt/v0.25-final-milestone-20261015`
 
 ## Stable
 stable tagは未作成。Android実機および必要なCubasis/Cubase実機確認後のみ作成する。
@@ -35,7 +42,7 @@ stable tagは未作成。Android実機および必要なCubasis/Cubase実機確�
 - Arrangement Lab向けproposal-only handoff
 - 修正前 / 修正後の再分析
 
-## v0.25の開発機能
+## v0.25のdevelop統合済み機能
 - 目的選択
 - Intent-aware TOP 3
 - rationale
