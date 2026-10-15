@@ -18,7 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
-    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.18-dev$/, 'Browser title must use the new app name');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.23-dev$/, 'Browser title must use the current app version');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -69,10 +69,15 @@ try {
     await beginnerStart.waitFor({ state: 'hidden' });
     const beginnerPanel = page.locator('.beginner-mode-panel');
     await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
-    await beginnerPanel.getByRole('heading', { name: '良いところ', exact: true }).waitFor();
-    await beginnerPanel.getByRole('heading', { name: '改善するとよいところ', exact: true }).waitFor();
-    await beginnerPanel.getByRole('heading', { name: '次に試すこと', exact: true }).waitFor();
-    assert.equal(await beginnerPanel.locator('[data-beginner-metric]').count(), 5, 'Beginner mode must show five core metrics');
+    await beginnerPanel.getByText('Metric', { exact: true }).first().waitFor();
+    await beginnerPanel.getByText('Meaning', { exact: true }).first().waitFor();
+    await beginnerPanel.getByRole('heading', { name: '次に試せること', exact: true }).waitFor();
+    await beginnerPanel.getByRole('heading', { name: '参考曲から借りるのは音符ではなく考え方', exact: true }).waitFor();
+    assert.equal(await beginnerPanel.locator('[data-beginner-metric]').count(), 6, 'Beginner mode must show five core metrics plus note function');
+    const noteFunctionMetric = beginnerPanel.locator('[data-beginner-metric="note-function"]');
+    await noteFunctionMetric.getByText(/音の役割:/).waitFor();
+    await noteFunctionMetric.getByText(/Resolve .* Suspension .* Anticipation .* Landing/).waitFor();
+    assert.ok(await beginnerPanel.locator('[data-reference-insight]').count() > 0, 'Beginner mode must expose abstract Reference → Action insights');
     assert.equal(await page.locator('[data-analysis-tabs]').isHidden(), true, 'Detailed tabs must start hidden in beginner mode');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner mode overflows at ${width}px`);
 
@@ -93,6 +98,32 @@ try {
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name} overflows at ${width}px`);
     }
     assert.equal(await page.getByRole('tab', { name: 'Recorder', exact: true }).count(), 0, 'Recorder must stay retired from the main workflow');
+
+    await page.getByRole('tab', { name: 'Structure', exact: true }).click();
+    await page.getByRole('heading', { name: 'Phrase contour / Peak / Climax候補', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Section間 Landing比較', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '曲の特徴 Top 5', exact: true }).waitFor();
+    assert.ok(await page.locator('[data-top-characteristics] [data-top-characteristic]').count() > 0, 'Structure must expose whole-song characteristic insights');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `v0.23 Structure insight overflows at ${width}px`);
+
+    await page.getByRole('tab', { name: 'Melody', exact: true }).click();
+    await page.getByRole('heading', { name: 'Chord / Scale / 解決・着地候補', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '前後の動きから見るChord外音', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '緊張から解決へどう動くか', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'フレーズの着地点', exact: true }).waitFor();
+    await page.getByText('Passing候補', { exact: true }).waitFor();
+    await page.getByText('Neighbor候補', { exact: true }).waitFor();
+    await page.getByText('Approach候補', { exact: true }).waitFor();
+    await page.getByText('Suspension候補', { exact: true }).waitFor();
+    await page.getByText('Anticipation候補', { exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Note Function II overflows at ${width}px`);
+
+    await page.getByRole('tab', { name: '概要', exact: true }).click();
+    const functionGuide = page.locator('[data-piano-roll-function-guide]');
+    await functionGuide.waitFor({ state: 'visible' });
+    await functionGuide.getByText(/音の役割色分け:/).waitFor();
+    assert.ok(await page.locator('.piano-note[class*="is-function-"]').count() > 0, 'Piano Roll must expose note-function classes');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Piano Roll note colors overflow at ${width}px`);
 
     await page.getByRole('tab', { name: 'Export', exact: true }).click();
     await page.getByRole('heading', { name: 'Demo Composerへ渡す', exact: true }).waitFor();
@@ -137,5 +168,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / beginner analysis / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px v0.23 phrase/section/top5 insight / beginner start / six-metric Metric→Meaning→Action / Note Function II resolution-landing / detail mode / handoff / storage regression passed');
 } finally { await browser.close(); }

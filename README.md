@@ -15,9 +15,9 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.18-dev`
+`v0.23-dev`
 
-公開中Version: `v0.17-dev`
+公開中Version: `v0.18-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -27,16 +27,49 @@ Repository名と公開URLのslugは互換性のため`midi-analyzer`のまま維
 
 ## 初心者モード
 
-v0.18-devでは、アプリを開いた最初の画面で次の2択を表示します。
+アプリを開いた最初の画面で次の2択を表示します。
 
 1. **MIDIを保存・整理する** — 端末保存をONにしてArchiveとして残す。
 2. **MIDIを解析する** — 保存せず、その場で特徴を確認することもできる。
 
 初心者時はAudio→MIDI / Note Tools / Stem Referenceなどの詳細ツールを初期状態で隠し、必要な時だけ「詳細ツールを表示」で開きます。
 
-MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、「良いところ」「改善するとよいところ」「次に試すこと（最大3件）」を表示します。必要になった時だけ詳細モードへ切り替え、従来の13解析タブを使えます。
+MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復に加え、**音の役割**を表示します。各項目を `Metric → Meaning → Action` の順で読み、Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。
 
-詳細: `docs/BEGINNER_MODE.md`
+## v0.22-dev: Resolution / Landing Analysis
+
+v0.21までのChord Tone / Non-Chord Tone、Scale Tone / Non-Scale Tone、Passing / Neighbor / Approach候補を維持し、v0.22では「緊張がどこへ解決するか」「Chord changeをどうまたぐか」「フレーズがどこへ着地するか」まで分析します。
+
+追加した候補:
+- **Resolution** — Chord外音から近い次のChord Toneへの移動
+- **Strong / Weak beat context** — musicalBeat基準の発音位置
+- **Suspension** — 旧Chord Toneを保持し、新Chord上で一時的にChord外となって近接Chord Toneへ解決する候補
+- **Anticipation** — 次Chord ToneをChord切替前に先取りする候補
+- **Phrase Landing** — 長めの休符前・曲末等の着地点とDegree / Chord / Scale文脈
+
+Resolutionでは、target pitch / tick、解決までのtick / musicalBeat、半音距離、上行 / 下行、stepwiseかをEvidenceとして保持します。Suspension / AnticipationもChord境界・Duration・時間条件が不足する場合は断定しません。
+
+4/4だけでなく6/8等のcompound meterでは、denominator単位3つを1 musicalBeatとして扱います。
+
+Piano Rollはread-onlyのまま、Chord × Scale色分けに加えてResolution / Suspension / Anticipation候補を輪郭で補助表示します。
+
+詳細: `docs/ANALYSIS_SPEC.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
+
+## v0.23-dev: Phrase / Section / Compare / Top5 Insight
+
+v0.23では既存Analyzerを作り直さず、そのEvidenceを「曲の特徴として何を見るか」へまとめる**Insight Layer**を追加します。
+
+追加内容:
+- **Phrase contour** — arch / valley / ascending / descending / mixed候補
+- **Peak note** — Melody最高音と曲内位置
+- **Climax candidate** — Pitch / Velocity / 周辺発音密度から候補表示
+- **Section Landing比較** — Sectionごとの着地Pitch / Degree / Chord・Scale relation
+- **Reference vs Own差分説明** — 数値差の大きい特徴を最大5件、文章で説明
+- **曲全体の特徴 Top 5** — Evidence + Meaningを最大5件だけ表示
+
+Insightは品質Scoreではありません。Verse / Chorus等のSection役割も自動確定しません。元MIDI、Normalized Song、SongProject、保存Schemaは変更しません。
+
+詳細: `docs/INSIGHT_ANALYSIS_SPEC.md`
 
 ## 1. 素材を集める・保存する
 
@@ -72,6 +105,19 @@ MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項
 - Key / Scale候補
 - Chord / Degree / Chord Detail
 - Melody / Bass / Rhythm分析
+- Chord Tone / Non-Chord Tone
+- Scale Tone / Non-Scale Tone
+- Chord Tone × Scale Toneの関係
+- Passing / Neighbor / Approach候補
+- Resolution候補 + Evidence
+- Strong / Weak musicalBeat context
+- Suspension / Anticipation候補
+- Phrase Landing / Degree summary
+- Phrase contour / Peak / Climax候補
+- Section Landing比較
+- 曲全体の特徴 Top 5
+- Natural / Harmonic / Melodic Minor比較
+- Piano Roll上の音の役割可視化
 - Motif / Section / 区間Key / 転調候補
 - 裏メロ分析
 - Track役割候補
@@ -82,12 +128,14 @@ MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項
 - Section Map
 - Note / Velocity Heatmap
 - 2 MIDI比較
-- 参考曲 vs 自作曲
+- 参考曲 vs 自作曲 + 差分説明Top 5
 - Personal Trend
 - Explainability / 「この曲から学べること」
 - Higher-level Metrics + Evidence
+- Metric → Meaning → Action
+- Reference Insight → 自分の曲で試す
 
-Higher-level Metricsは品質・人気・正解の採点ではありません。理解のための候補値と根拠です。
+Higher-level MetricsとInsightは品質・人気・正解の採点ではありません。理解のための候補値と根拠です。
 
 ## Moisesとの役割分担
 
@@ -106,20 +154,21 @@ MIDI Archive/Analyzer自身をStem分離サービスにはしません。Moises�
 - MIDI Import
 
 MIDI読み込み直後:
-- 初心者モード: Key / 音域 / 音の動き / リズム / 反復
-- 良いところ / 改善するとよいところ
-- 次に試すこと（最大3件）
+- 初心者モード: Key / 音域 / 音の動き / リズム / 反復 / 音の役割
+- 各MetricのMeaning
+- 任意のAction
+- Reference Insight（抽象特徴のみ）
 - 初心者モード / 詳細モード切替
 
 詳細モード:
-- 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll
+- 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll / 音の役割色分け
 - Harmony: Key / Chord / Degree / Chord Detail / Key素材化
-- Melody: 主旋律基本分析 / 裏メロ分析
+- Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach / Resolution・Suspension・Anticipation / Phrase Landing / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
-- Structure: Motif / Section / 区間Key / 転調候補
+- Structure: Motif / Section / Phrase contour / Peak / Climax / Section Landing比較 / 曲全体Top 5 / 区間Key / 転調候補
 - Visual: Timeline / Contour / Density / Energy / Section Map / Heatmap
-- Compare: 2 MIDI比較 / Personal Trend
+- Compare: 2 MIDI比較 / Reference vs Own差分説明 / Personal Trend
 - Library: 保存済みMIDI + 素材Clip Library / 出自 / タグ検索
 - Export: Analysis / Reference / Material Export
 - AI: 端末内Explainability / 学べること / AI Prompt Export
@@ -130,20 +179,13 @@ MIDI読み込み直後:
 
 ## Part Recorderの扱い
 
-v0.7で実装したPart Recorderは、2026-10-13の責務整理で**主UIから退役**しました。
-
-理由:
-- Analyzer内部の簡易Synth Audio録音は「素材を集める / 曲を理解する」の中核ではない
-- Moises → Archive/Analyzer → Demo Composerの流れを分断する
-- Preview / MIDI Export / DAW側のAudio化と役割が重なる
-
-既存`savedTakes`は削除しません。IndexedDB Store / Migration /旧コードは互換性のため当面保持します。
+v0.7で実装したPart Recorderは責務整理で**主UIから退役**しました。既存`savedTakes`は削除せず、IndexedDB Store / Migration /旧コードは互換性のため保持します。
 
 ## Demo Composerとの役割分担
 
 MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 
-曲そのもののChord / Melody / Bass / Drum / Counter Melodyを作る所有者はDemo Composerです。参考曲を丸ごと自分のCompositionとして扱う導線は今後縮小し、source typeを明確にします。
+曲そのもののChord / Melody / Bass / Drum / Counter Melodyを作る所有者はDemo Composerです。参考曲を丸ごと自分のCompositionとして扱う導線は縮小し、source typeを明確にします。
 
 ## 保存方針
 
@@ -156,32 +198,16 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 - Audio BlobをSong Project JSONへ直接埋め込まない
 - 解析・Explainabilityを外部へ自動送信しない
 
-## 実装済み主要機能
+## データ安全性
 
-- `.mid` / `.midi` Import / Normalized Song
-- 読み込み前の初心者スタート
-- 初心者モード / 詳細モード
-- 初心者向け5項目要約 / 良いところ / 改善候補 / 次に試すこと
-- IndexedDB MIDI保存 / 一覧 / 削除
-- Piano Roll / Playback
-- Key / Scale / Chord / Degree
-- Melody / Bass / Rhythm / Motif / Section分析
-- Slash Chord / Chord extension候補
-- Compare / Personal Trend
-- Visualization
-- Clip Library
-- 素材Provenance
-- Basic Pitch Audio→MIDI
-- Note Edit / Quantize
-- Key Transpose / Degree Preserve / 12 Key生成
-- Stem IndexedDB / Solo / Mute / Basic Pitch連携
-- Moises等のStem provenance
-- Analysis JSON / CSV / Markdown / Chord-Degree Text Export
-- RipX Bridge
-- Explainability
-- Higher-level Metrics
-- SongProject v1 Adapter
-- GitHub Actions CI / GitHub Pages
+v0.23ではSchemaを変更しません。
+- Normalized Song変更なし
+- SongProject v1変更なし
+- IndexedDB `midi-analyzer` version 3維持
+- Stem DB version 1維持
+- 元MIDI由来Noteを分析目的で自動修正しない
+- Candidateを自動確定しない
+- Insightの内部順位を品質Scoreとして公開しない
 
 ## 開発
 
@@ -203,24 +229,24 @@ plain HTML/CSS/JavaScript + Vite。
 5. `docs/PRODUCT_SPEC.md`
 6. `docs/ANALYSIS_SPEC.md`
 7. `docs/BEGINNER_MODE.md`
-8. `docs/CLIP_LIBRARY_SPEC.md`
-9. `docs/STORAGE_SPEC.md`
-10. `docs/INTEGRATION_EXPORT_SPEC.md`
-11. `docs/ROADMAP.md`
-12. `CHANGELOG_v0.18.md`
+8. `docs/NOTE_FUNCTION_ANALYSIS.md`
+9. `docs/INSIGHT_ANALYSIS_SPEC.md`
+10. `docs/CLIP_LIBRARY_SPEC.md`
+11. `docs/STORAGE_SPEC.md`
+12. `docs/RELEASE_POLICY.md`
 
-重要仕様は`docs/`を正本とします。
+## v0.22復元ポイント
 
-## v0.18-dev Scope
+- 変更前develop: `fc29b0613adb5ca826c2fff72487a1423c4658ad`
+- Restore branch: `restore/develop-before-resolution-landing-v0.22-20261015`
+- Feature branch: `chatgpt/resolution-landing-v0.22`
+- PR: `#55`
 
-- 表示名をMIDI Archive/Analyzerへ変更
-- 最初の画面をArchive / Analyzeの2択にする
-- 詳細ツールを初心者時は隠す
-- MIDI読み込み後の初心者モードを主導線にする
-- Key / 音域 / 音の動き / リズム / 反復を5項目へ要約
-- 良いところ / 改善するとよいところ / 次に試すこと最大3件を表示
-- 詳細13タブを削除せず、詳細モードとして保持
-- SongProject v1 / IndexedDB v3 / Clip / Stem / Memoとの互換性を維持
-- 360 / 390 / 430pxのChromium回帰をCIで継続する
+## v0.23復元ポイント
 
-Android実機のタッチ操作、PWA再起動後のモード保持、長尺Audio、Stem保存、Audio形式は継続確認対象です。
+- 変更前develop: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
+- Restore branch: `restore/develop-before-insight-v0.23-20261015`
+- Feature branch: `chatgpt/insight-v0.23`
+- Issue: `#57`
+
+stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。

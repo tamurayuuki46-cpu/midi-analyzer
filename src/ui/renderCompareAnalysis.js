@@ -46,6 +46,25 @@ function renderMetric(label, metric, format = value, suffix = '', deltaFormat = 
   `;
 }
 
+function renderDifferenceInsights(result) {
+  const insights = result?.differenceInsights ?? [];
+  if (!insights.length) return '<p class="empty-state">差分を説明できるEvidenceが不足しています。</p>';
+  return `
+    <div class="compare-difference-list" data-compare-differences>
+      ${insights.map((insight, index) => `
+        <article class="compare-difference-card" data-compare-difference="${escapeHtml(insight.id)}">
+          <div class="compare-difference-heading">
+            <strong>${index + 1}. ${escapeHtml(insight.title)}</strong>
+            <span class="status-pill">Difference</span>
+          </div>
+          <p>${escapeHtml(insight.meaning)}</p>
+          <small>${escapeHtml(insight.evidence)}</small>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderComparison(result) {
   if (!result) return '<p class="empty-state">比較するMIDIを選ぶと、現在のMIDIと並べて表示します。</p>';
   const m = result.metrics;
@@ -71,6 +90,10 @@ function renderComparison(result) {
       <span class="status-pill">Top Key ${result.sameTopKey ? '同じ' : '異なる'}</span>
       <span class="status-pill">Chord共通度 ${percent(result.chordSimilarity)}</span>
     </div>
+    <section class="compare-difference-section">
+      <div class="compare-heading"><h4>違いの要点</h4><span class="status-pill">Top ${result.differenceInsights?.length ?? 0}</span></div>
+      ${renderDifferenceInsights(result)}
+    </section>
     <div class="compare-metric-grid">
       ${renderMetric('Melody音域', m.melodyRange, value, ' st')}
       ${renderMetric('Melody密度', m.melodyDensity)}

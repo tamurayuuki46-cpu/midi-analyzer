@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzePersonalTrend, compareSongs, summarizeSongForCompare } from '../src/analysis/compare/index.js';
 
-function makeSong({ name = 'song.mid', root = 60, bpm = 120 } = {}) {
+function makeSong({ name = 'song.mid', root = 60, bpm = 120, melodySpread = 0 } = {}) {
   const ppq = 480;
   const barTicks = ppq * 4;
   const notes = [];
   const chordPitches = [root, root + 4, root + 7];
-  const melodyPitches = [root + 12, root + 14, root + 16, root + 19];
+  const melodyPitches = [root + 12, root + 14, root + 16 + melodySpread, root + 19 + melodySpread];
 
   for (let bar = 0; bar < 4; bar += 1) {
     const barStart = bar * barTicks;
@@ -47,21 +47,33 @@ test('summarizeSongForCompare exposes key, chord and part metrics', () => {
   assert.ok(summary.rhythmOnsetsPerQuarter > 0);
 });
 
-test('compareSongs reports zero deltas for identical songs', () => {
+test('compareSongs reports zero deltas for identical songs and keeps neutral explanations', () => {
   const song = makeSong();
   const result = compareSongs(song, song);
   assert.equal(result.sameTopKey, true);
   assert.equal(result.chordSimilarity, 1);
   assert.equal(result.metrics.melodyRange.delta, 0);
   assert.equal(result.metrics.noteDensity.delta, 0);
+  assert.ok(result.differenceInsights.length > 0);
+  assert.ok(result.differenceInsights.length <= 5);
+  assert.match(result.note, /優劣として評価しません/);
 });
 
-test('compareSongs distinguishes a transposed reference from own song without judging it', () => {
-  const reference = makeSong({ name: 'reference.mid', root: 62 });
-  const own = makeSong({ name: 'own.mid', root: 60 });
+test('compareSongs explains the largest differences between reference and own song', () => {
+  const reference = makeSong({ name: 'reference.mid', root: 62, melodySpread: 0 });
+  const own = makeSong({ name: 'own.mid', root: 60, melodySpread: 7 });
   const result = compareSongs(reference, own);
   assert.equal(result.reference.name, 'reference.mid');
   assert.equal(result.own.name, 'own.mid');
+  assert.ok(result.differenceInsights.length > 0);
+  assert.ok(result.differenceInsights.some((item) => item.id === 'key'));
+  assert.ok(result.differenceInsights.some((item) => item.id === 'melody-range'));
+  for (const item of result.differenceInsights) {
+    assert.ok(item.title);
+    assert.ok(item.evidence);
+    assert.ok(item.meaning);
+    assert.equal(Object.hasOwn(item, 'weight'), false);
+  }
   assert.match(result.note, /優劣として評価しません/);
 });
 
