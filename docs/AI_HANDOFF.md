@@ -4,7 +4,7 @@
 `v0.25-dev`
 
 公開中Version:
-`v0.24-dev`
+`v0.25-dev`
 
 最新安定版:
 未作成
@@ -97,7 +97,7 @@ Analyzerは観測・説明・候補提案まで。Reharmonize / Voicing / 密度
 - `docs/DIAGNOSTIC_LOOP_SPEC.md`
 
 ## v0.25-dev Intent-driven Experiment Loop
-v0.24を作り直さず、既存Evidenceを「今回の目的に対して何を1項目だけ試すか」へ接続するLayer。developへ統合済み。
+v0.24を作り直さず、既存Evidenceを「今回の目的に対して何を1項目だけ試すか」へ接続するLayer。develop統合・main公開済み。
 
 フロー:
 `目的 → Intent-aware TOP3 → 1項目実験 → Arrangement Lab → Compare再分析 → 採用/見送り記録`
@@ -248,23 +248,27 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - GitHub Pages Deploy: success
 - Schema変更なし
 
-## v0.25-dev 統合状態
+## v0.25-dev 統合・公開状態
 - 実装前develop commit: `65667b01adc8c050c18e040c562b3aab40a937a6`
 - 変更前復元点: `restore/develop-before-intent-loop-v0.25-20261015`
 - feature branch: `chatgpt/midi-analyzer-v0.25-intent-loop`
 - final milestone: `chatgpt/v0.25-final-milestone-20261015`
 - develop integration PR: `#70`（merged）
 - develop merge commit: `b091317d4903318e2cf0ae0ee9b0c6a19815c09c`
+- 公開PR: `#72`（merged）
+- 公開main commit: `e57e8b013a00b2a4400d1ebbb73b461226f3bf94`
+- 公開前main復元点: `restore/main-before-v0.25-publish-20261015`
 - feature branch CI #705: success
 - PR CI #707: success
-- develop integration CI #708: success
+- develop integration CI #708 / #713: success
+- main CI #716: success
+- GitHub Pages Deploy #34: success
 - Unit tests: 158 passed / 0 failed
 - Production build: success
 - Basic Pitch local model assets: success
 - Mobile Chromium 360 / 390 / 430px regression: success
 - Schema変更なし
 - IndexedDB Migrationなし
-- `main` / 公開版はv0.24-devのまま
 
 ## Git運用
 - `develop`: 開発統合
@@ -283,4 +287,4 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 長尺Audio / quota / Cancel / retry
 - Cubasis / Cubase実機取込
 
-`develop`はv0.25-dev、`main` / 公開Versionはv0.24-dev。stable tagはAndroid実機確認前に作成しない。
+`develop` / `main` / 公開Versionはv0.25-dev。stable tagはAndroid実機確認前に作成しない。
