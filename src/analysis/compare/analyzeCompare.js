@@ -77,6 +77,79 @@ function delta(left, right) {
   return round(left - right, 3);
 }
 
+function formatNumber(value, suffix = '') {
+  return Number.isFinite(value) ? `${round(value, 2)}${suffix}` : '—';
+}
+
+function formatPercent(value) {
+  return Number.isFinite(value) ? `${Math.round(value * 100)}%` : '—';
+}
+
+function buildMetricInsight({ id, title, metric, suffix = '', percent = false, scale = 1, higher, lower }) {
+  if (!Number.isFinite(metric?.reference) || !Number.isFinite(metric?.own) || !Number.isFinite(metric?.delta)) return null;
+  const formatter = percent ? formatPercent : (value) => formatNumber(value, suffix);
+  const absDelta = Math.abs(metric.delta);
+  const base = Math.max(Math.abs(metric.reference), Math.abs(metric.own), scale, 1e-9);
+  let meaning = '参考曲と自作曲はこの指標でほぼ同じです。';
+  if (metric.delta > 0) meaning = higher;
+  else if (metric.delta < 0) meaning = lower;
+  return Object.freeze({
+    id,
+    title,
+    weight: round(absDelta / base, 4) ?? 0,
+    reference: metric.reference,
+    own: metric.own,
+    delta: metric.delta,
+    evidence: `参考 ${formatter(metric.reference)} / 自作 ${formatter(metric.own)}`,
+    meaning,
+  });
+}
+
+function buildDifferenceInsights(reference, own, metrics, sameTopKey, similarity) {
+  const candidates = [
+    buildMetricInsight({ id: 'melody-range', title: 'Melody音域', metric: metrics.melodyRange, suffix: ' st', scale: 12, higher: '自作曲のMelody音域が参考曲より広いです。', lower: '自作曲のMelody音域が参考曲より狭いです。' }),
+    buildMetricInsight({ id: 'melody-density', title: 'Melody密度', metric: metrics.melodyDensity, scale: 1, higher: '自作曲のMelody発音密度が参考曲より高いです。', lower: '自作曲のMelody発音密度が参考曲より低いです。' }),
+    buildMetricInsight({ id: 'melody-leap', title: 'Melody平均跳躍', metric: metrics.melodyAverageLeap, suffix: ' st', scale: 4, higher: '自作曲は参考曲より大きい跳躍を使う傾向です。', lower: '自作曲は参考曲より順次的な動きが多い傾向です。' }),
+    buildMetricInsight({ id: 'bass-movement', title: 'Bass移動量', metric: metrics.bassAverageMovement, suffix: ' st', scale: 4, higher: '自作曲のBassは参考曲よりPitch移動が大きいです。', lower: '自作曲のBassは参考曲よりPitch移動が小さいです。' }),
+    buildMetricInsight({ id: 'bass-root', title: 'Bass Root率', metric: metrics.bassRootRatio, percent: true, scale: 0.25, higher: '自作曲は参考曲よりBassがChord Rootにいる割合が高いです。', lower: '自作曲は参考曲よりBassがChord Root以外を使う割合が高いです。' }),
+    buildMetricInsight({ id: 'rhythm-density', title: 'Rhythm密度', metric: metrics.rhythmOnsetsPerQuarter, scale: 1, higher: '自作曲のRhythm onset密度が参考曲より高いです。', lower: '自作曲のRhythm onset密度が参考曲より低いです。' }),
+    buildMetricInsight({ id: 'on-beat', title: '拍頭率', metric: metrics.rhythmOnBeatRatio, percent: true, scale: 0.25, higher: '自作曲は参考曲より拍頭に発音が集まる傾向です。', lower: '自作曲は参考曲より拍の途中に発音が置かれる傾向です。' }),
+    buildMetricInsight({ id: 'note-density', title: '全体Note密度', metric: metrics.noteDensity, scale: 1, higher: '自作曲の全体Note密度が参考曲より高いです。', lower: '自作曲の全体Note密度が参考曲より低いです。' }),
+    buildMetricInsight({ id: 'modulation', title: '転調候補数', metric: metrics.modulationCount, scale: 1, higher: '自作曲は参考曲より区間Key切替候補が多いです。', lower: '自作曲は参考曲より区間Key切替候補が少ないです。' }),
+  ].filter(Boolean);
+
+  if (reference.key && own.key) {
+    candidates.push(Object.freeze({
+      id: 'key',
+      title: 'Top Key候補',
+      weight: sameTopKey ? 0 : 1,
+      reference: reference.key,
+      own: own.key,
+      delta: null,
+      evidence: `参考 ${reference.key} / 自作 ${own.key}`,
+      meaning: sameTopKey ? 'Top Key候補は同じです。' : 'Top Key候補が異なります。移調差だけでなくScale構成の違いも確認できます。',
+    }));
+  }
+
+  if (Number.isFinite(similarity)) {
+    candidates.push(Object.freeze({
+      id: 'chord-similarity',
+      title: 'Chord集合の共通度',
+      weight: round(1 - similarity, 4) ?? 0,
+      reference: null,
+      own: null,
+      delta: null,
+      evidence: `共通度 ${formatPercent(similarity)}`,
+      meaning: similarity >= 0.75 ? '使われるChord集合はかなり共通しています。' : similarity >= 0.4 ? '共通Chordと異なるChordが混在しています。' : '使われるChord集合の違いが大きいです。',
+    }));
+  }
+
+  return Object.freeze(candidates
+    .sort((a, b) => b.weight - a.weight || a.id.localeCompare(b.id))
+    .slice(0, 5)
+    .map(({ weight, ...item }) => Object.freeze(item)));
+}
+
 export function compareSongs(referenceSong, ownSong) {
   const reference = summarizeSongForCompare(referenceSong);
   const own = summarizeSongForCompare(ownSong);
@@ -91,14 +164,18 @@ export function compareSongs(referenceSong, ownSong) {
     noteDensity: Object.freeze({ reference: reference.noteDensity, own: own.noteDensity, delta: delta(own.noteDensity, reference.noteDensity) }),
     modulationCount: Object.freeze({ reference: reference.modulationCount, own: own.modulationCount, delta: own.modulationCount - reference.modulationCount }),
   });
+  const sameTopKey = Boolean(reference.key && own.key && reference.key === own.key);
+  const similarity = chordSimilarity(reference.uniqueChords, own.uniqueChords);
+  const differenceInsights = buildDifferenceInsights(reference, own, metrics, sameTopKey, similarity);
 
   return Object.freeze({
     reference,
     own,
     metrics,
-    sameTopKey: Boolean(reference.key && own.key && reference.key === own.key),
-    chordSimilarity: chordSimilarity(reference.uniqueChords, own.uniqueChords),
-    note: '比較値は作曲判断の補助です。似ている/違うを優劣として評価しません。',
+    sameTopKey,
+    chordSimilarity: similarity,
+    differenceInsights,
+    note: '比較値と差分説明は作曲判断の補助です。似ている/違うを優劣として評価しません。',
   });
 }
 
