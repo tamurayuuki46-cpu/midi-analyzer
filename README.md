@@ -17,7 +17,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 `v0.25-dev`
 
-公開中Version: `v0.24-dev`
+公開中Version: `v0.25-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -309,11 +309,16 @@ plain HTML/CSS/JavaScript + Vite。
 - 公開前main復元Branch: `restore/main-before-v0.24-publish-20261015`
 - GitHub Pages Deploy: success
 
-## v0.25復元ポイント / 開発
+## v0.25復元ポイント / 公開
 
 - 変更前develop: `65667b01adc8c050c18e040c562b3aab40a937a6`
-- Restore branch: `restore/develop-before-intent-loop-v0.25-20261015`
+- Develop Restore branch: `restore/develop-before-intent-loop-v0.25-20261015`
 - Feature branch: `chatgpt/midi-analyzer-v0.25-intent-loop`
-- main / 公開版: `v0.24-dev`のまま変更しない
+- Final milestone: `chatgpt/v0.25-final-milestone-20261015`
+- 公開PR: `#72`
+- 公開main commit: `e57e8b013a00b2a4400d1ebbb73b461226f3bf94`
+- 公開前main復元Branch: `restore/main-before-v0.25-publish-20261015`
+- Main CI #716: success
+- GitHub Pages Deploy #34: success
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
