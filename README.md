@@ -17,7 +17,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 `v0.23-dev`
 
-公開中Version: `v0.18-dev`
+公開中Version: `v0.23-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -242,11 +242,15 @@ plain HTML/CSS/JavaScript + Vite。
 - Feature branch: `chatgpt/resolution-landing-v0.22`
 - PR: `#55`
 
-## v0.23復元ポイント
+## v0.23復元ポイント / 公開
 
 - 変更前develop: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
 - Restore branch: `restore/develop-before-insight-v0.23-20261015`
 - Feature branch: `chatgpt/insight-v0.23`
 - Issue: `#57`
+- 公開PR: `#60`
+- 公開main commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
+- 公開前main復元Branch: `restore/main-before-v0.23-publish-20261015`
+- GitHub Pages Deploy: success
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
