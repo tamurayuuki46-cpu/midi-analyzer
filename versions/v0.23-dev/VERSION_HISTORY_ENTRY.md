@@ -3,7 +3,7 @@
 更新日: 2026-10-15
 
 ## 状態
-v0.22-devのNote Function IIを保持し、既存AnalyzerのEvidenceを初心者向けにまとめるInsight Layerを追加。
+Phrase / Section / Compare / Top5 Insightを実装し、PR #58でdevelopへ統合済み。既存AnalyzerのEvidenceを初心者向けにまとめるRead-only Insight Layerを追加した。
 
 ## 主な変更
 - Phrase contour / Peak / Climax candidate
@@ -28,14 +28,22 @@ InsightはRead-only。
 - SongProject v1: 変更なし
 - IndexedDB: version 3維持
 
-## 復元ポイント
-`restore/develop-before-insight-v0.23-20261015`
+## Git
+- Issue: `#57`
+- PR: `#58`
+- develop統合commit: `41a6b0e53725aaf39fd67d4ad2085986cb00cbff`
+- 変更前復元ポイント: `restore/develop-before-insight-v0.23-20261015`
+- feature-complete milestone: `chatgpt/v0.23-feature-complete-milestone`
 
-## 開発Branch
-`chatgpt/insight-v0.23`
-
-## Issue
-`#57`
+## 自動検証
+- Unit tests: success
+- Production build: success
+- Basic Pitch local model assets: success
+- Mobile Chromium 360 / 390 / 430px: success
+- 統合後develop CI: success
 
 ## stable
 未作成。Android実機および必要なCubasis/Cubase確認後のみ作成する。
+
+## 公開
+`main` / GitHub Pagesはv0.18-devのまま。v0.23のmain昇格・公開はこの作業では行っていない。
