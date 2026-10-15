@@ -278,12 +278,15 @@ plain HTML/CSS/JavaScript + Vite。
 - 公開前main復元Branch: `restore/main-before-v0.23-publish-20261015`
 - GitHub Pages Deploy: success
 
-## v0.24復元ポイント / 開発
+## v0.24復元ポイント / develop統合
 
 - 変更前develop: `24aa53240a3ff0ab0794569459614baa85e7335f`
 - Restore branch: `restore/develop-before-diagnostic-loop-v0.24-20261015`
 - Feature branch: `chatgpt/diagnostic-loop-v0.24`
 - 実装PR: `#65`
-- 公開中main: `v0.23-dev`（v0.24はdevelop統合・main昇格前）
+- develop統合commit: `71bb387f41056bf15a489a6a2a4983775666f1c5`
+- develop統合後CI: success
+- Feature-complete milestone: `chatgpt/v0.24-feature-complete-milestone`
+- 公開中main: `v0.23-dev`（v0.24はdevelop統合済み・main未公開）
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
