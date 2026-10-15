@@ -30,18 +30,33 @@ function saveMode(mode) {
   }
 }
 
+function list(items) {
+  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+}
+
 function metricCard(metric) {
+  const actions = metric.actions?.length
+    ? `<div class="metric-actions"><span>Action</span>${list(metric.actions)}</div>`
+    : '';
   return `
     <article class="beginner-metric-card" data-beginner-metric="${escapeHtml(metric.id)}">
-      <span>${escapeHtml(metric.label)}</span>
-      <strong>${escapeHtml(metric.value)}</strong>
+      <span class="metric-kicker">Metric</span>
+      <strong>${escapeHtml(metric.label)}: ${escapeHtml(metric.value)}</strong>
       <small>${escapeHtml(metric.detail)}</small>
+      <div class="metric-meaning"><span>Meaning</span><p>${escapeHtml(metric.meaning)}</p></div>
+      ${actions}
     </article>
   `;
 }
 
-function list(items) {
-  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+function referenceCard(item) {
+  return `
+    <article class="reference-insight-card" data-reference-insight="${escapeHtml(item.id)}">
+      <strong>${escapeHtml(item.label)}</strong>
+      <p><span>Trait</span>${escapeHtml(item.trait)}</p>
+      <p><span>自分の曲で試す</span>${escapeHtml(item.action)}</p>
+    </article>
+  `;
 }
 
 export function mountBeginnerMode(root, song, options = {}) {
@@ -57,7 +72,7 @@ export function mountBeginnerMode(root, song, options = {}) {
       <div>
         <p class="eyebrow">ANALYSIS MODE</p>
         <h2 id="beginner-mode-title">初心者モード</h2>
-        <p>むずかしい数値を先に追わず、まず「特徴 → 良いところ → 改善候補 → 次に試すこと」の順で見ます。</p>
+        <p>数値を採点せず、「Metric → Meaning → Action」の順で特徴を読みます。Actionは選ばなくても構いません。</p>
       </div>
       <span class="status-pill">端末内分析</span>
     </div>
@@ -66,24 +81,21 @@ export function mountBeginnerMode(root, song, options = {}) {
       <button type="button" data-analysis-mode="detail">詳細モード</button>
     </div>
     <div class="beginner-content" data-beginner-content>
-      <div class="beginner-step"><span>1</span><div><strong>MIDIを読み込みました</strong><p>自動分析した結果を、まず5項目だけにまとめます。</p></div></div>
+      <div class="beginner-step"><span>1</span><div><strong>特徴を5項目に整理</strong><p>外音・広い音域・跳躍などを良い / 悪いで判定せず、曲の性格として読みます。</p></div></div>
       <div class="beginner-metric-grid">${summary.metrics.map(metricCard).join('')}</div>
-      <div class="beginner-feedback-grid">
-        <section class="beginner-feedback-card is-positive" aria-labelledby="beginner-good-title">
-          <h3 id="beginner-good-title">良いところ</h3>
-          ${list(summary.positives)}
-        </section>
-        <section class="beginner-feedback-card" aria-labelledby="beginner-improve-title">
-          <h3 id="beginner-improve-title">改善するとよいところ</h3>
-          ${list(summary.improvements)}
-        </section>
-      </div>
       <section class="beginner-next-card" aria-labelledby="beginner-next-title">
-        <p class="eyebrow">NEXT 1–3</p>
-        <h3 id="beginner-next-title">次に試すこと</h3>
+        <p class="eyebrow">OPTIONAL ACTIONS</p>
+        <h3 id="beginner-next-title">次に試せること</h3>
         <ol>${summary.nextActions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+        <p>どれも提案です。今の特徴をそのまま残す、今日は決めない、でも構いません。</p>
       </section>
-      <p class="beginner-disclaimer">これは曲の良し悪しを採点する機能ではありません。既存Analyzerの候補値を、初心者向けの言葉に言い換えています。MIDIや解析結果を外部へ自動送信しません。</p>
+      <section class="reference-insights" aria-labelledby="reference-insights-title">
+        <p class="eyebrow">REFERENCE → ACTION</p>
+        <h3 id="reference-insights-title">参考曲から借りるのは音符ではなく考え方</h3>
+        <p>具体的なNote列やChord列をコピーせず、音域・動き・発音位置・反復の傾向として自分の曲で試します。</p>
+        <div class="reference-insight-grid">${summary.referenceInsights.map(referenceCard).join('')}</div>
+      </section>
+      <p class="beginner-disclaimer">これは曲の良し悪しを採点する機能ではありません。Metricは特徴量、Meaningは読み方、Actionは任意の実験案です。MIDIや解析結果を外部へ自動送信しません。</p>
     </div>
     <p class="beginner-detail-note" data-detail-note hidden>詳細モードでは、従来の全解析タブをそのまま使えます。初心者モードへ戻しても解析結果は失われません。</p>
   `;
