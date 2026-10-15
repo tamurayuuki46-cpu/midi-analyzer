@@ -1,7 +1,7 @@
 # ANALYSIS_SPEC.md
 
 ## Version
-v0.19-dev
+v0.20-dev
 
 ## 共通思想
 - 分析結果は候補として表示
@@ -12,13 +12,15 @@ v0.19-dev
 - 初心者表示は `Metric → Meaning → Action` を基本形とする
 - Actionは任意の実験案であり、採用・実行を強制しない
 - 参考曲は具体的なNote列 / Chord列ではなく、音域・動き・密度・反復など抽象化した特徴として扱う
+- Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを混同しない
+- 外音を誤りや低品質として扱わない
 
 ## 0. Metric → Meaning → Action / Reference → Action
 
-v0.19-devでは初心者モードの主要Metricを、単なる数値表示で終わらせない。
+v0.20-devでは初心者モードの主要Metricを、単なる数値表示で終わらせない。
 
 ### Metric
-既存Analyzerが計算した観測値・候補値。例: Key候補、音域、平均跳躍、拍頭以外率、Motif候補数。
+既存Analyzerが計算した観測値・候補値。例: Key候補、音域、平均跳躍、拍頭以外率、Motif候補数、Chord Tone率、Scale Tone率。
 
 ### Meaning
 Metricが示す音楽的な特徴を短く説明する。品質評価には変換しない。
@@ -27,6 +29,7 @@ Metricが示す音楽的な特徴を短く説明する。品質評価には変�
 - 音域が狭い → 会話的・反復的な輪郭を作りやすい特徴
 - 跳躍が多い → 輪郭のアクセントになっている特徴
 - 拍頭以外が多い → 前へ引っ張る感じや細かな動きを作りやすい特徴
+- Chord外・Scale内 → 和音構成音ではないがKeyの音階には含まれる音
 
 ### Action
 元案を壊さず試せる実験候補を最大2件/Metric程度示す。Actionを選ばず現在の特徴を維持すること、保留することも正式な選択肢とする。
@@ -38,6 +41,7 @@ Metricが示す音楽的な特徴を短く説明する。品質評価には変�
 - なめらか / 跳躍が多い等の旋律傾向
 - 拍頭中心 / 拍外が多い等の発音位置傾向
 - 短い形を反復する / 変化を増やす等のモチーフ運用
+- Chord ToneとScale Toneをどの比率で使うか
 
 AnalyzerはComposition ownerではないため、ActionはDemo Composer等で人が試すための判断材料に留める。
 
@@ -92,12 +96,19 @@ Chord rootがKey scale外なら `♭VII` 等 + 「音階外」。悪いと評価
 Chord qualityの正誤判定はDegreeでは行わない。
 
 ## 4. Melody
-v0.1:
+v0.1から継続:
 - 音域
 - 最大跳躍 / 平均跳躍
 - 同音連打
 - リズム密度
 - Chord Tone / Non-Chord Tone割合
+
+v0.20追加:
+- Scale Tone / Non-Scale Tone割合
+- Chord ToneとScale Toneの組み合わせ
+- Chord外・Scale内
+- Chord内・Scale外
+- 両方の外側
 
 初期Trackは `roleHint === "melody"` を優先。なければ非Drum Trackの平均Pitchが最も高いTrackを仮選択し、ユーザーが変更できる。
 
@@ -105,7 +116,9 @@ v0.1:
 
 Chord Tone判定はユーザー選択Chordを優先し、未選択区間はChord第1候補を仮使用する。仮使用時はUIで明示する。
 
-Motifはv0.2以降。
+Scale Tone判定は選択Keyを優先し、未選択時はKey第1候補を仮使用する。majorはmajor scale、minorはnatural minorを基本基準とする。harmonic / melodic minor由来のraised 6th / 7th等を誤りとは判定しない。
+
+Motifは既存Structure Analyzerで扱う。
 
 ## 5. Bass
 v0.1:
@@ -138,13 +151,35 @@ v0.1:
 6/8等のcompound meterでは3つのdenominator単位を1 musicalBeatとして扱う。
 
 ## 7. Chord Tone
-Chord Tone / Non-Chord Toneは特徴量。Non-Chord Toneを誤り扱いしない。
+Chord Tone / Non-Chord Toneは「その瞬間のChord構成音との関係」を示す特徴量。Non-Chord Toneを誤り扱いしない。
 
 Chord UIが現在のeffective candidateをBasic Analyzerへ渡す。Chord対象Track変更またはChord候補選択時にMelody / BassのChord関係指標を再計算する。
 
 詳細: `docs/BASIC_ANALYSIS_SPEC.md`
 
-## 8. 調整対象パラメータ
+## 8. Note Function: Chord Tone × Scale Tone
+
+v0.20-devではChord ToneとScale Toneを独立判定する。
+
+### Scale Tone
+現在のKey / Scale候補に含まれるPitch Classかを判定する。
+
+### Chord Tone
+現在のChord effective candidateの構成音に含まれるPitch Classかを判定する。
+
+### 組み合わせ
+- **両方に含まれる**: Chord ToneかつScale Tone
+- **Chord外・Scale内**: Non-Chord ToneだがScale Tone
+- **Chord内・Scale外**: Chord ToneだがNon-Scale Tone
+- **両方の外側**: Non-Chord ToneかつNon-Scale Tone
+
+上記4分類を正誤・優劣へ変換しない。Passing / Neighbor / Approach等の機能名は、時間方向・前後関係を十分に判定できる段階までは断定しない。
+
+HarmonyでKey / Chord候補を選択した場合、Note Function表示を再計算する。未選択候補を仮使用した場合は、その前提をUIへ明示する。
+
+詳細: `docs/NOTE_FUNCTION_ANALYSIS.md`
+
+## 9. 調整対象パラメータ
 実MIDIで調整:
 - Bass Bonus（仮1.5）
 - Non-Chord Penalty（仮0.5）
@@ -153,3 +188,4 @@ Chord UIが現在のeffective candidateをBasic Analyzerへ渡す。Chord対象T
 - Melody / Bass Track fallback heuristic
 - Beat判定許容幅
 - シンコペーション候補定義
+- minor時のScale Tone表示方針（natural / harmonic / melodic minorの扱い）
