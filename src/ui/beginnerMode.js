@@ -81,7 +81,7 @@ export function mountBeginnerMode(root, song, options = {}) {
       <button type="button" data-analysis-mode="detail">詳細モード</button>
     </div>
     <div class="beginner-content" data-beginner-content>
-      <div class="beginner-step"><span>1</span><div><strong>特徴を5項目に整理</strong><p>外音・広い音域・跳躍などを良い / 悪いで判定せず、曲の性格として読みます。</p></div></div>
+      <div class="beginner-step"><span>1</span><div><strong>特徴を基本5項目＋音の役割に整理</strong><p>外音・広い音域・跳躍などを良い / 悪いで判定せず、曲の性格として読みます。Chord ToneとScale Toneも別々に確認します。</p></div></div>
       <div class="beginner-metric-grid">${summary.metrics.map(metricCard).join('')}</div>
       <section class="beginner-next-card" aria-labelledby="beginner-next-title">
         <p class="eyebrow">OPTIONAL ACTIONS</p>
