@@ -33,10 +33,12 @@ function currentMelodyTrackId() {
 }
 
 function currentChordSegments(song) {
-  const checkedTrackIds = [...document.querySelectorAll('[data-chord-track]:checked')]
+  const chordTrackInputs = [...document.querySelectorAll('[data-chord-track]')];
+  const checkedTrackIds = chordTrackInputs
+    .filter((input) => input.checked)
     .map((input) => input.dataset.chordTrack)
     .filter(Boolean);
-  const trackIds = checkedTrackIds.length ? checkedTrackIds : [...getDefaultChordTrackIds(song)];
+  const trackIds = chordTrackInputs.length ? checkedTrackIds : [...getDefaultChordTrackIds(song)];
   const result = analyzeChords(song, { trackIds });
   const selectedBySegment = new Map(
     [...document.querySelectorAll('[data-chord-segment][data-chord-value][aria-pressed="true"]')]
