@@ -53,28 +53,22 @@ MoisesをStem分離の主入口とし、Archive/AnalyzerはMoises / RipX / Audio
 各項目は `Metric → Meaning → Action` で表示する。良い / 悪いの採点はしない。Actionは任意の比較案であり、採用を強制しない。
 
 ## v0.22-dev Note Function II
-v0.21の次を維持する。
-- Chord Tone / Non-Chord Tone
-- Scale Tone / Non-Scale Tone
-- Chord × Scale 4分類
-- Passing / Neighbor / Approach候補
-- Natural / Harmonic / Melodic Minor比較
-- Piano Roll可視化
-
-v0.22では時間・拍・Chord change・着地Evidenceを追加した。
+v0.21のChord Tone / Scale Tone / Passing / Neighbor / Approachを維持し、次を追加済み。
 
 - Resolution candidate
 - Strong / Weak beat context
 - Suspension candidate
 - Anticipation candidate
 - Phrase Landing / Degree summary
+- Natural / Harmonic / Melodic Minor比較
+- Piano Roll可視化
 
 詳細:
 - `docs/ANALYSIS_SPEC.md`
 - `docs/NOTE_FUNCTION_ANALYSIS.md`
 
 ## v0.23-dev Insight Layer
-v0.23では既存AnalyzerのEvidenceをまとめ、初心者が「この曲の特徴として何を見るか」を判断しやすくするRead-only Insight Layerを追加する。
+既存AnalyzerのEvidenceをまとめ、初心者が「この曲の特徴として何を見るか」を判断しやすくするRead-only Insight Layer。
 
 ### Phrase contour / Peak / Climax
 - contour: arch / valley / ascending / descending / mixed
@@ -209,25 +203,28 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 本格Composition / Arrangement機能を追加しない
 
 ## v0.22-dev 統合状態
-実装PR: `#55`（developへ統合済み）
-Issue: `#54`（完了）
-変更前復元点: `restore/develop-before-resolution-landing-v0.22-20261015`
-v0.22統合commit: `6224947576ec3e925adb7c8881b0bbe02c41b3a7`
-feature-complete milestone: `chatgpt/v0.22-feature-complete-milestone`
+- 実装PR: `#55`（developへ統合済み）
+- Issue: `#54`（完了）
+- 変更前復元点: `restore/develop-before-resolution-landing-v0.22-20261015`
+- v0.22統合commit: `6224947576ec3e925adb7c8881b0bbe02c41b3a7`
+- feature-complete milestone: `chatgpt/v0.22-feature-complete-milestone`
 
-## v0.23-dev 開発状態
-Issue: `#57`
-開発Branch: `chatgpt/insight-v0.23`
-実装前develop commit: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
-変更前復元点: `restore/develop-before-insight-v0.23-20261015`
-Schema変更なし。
+## v0.23-dev 統合状態
+- Issue: `#57`
+- 実装PR: `#58`（developへ統合済み）
+- 実装前develop commit: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
+- 変更前復元点: `restore/develop-before-insight-v0.23-20261015`
+- v0.23統合commit: `41a6b0e53725aaf39fd67d4ad2085986cb00cbff`
+- feature-complete milestone: `chatgpt/v0.23-feature-complete-milestone`
+- Schema変更なし
 
-自動検証対象:
-- Unit tests
-- Production build
-- Basic Pitch local model assets
-- Mobile Chromium 360 / 390 / 430px
-- Structure v0.23 Insight表示
+自動検証:
+- PR #58 Unit tests: success
+- Production build: success
+- Basic Pitch local model assets: success
+- Mobile Chromium 360 / 390 / 430px regression: success
+- Structure v0.23 Insight表示: success
+- 統合後develop CI: success
 
 ## Git運用
 - `develop`: 開発統合
