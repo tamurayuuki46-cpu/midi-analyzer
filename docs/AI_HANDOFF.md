@@ -295,14 +295,24 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 公開main CI: success
 - GitHub Pages build / deploy: success
 
-## v0.24-dev 開発状態
-- 実装PR: `#65`
+## v0.24-dev 統合状態
+- 実装PR: `#65`（developへ統合済み）
 - 実装前develop commit: `24aa53240a3ff0ab0794569459614baa85e7335f`
 - 変更前復元点: `restore/develop-before-diagnostic-loop-v0.24-20261015`
 - feature branch: `chatgpt/diagnostic-loop-v0.24`
+- develop統合commit: `71bb387f41056bf15a489a6a2a4983775666f1c5`
+- feature-complete milestone: `chatgpt/v0.24-feature-complete-milestone`
 - Schema変更なし
 - IndexedDB Migrationなし
 - `main` / 公開版はv0.23-devのまま
+
+自動検証:
+- PR #65 Unit tests: success
+- Production build: success
+- Basic Pitch local model assets: success
+- Mobile Chromium 360 / 390 / 430px regression: success
+- v0.24 Section比較 / Meaning / TOP 3 / Before-After表示: success
+- 統合後develop CI: success
 
 ## Git運用
 - `develop`: 開発統合
@@ -330,4 +340,4 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - Clip v1 / v2混在Library
 - Cubasis / Cubase実機取込
 
-`develop`候補はv0.24-dev、`main` / 公開Versionはv0.23-dev。stable tagはAndroid実機確認前に作成しない。
+`develop`はv0.24-dev、`main` / 公開Versionはv0.23-dev。stable tagはAndroid実機確認前に作成しない。
