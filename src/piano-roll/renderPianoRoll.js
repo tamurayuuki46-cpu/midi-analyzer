@@ -40,7 +40,49 @@ function buildPitchAxis(minPitch, maxPitch) {
   return labels.join('');
 }
 
-function buildSvg(song, notes, minPitch, maxPitch, timelineWidth, stageHeight) {
+function noteFunctionEntry(result, note, trackId) {
+  if (!result || result.trackId !== trackId) return null;
+  if (note.id) {
+    const byId = result.notes?.find((entry) => entry.id === note.id);
+    if (byId) return byId;
+  }
+  return result.notes?.find((entry) => entry.startTick === note.startTick && entry.pitch === note.pitch) ?? null;
+}
+
+function noteFunctionClasses(entry) {
+  if (!entry) return '';
+  const relationClass = {
+    both: ' is-function-both',
+    'scale-only': ' is-function-scale-only',
+    'chord-only': ' is-function-chord-only',
+    'outside-both': ' is-function-outside-both',
+  }[entry.relation] ?? ' is-function-unresolved';
+  const temporalClass = {
+    'passing-candidate': ' is-passing-candidate',
+    'neighbor-candidate': ' is-neighbor-candidate',
+    'approach-candidate': ' is-approach-candidate',
+  }[entry.functionCandidate] ?? '';
+  return `${relationClass}${temporalClass}`;
+}
+
+function noteFunctionLabel(entry) {
+  if (!entry) return '';
+  const relation = {
+    both: 'Chord Tone + Scale Tone',
+    'scale-only': 'Chord外 / Scale内',
+    'chord-only': 'Chord内 / Scale外',
+    'outside-both': 'Chord外 / Scale外',
+    unresolved: '役割未判定',
+  }[entry.relation] ?? '役割未判定';
+  const temporal = {
+    'passing-candidate': 'Passing候補',
+    'neighbor-candidate': 'Neighbor候補',
+    'approach-candidate': 'Approach候補',
+  }[entry.functionCandidate] ?? null;
+  return temporal ? `${relation} / ${temporal}` : relation;
+}
+
+function buildSvg(song, notes, minPitch, maxPitch, timelineWidth, stageHeight, noteFunctionResult, trackId) {
   const lengthTicks = Math.max(1, song.lengthTicks || 1);
   const drawableWidth = Math.max(1, timelineWidth - 12);
   const tickToX = (tick) => Math.max(0, Math.min(drawableWidth, tick / lengthTicks * drawableWidth));
@@ -71,15 +113,18 @@ function buildSvg(song, notes, minPitch, maxPitch, timelineWidth, stageHeight) {
     const width = Math.max(2, endX - x);
     const y = TOP_GUTTER + (maxPitch - note.pitch) * ROW_HEIGHT + 1;
     const height = Math.max(3, ROW_HEIGHT - 2);
+    const functionEntry = noteFunctionEntry(noteFunctionResult, note, trackId);
+    const roleLabel = noteFunctionLabel(functionEntry);
+    const aria = `${formatMidiNoteName(note.pitch)} start ${note.startTick} duration ${note.durationTick}${roleLabel ? ` ${roleLabel}` : ''}`;
     return `<rect
-      class="piano-note"
+      class="piano-note${noteFunctionClasses(functionEntry)}"
       x="${x}"
       y="${y}"
       width="${width}"
       height="${height}"
       rx="2"
-      aria-label="${escapeHtml(`${formatMidiNoteName(note.pitch)} start ${note.startTick} duration ${note.durationTick}`)}"
-    />`;
+      aria-label="${escapeHtml(aria)}"
+    >${roleLabel ? `<title>${escapeHtml(roleLabel)}</title>` : ''}</rect>`;
   }).join('');
 
   return `<svg
@@ -97,17 +142,18 @@ function buildSvg(song, notes, minPitch, maxPitch, timelineWidth, stageHeight) {
 }
 
 export function mountPianoRoll(root, song) {
-  if (!root) return;
+  if (!root) return null;
 
   const tracks = (song.tracks ?? []).filter((track) => track.noteCount > 0);
   if (!tracks.length) {
     root.innerHTML = '<p class="empty-state">表示できるNoteがありません。</p>';
-    return;
+    return null;
   }
 
   const state = {
     trackId: getDefaultTrackId(song) ?? tracks[0].id,
     zoomIndex: 1,
+    noteFunctionResult: null,
   };
 
   root.innerHTML = `
@@ -134,6 +180,16 @@ export function mountPianoRoll(root, song) {
     </div>
 
     <p class="piano-roll-meta" data-piano-roll-meta></p>
+    <div class="piano-roll-function-guide" data-piano-roll-function-guide hidden>
+      <p data-piano-roll-function-status></p>
+      <div class="piano-roll-function-legend" aria-label="音の役割色分け">
+        <span><i class="legend-both"></i>Chord + Scale</span>
+        <span><i class="legend-scale-only"></i>Chord外 / Scale内</span>
+        <span><i class="legend-chord-only"></i>Chord内 / Scale外</span>
+        <span><i class="legend-outside-both"></i>Chord外 / Scale外</span>
+      </div>
+      <small>Passing / Neighbor / Approach候補はNoteの輪郭でも示します。これは分析候補であり、正誤判定ではありません。</small>
+    </div>
 
     <div
       class="piano-roll-scroll"
@@ -152,8 +208,29 @@ export function mountPianoRoll(root, song) {
   const zoomIn = root.querySelector('[data-zoom-in]');
   const zoomLabel = root.querySelector('[data-zoom-label]');
   const meta = root.querySelector('[data-piano-roll-meta]');
+  const functionGuide = root.querySelector('[data-piano-roll-function-guide]');
+  const functionStatus = root.querySelector('[data-piano-roll-function-status]');
   const scroll = root.querySelector('[data-piano-roll-scroll]');
   const stage = root.querySelector('[data-piano-roll-stage]');
+
+  function updateFunctionGuide() {
+    const result = state.noteFunctionResult;
+    if (!result) {
+      functionGuide.hidden = true;
+      return;
+    }
+    functionGuide.hidden = false;
+    if (result.trackId !== state.trackId) {
+      const analyzedTrack = tracks.find((track) => track.id === result.trackId);
+      functionStatus.textContent = `音の役割色分けはMelody分析Track「${analyzedTrack?.name ?? result.trackId}」で表示します。`;
+      functionGuide.dataset.active = 'false';
+      return;
+    }
+    const key = result.key?.value ?? 'Key未判定';
+    const scale = result.scaleBasis?.label ?? 'Scale未判定';
+    functionStatus.textContent = `音の役割色分け: ${key} / ${scale}`;
+    functionGuide.dataset.active = 'true';
+  }
 
   function draw({ resetScroll = false } = {}) {
     const oldMaxScrollLeft = Math.max(0, scroll.scrollWidth - scroll.clientWidth);
@@ -178,7 +255,7 @@ export function mountPianoRoll(root, song) {
         ${buildPitchAxis(minPitch, maxPitch)}
       </div>
       <div class="piano-roll-timeline" style="left:${AXIS_WIDTH}px;width:${timelineWidth}px;height:${stageHeight}px">
-        ${buildSvg(song, notes, minPitch, maxPitch, timelineWidth, stageHeight)}
+        ${buildSvg(song, notes, minPitch, maxPitch, timelineWidth, stageHeight, state.noteFunctionResult, state.trackId)}
       </div>
     `;
 
@@ -187,6 +264,7 @@ export function mountPianoRoll(root, song) {
     zoomLabel.textContent = `${pxPerQuarter} px/4分`;
     zoomOut.disabled = state.zoomIndex === 0;
     zoomIn.disabled = state.zoomIndex === ZOOM_LEVELS.length - 1;
+    updateFunctionGuide();
 
     requestAnimationFrame(() => {
       if (resetScroll) {
@@ -216,5 +294,19 @@ export function mountPianoRoll(root, song) {
     draw();
   });
 
+  function handleNoteFunctionChange(event) {
+    if (!root.isConnected) {
+      document.removeEventListener('note-function-analysis-change', handleNoteFunctionChange);
+      return;
+    }
+    state.noteFunctionResult = event.detail?.result ?? null;
+    draw();
+  }
+
+  document.addEventListener('note-function-analysis-change', handleNoteFunctionChange);
   draw({ resetScroll: true });
+
+  return Object.freeze({
+    destroy: () => document.removeEventListener('note-function-analysis-change', handleNoteFunctionChange),
+  });
 }

@@ -73,8 +73,8 @@ function ensureDetailPanel() {
     panel.setAttribute('aria-labelledby', 'note-function-title');
     panel.innerHTML = `
       <div class="panel-heading">
-        <div><p class="eyebrow">NOTE FUNCTION</p><h2 id="note-function-title">Chord ToneとScale Tone</h2></div>
-        <span class="status-pill">v0.20</span>
+        <div><p class="eyebrow">NOTE FUNCTION</p><h2 id="note-function-title">Chord Tone / Scale Tone / 経過候補</h2></div>
+        <span class="status-pill">v0.21</span>
       </div>
       <div data-note-function-root></div>
     `;
@@ -99,6 +99,33 @@ function relationshipMeaning(result) {
     : '判定できた範囲では、Chord ToneとScale Toneの両方に含まれる音が中心です。';
 }
 
+function temporalMeaning(result) {
+  const fn = result.nonChordFunction;
+  if (!fn.evaluated) return 'Chord外音がないか、Chord文脈を判定できないため経過候補はありません。';
+  const parts = [];
+  if (fn.passing) parts.push(`Passing ${fn.passing}`);
+  if (fn.neighbor) parts.push(`Neighbor ${fn.neighbor}`);
+  if (fn.approach) parts.push(`Approach ${fn.approach}`);
+  if (!parts.length) return 'Chord外音はありますが、前後2音だけではPassing / Neighbor / Approach候補に絞れませんでした。';
+  return `${parts.join(' / ')}。前後の音程とChord Toneへの解決から見た候補で、確定ラベルではありません。`;
+}
+
+function minorScaleSelector(result) {
+  if (result.key?.scale !== 'minor') return '';
+  const current = result.scaleBasis?.id ?? 'natural-minor';
+  return `
+    <label class="note-function-scale-field">
+      <span>Minor Scale基準</span>
+      <select data-note-function-scale-mode>
+        <option value="natural-minor"${current === 'natural-minor' ? ' selected' : ''}>Natural Minor</option>
+        <option value="harmonic-minor"${current === 'harmonic-minor' ? ' selected' : ''}>Harmonic Minor</option>
+        <option value="melodic-minor"${current === 'melodic-minor' ? ' selected' : ''}>Melodic Minor（上行基準）</option>
+      </select>
+      <small>Scale Tone判定の比較基準だけを切り替えます。Key候補や元MIDIは変更しません。</small>
+    </label>
+  `;
+}
+
 function renderDetail(result) {
   const root = ensureDetailPanel();
   if (!root) return;
@@ -110,19 +137,31 @@ function renderDetail(result) {
   const scale = result.scaleTone;
   const chord = result.chordTone;
   const relation = result.relationship;
+  const fn = result.nonChordFunction;
   const keyContext = result.key
-    ? `${result.key.value}（${result.key.source === 'selected' ? '選択Key' : 'Key候補'}）`
+    ? `${result.key.value}（${result.key.source === 'selected' ? '選択Key' : 'Key候補'} / ${result.scaleBasis?.label ?? 'Scale'}）`
     : 'Key候補なし';
 
   root.innerHTML = `
     <p class="note-function-context">Key基準: <strong>${escapeHtml(keyContext)}</strong>。ChordはHarmonyタブの現在のTrack・候補選択を使います。</p>
-    <div class="basic-metric-grid">
+    ${minorScaleSelector(result)}
+    <div class="basic-metric-grid note-function-metrics">
       ${metric('Scale Tone', percent(scale.ratio, scale.evaluated), scale.evaluated ? `${scale.tone}/${scale.evaluated} · Scale外 ${scale.nonScaleTone}` : 'Key候補なし')}
       ${metric('Chord Tone', percent(chord.ratio, chord.evaluated), chord.evaluated ? `${chord.tone}/${chord.evaluated} · Chord外 ${chord.nonChordTone}` : 'Chord区間なし')}
       ${metric('Chord外・Scale内', `${relation.scaleOnly}音`, relation.evaluated ? `${relation.evaluated}音を両方の基準で比較` : '比較保留')}
       ${metric('Chord内・Scale外', `${relation.chordOnly}音`, '借用和音・7th等でも起こり得ます')}
       ${metric('両方の外側', `${relation.outsideBoth}音`, '経過音・アプローチ等の候補として観察')}
     </div>
+    <section class="note-function-resolution" aria-labelledby="note-function-resolution-title">
+      <div><p class="eyebrow">TEMPORAL CANDIDATES</p><h3 id="note-function-resolution-title">前後の動きから見るChord外音</h3></div>
+      <div class="note-function-resolution-grid">
+        <article><strong>${fn.passing}</strong><span>Passing候補</span><small>Chord Tone間を同方向のStepでつなぐ</small></article>
+        <article><strong>${fn.neighbor}</strong><span>Neighbor候補</span><small>Chord ToneからStepで離れて同じ音へ戻る</small></article>
+        <article><strong>${fn.approach}</strong><span>Approach候補</span><small>次のChord ToneへStepで入る</small></article>
+        <article><strong>${fn.other}</strong><span>その他Chord外音</span><small>前後2音だけでは分類を保留</small></article>
+      </div>
+      <p>${escapeHtml(temporalMeaning(result))}</p>
+    </section>
     ${chord.provisionalCount ? `<p class="note-function-assumption">Chord未選択区間では第1候補を仮使用しています（${chord.provisionalCount}発音）。HarmonyでChordを選ぶと再計算します。</p>` : ''}
     <div class="note-function-legend">
       <article><strong>Chord Tone</strong><small>その瞬間のChord構成音に含まれるかを見る。</small></article>
@@ -137,7 +176,10 @@ function renderDetail(result) {
 
 function beginnerActions(result) {
   const actions = [];
-  if (result.relationship.scaleOnly) actions.push('コード外・Scale内の音が次のChord Toneへどう動くか聴く');
+  if (result.nonChordFunction.passing || result.nonChordFunction.neighbor || result.nonChordFunction.approach) {
+    actions.push('Chord外音が次のChord Toneへどう解決するかPiano Rollで確認する');
+  }
+  if (result.relationship.scaleOnly) actions.push('コード外・Scale内の音を残す案とChord Toneへ寄せる案を比べる');
   if (result.relationship.chordOnly) actions.push('Chord内・Scale外の音が和音の色として聞こえる箇所を確認する');
   if (result.relationship.outsideBoth) actions.push('両方の外側の音を外す案と残す案をA/Bで比べる');
   if (!actions.length) actions.push('Chord ToneとScale Toneの違いを詳細モードで確認する');
@@ -154,12 +196,13 @@ function renderBeginner(result) {
   card.dataset.beginnerMetric = 'note-function';
   const scaleValue = percent(result.scaleTone.ratio, result.scaleTone.evaluated);
   const chordValue = percent(result.chordTone.ratio, result.chordTone.evaluated);
+  const fn = result.nonChordFunction;
   const actions = beginnerActions(result);
   card.innerHTML = `
     <span class="metric-kicker">Metric</span>
     <strong>音の役割: Scale ${escapeHtml(scaleValue)} / Chord ${escapeHtml(chordValue)}</strong>
-    <small>Chord ToneとScale Toneを別々に数えています</small>
-    <div class="metric-meaning"><span>Meaning</span><p>${escapeHtml(relationshipMeaning(result))}</p></div>
+    <small>Passing ${fn.passing} / Neighbor ${fn.neighbor} / Approach ${fn.approach} 候補</small>
+    <div class="metric-meaning"><span>Meaning</span><p>${escapeHtml(relationshipMeaning(result))} ${escapeHtml(temporalMeaning(result))}</p></div>
     <div class="metric-actions"><span>Action</span><ul>${actions.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></div>
   `;
   grid.append(card);
@@ -171,10 +214,14 @@ function renderCurrent() {
     trackId: currentMelodyTrackId(),
     keyValue: active.keyValue,
     keySource: active.keySource,
+    scaleMode: active.scaleMode,
     chordSegments: currentChordSegments(active.song),
   });
   renderDetail(result);
   renderBeginner(result);
+  document.dispatchEvent(new CustomEvent('note-function-analysis-change', {
+    detail: { result },
+  }));
 }
 
 window.addEventListener('midi-analyzer-song-ready', (event) => {
@@ -184,6 +231,7 @@ window.addEventListener('midi-analyzer-song-ready', (event) => {
     song,
     keyValue: event.detail?.detectedKey ?? null,
     keySource: 'candidate',
+    scaleMode: 'natural-minor',
   };
   renderCurrent();
 });
@@ -198,5 +246,14 @@ document.addEventListener('key-selection-change', (event) => {
 document.addEventListener('chord-selection-change', renderCurrent);
 document.addEventListener('chord-analysis-change', renderCurrent);
 document.addEventListener('change', (event) => {
-  if (event.target.closest('[data-basic-melody-track]')) renderCurrent();
+  if (!active) return;
+  if (event.target.closest('[data-basic-melody-track]')) {
+    renderCurrent();
+    return;
+  }
+  const scaleMode = event.target.closest('[data-note-function-scale-mode]');
+  if (scaleMode) {
+    active.scaleMode = scaleMode.value;
+    renderCurrent();
+  }
 });
