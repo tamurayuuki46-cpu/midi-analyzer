@@ -15,7 +15,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.20-dev`
+`v0.21-dev`
 
 公開中Version: `v0.18-dev`
 
@@ -27,18 +27,32 @@ Repository名と公開URLのslugは互換性のため`midi-analyzer`のまま維
 
 ## 初心者モード
 
-v0.20-devでは、アプリを開いた最初の画面で次の2択を表示します。
+アプリを開いた最初の画面で次の2択を表示します。
 
 1. **MIDIを保存・整理する** — 端末保存をONにしてArchiveとして残す。
 2. **MIDIを解析する** — 保存せず、その場で特徴を確認することもできる。
 
 初心者時はAudio→MIDI / Note Tools / Stem Referenceなどの詳細ツールを初期状態で隠し、必要な時だけ「詳細ツールを表示」で開きます。
 
-MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復に加え、**音の役割（Chord ToneとScale Tone）**を表示します。各項目を `Metric → Meaning → Action` の順で読み、Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。必要になった時だけ詳細モードへ切り替え、従来の解析タブを使えます。
+MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復に加え、**音の役割**を表示します。各項目を `Metric → Meaning → Action` の順で読み、Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。
 
-v0.20-devの「音の役割」では、Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを別概念として扱います。「コード外だがスケール内」「コード内だが現在のスケール基準では外側」「両方の外側」を区別し、外音を誤りとは判定しません。
+v0.21-devの「音の役割」では、Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを別概念として扱い、さらに前後のMelody Noteから次を候補表示します。
 
-参考曲の分析結果は、具体的なNote列やChord列をコピーするのではなく、音域・旋律の動き・発音位置・反復の使い方など抽象化した `Reference Insight` として「この特徴を自分の曲で試す」へつなげます。
+- Passing Tone候補
+- Neighbor Tone候補
+- Approach Note候補
+
+これらは確定ラベルではありません。時間間隔が離れすぎている場合や条件が不足する場合は、無理に分類しません。
+
+minor KeyではScale Toneの比較基準を次から選べます。
+
+- Natural Minor
+- Harmonic Minor
+- Melodic Minor（上行基準）
+
+比較基準を切り替えてもKey候補、元MIDI、Normalized Song、SongProjectは変更しません。
+
+参考曲の分析結果は、具体的なNote列やChord列をコピーするのではなく、音域・旋律の動き・発音位置・反復・外音の解決傾向など抽象化した `Reference Insight` として扱います。
 
 詳細: `docs/BEGINNER_MODE.md`, `docs/ANALYSIS_SPEC.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
 
@@ -79,6 +93,9 @@ v0.20-devの「音の役割」では、Chord Tone / Non-Chord ToneとScale Tone 
 - Chord Tone / Non-Chord Tone
 - Scale Tone / Non-Scale Tone
 - Chord Tone × Scale Toneの関係
+- Passing / Neighbor / Approach候補
+- Natural / Harmonic / Melodic Minor比較
+- Piano Roll上の音の役割可視化
 - Motif / Section / 区間Key / 転調候補
 - 裏メロ分析
 - Track役割候補
@@ -122,9 +139,9 @@ MIDI読み込み直後:
 - 初心者モード / 詳細モード切替
 
 詳細モード:
-- 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll
+- 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll / 音の役割色分け
 - Harmony: Key / Chord / Degree / Chord Detail / Key素材化
-- Melody: 主旋律基本分析 / Chord Tone × Scale Tone / 裏メロ分析
+- Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach候補 / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
 - Structure: Motif / Section / 区間Key / 転調候補
@@ -173,6 +190,9 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 - 初心者モード / 詳細モード
 - 初心者向けMetric → Meaning → Action
 - Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneの独立分析
+- Passing / Neighbor / Approach候補
+- Natural / Harmonic / Melodic Minor比較
+- Piano Roll音役割可視化
 - Reference Insight → 自分の曲で試す
 - IndexedDB MIDI保存 / 一覧 / 削除
 - Piano Roll / Playback
@@ -220,20 +240,20 @@ plain HTML/CSS/JavaScript + Vite。
 10. `docs/STORAGE_SPEC.md`
 11. `docs/INTEGRATION_EXPORT_SPEC.md`
 12. `docs/ROADMAP.md`
-13. `CHANGELOG_v0.20.md`
+13. `CHANGELOG_v0.21.md`
 
 重要仕様は`docs/`を正本とします。
 
-## v0.20-dev Scope
+## v0.21-dev Scope
 
-- v0.19のArchive / Analyze初心者導線とMetric → Meaning → Actionを維持
-- Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを独立して計算
-- 「Chord外・Scale内」「Chord内・Scale外」「両方の外側」を区別
-- Melodyで選択中のTrackへ追従
-- HarmonyでKeyまたはChord候補を選択すると音の役割を再計算
-- 未選択Chordは従来どおり第1候補を仮使用し、仮定であることを表示
-- minorのScale Tone判定はnatural minorを基本基準とし、raised 6th / 7th等を誤り扱いしない
-- SongProject v1 / IndexedDB v3 / Clip / Stem / Memoとの互換性を維持
+- v0.20のChord Tone × Scale Tone独立分析を維持
+- Chord外音にPassing / Neighbor / Approach候補を追加
+- 候補は前後2音・Step幅・Chord Toneへの解決を使い、条件不足では分類を保留
+- minor Scale基準をNatural / Harmonic / Melodic Minor上行形から選択可能化
+- Piano RollへChord × Scale関係の色分けを追加
+- Piano RollへPassing / Neighbor / Approach候補の輪郭表示を追加
+- Melody Track / Key / Chord / Chord分析Track / Minor Scale基準変更で再計算
+- 元MIDI / Normalized Song / SongProject v1 / IndexedDB v3を変更しない
 - Schema変更なし
 - 360 / 390 / 430pxのChromium回帰をCIで継続する
 
