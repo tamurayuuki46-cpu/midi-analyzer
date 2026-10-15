@@ -24,13 +24,13 @@ function movementLabel(averageSemitones) {
 
 function rhythmLabel(offBeatRatio, onsetCount) {
   if (!onsetCount) return '判定しにくい';
-  if (offBeatRatio <= 0.15) return 'まっすぐ';
-  if (offBeatRatio <= 0.45) return 'ほどよく変化';
-  return '細かく動く';
+  if (offBeatRatio <= 0.15) return '拍頭中心';
+  if (offBeatRatio <= 0.45) return '拍頭と外側が混在';
+  return '拍頭以外が多め';
 }
 
 function repetitionLabel(motifCount, melodyNoteCount) {
-  if (motifCount > 0) return 'まとまりあり';
+  if (motifCount > 0) return '反復候補あり';
   if (melodyNoteCount < 8) return 'まだ判定しにくい';
   return '反復少なめ';
 }
@@ -41,6 +41,21 @@ function dedupe(items) {
 
 function freezeList(items) {
   return Object.freeze(items.map((item) => Object.freeze(item)));
+}
+
+function metric({ id, label, value, detail, meaning, actions = [] }) {
+  return {
+    id,
+    label,
+    value,
+    detail,
+    meaning,
+    actions: Object.freeze(dedupe(actions).slice(0, 2)),
+  };
+}
+
+function referenceInsight(id, label, trait, action) {
+  return Object.freeze({ id, label, trait, action });
 }
 
 export function buildBeginnerSummary(song, options = {}) {
@@ -56,99 +71,113 @@ export function buildBeginnerSummary(song, options = {}) {
   const offBeatRatio = offBeatTotal > 0 ? (rhythm.beatPosition.offBeat ?? 0) / offBeatTotal : 0;
   const motifCount = motifs.motifs?.length ?? 0;
 
+  const rangeValue = rangeLabel(range?.semitones);
+  const movementValue = movementLabel(melody.leap?.averageSemitones);
+  const rhythmValue = rhythmLabel(offBeatRatio, rhythm.onsetCount);
+  const repetitionValue = repetitionLabel(motifCount, melody.noteCount);
+
   const metrics = [
-    {
+    metric({
       id: 'key',
       label: 'Key',
       value: topKey?.value ?? '判定しにくい',
       detail: topKey ? 'いちばん近い候補' : '音数が少ない場合は無理に決めません',
-    },
-    {
+      meaning: topKey
+        ? '今の音の集まりに最も近い調性候補です。正解の断定ではなく、他の分析を見るための仮の基準にできます。'
+        : '材料が少ないため、調性を無理に固定しない方が自然な状態です。',
+      actions: topKey
+        ? ['このKeyを仮の基準にしてMelodyやChordとの関係を見る', '必要なら詳細モードで第2候補と聴き比べる']
+        : ['音を増やしてからもう一度見る', 'Keyを決めずに他の特徴だけ確認する'],
+    }),
+    metric({
       id: 'range',
       label: '音域',
-      value: rangeLabel(range?.semitones),
+      value: rangeValue,
       detail: range ? `${formatMidiPitch(range.low)}〜${formatMidiPitch(range.high)} · ${range.semitones}半音` : 'Melody候補を確認してください',
-    },
-    {
+      meaning: !range
+        ? '主旋律として読む材料がまだ少ない状態です。'
+        : rangeValue === 'せまめ'
+          ? '近い高さに音が集まり、会話的・反復的な輪郭を作りやすい特徴です。'
+          : rangeValue === '広め'
+            ? '低い音と高い音の落差があり、山場やコントラストを作りやすい特徴です。'
+            : '極端に狭くも広くもなく、Sectionごとの変化を後から付けやすい範囲です。',
+      actions: !range ? ['主旋律に近いTrackを確認する']
+        : rangeValue === 'せまめ' ? ['Chorusだけ少し高い音域へ広げる案を試す', 'この狭さを特徴として維持する']
+          : rangeValue === '広め' ? ['大きな音域差を山場だけに残す案と比較する', '広いまま活かしてSection差を確認する']
+            : ['この音域を基準案として保存する'],
+    }),
+    metric({
       id: 'movement',
       label: '音の動き',
-      value: movementLabel(melody.leap?.averageSemitones),
+      value: movementValue,
       detail: melody.noteCount ? `平均 ${melody.leap.averageSemitones}半音 / 最大 ${melody.leap.maxSemitones}半音` : 'Melody候補を確認してください',
-    },
-    {
+      meaning: !melody.noteCount
+        ? '主旋律として読むNoteをまだ十分に検出できていません。'
+        : movementValue === 'なめらか'
+          ? '隣接する音への移動が中心で、流れを追いやすい輪郭です。'
+          : movementValue === 'ジャンプが多め'
+            ? '跳躍が輪郭のアクセントになっている特徴です。狙った場所だけに残す選択もできます。'
+            : '隣接進行と跳躍が混ざり、滑らかさと輪郭の両方を持つ特徴です。',
+      actions: !melody.noteCount ? ['主旋律に近いTrackを1つ選ぶ']
+        : movementValue === 'ジャンプが多め' ? ['大きく跳ぶ箇所を1つ選び、なめらかな別案と比較する', '跳躍をフックとしてそのまま残す']
+          : ['山場だけ跳躍を増やす案を試す', '今の動きを基準案として保存する'],
+    }),
+    metric({
       id: 'rhythm',
       label: 'リズム',
-      value: rhythmLabel(offBeatRatio, rhythm.onsetCount),
+      value: rhythmValue,
       detail: rhythm.onsetCount ? `拍頭以外 ${Math.round(offBeatRatio * 100)}%` : '発音を検出できませんでした',
-    },
-    {
+      meaning: !rhythm.onsetCount
+        ? '発音位置の特徴を判断できる材料がまだ少ない状態です。'
+        : rhythmValue === '拍頭中心'
+          ? '拍の基準が見えやすく、安定したタイミング感を持つ特徴です。'
+          : rhythmValue === '拍頭以外が多め'
+            ? '拍の外側に発音が多く、前へ引っ張る感じや細かな動きを作りやすい特徴です。'
+            : '拍頭と拍頭以外が混ざり、基準と変化の両方があります。',
+      actions: !rhythm.onsetCount ? ['Rhythm対象Trackを確認する']
+        : rhythmValue === '拍頭中心' ? ['1か所だけ拍頭の前後へずらす案を比較する', 'この安定感を維持する']
+          : rhythmValue === '拍頭以外が多め' ? ['1小節だけ拍頭を強めた案と比較する', '細かい動きを特徴として維持する']
+            : ['このバランスを基準案として保存する'],
+    }),
+    metric({
       id: 'repetition',
       label: '反復',
-      value: repetitionLabel(motifCount, melody.noteCount),
+      value: repetitionValue,
       detail: motifCount ? `${motifCount}個の反復パターン候補` : '4音のまとまりを比較しています',
-    },
+      meaning: motifCount
+        ? '似た短い形が繰り返され、モチーフとして覚えやすいまとまりが見えています。'
+        : melody.noteCount < 8
+          ? 'Note数が少なく、反復の有無をまだ決めつけない方がよい状態です。'
+          : '同じ4音形の反復が少なく、変化の多いフレーズとして読めます。',
+      actions: motifCount
+        ? ['この反復を別Sectionでも使う案を試す', '反復回数を減らした別案と比較する']
+        : melody.noteCount >= 8
+          ? ['気に入った2〜4音の形を1回だけ再利用して比較する', '反復を増やさず変化の多さを活かす']
+          : ['Noteを増やしてから反復を再確認する'],
+    }),
   ];
 
-  const positives = [];
-  const improvements = [];
-  const actions = [];
+  const nextActions = dedupe(metrics.flatMap((item) => item.actions)).slice(0, 3);
+  const observations = metrics.map((item) => `${item.label}: ${item.meaning}`);
 
-  if (topKey) positives.push(`Keyは「${topKey.value}」を最初の候補として見始められます。`);
-  if (range && range.semitones <= 16) positives.push('主旋律の音域がまとまっていて、全体像を追いやすいです。');
-  if (melody.noteCount >= 2 && melody.leap.averageSemitones <= 5) positives.push('主旋律の音のつながりが極端に飛びすぎていません。');
-  if (motifCount > 0) positives.push('同じ形の反復が見つかり、フレーズのまとまりを確認できます。');
-  if (rhythm.onsetCount >= 4 && offBeatRatio > 0.15 && offBeatRatio <= 0.45) positives.push('拍頭と拍頭以外が混ざり、リズムに適度な変化があります。');
-
-  if (!melody.noteCount) {
-    improvements.push('Melody候補のTrackを詳細モードで確認すると、主旋律の分析が分かりやすくなります。');
-    actions.push('詳細モードのMelodyで、主旋律に近いTrackを1つ選ぶ');
-  } else {
-    if (range && range.semitones > 18) {
-      improvements.push('主旋律の音域が広めです。歌いやすさやまとまりを確認する余地があります。');
-      actions.push('いちばん高い音か低い音を少し内側へ寄せて試聴する');
-    } else if (range && range.semitones < 5 && melody.noteCount >= 8) {
-      improvements.push('主旋律の音域がかなり狭めです。山場だけ少し広げると変化を作れます。');
-      actions.push('山場だけ3〜5半音ほど高い音を試して、元案と比較する');
-    }
-
-    if (melody.leap?.averageSemitones > 5 || melody.leap?.maxSemitones > 12) {
-      improvements.push('大きな音程ジャンプが多めです。狙った場所だけに残すと輪郭を整理できます。');
-      actions.push('大きく跳ぶ箇所を1つ選び、中間の音を使う案と比較する');
-    }
-
-    if (!motifCount && melody.noteCount >= 8) {
-      improvements.push('同じ4音形の反復は少なめです。短い形を再利用すると覚えやすいまとまりを作れます。');
-      actions.push('気に入った2〜4音の形を、別の場所でもう1回だけ使ってみる');
-    }
-  }
-
-  if (rhythm.onsetCount >= 8 && offBeatRatio > 0.65) {
-    improvements.push('拍頭以外の発音が多めです。数か所だけ拍頭をはっきりさせると基準を作れます。');
-    actions.push('1小節だけ拍頭に音を置く案を作り、元のリズムと比較する');
-  } else if (rhythm.onsetCount >= 8 && offBeatRatio < 0.08) {
-    improvements.push('拍頭中心のリズムです。変化が欲しい場合は1か所だけ食うタイミングを試せます。');
-    actions.push('1か所だけ拍頭より少し前か後ろに動かして比較する');
-  }
-
-  const safePositives = dedupe(positives);
-  const safeImprovements = dedupe(improvements);
-  const safeActions = dedupe(actions).slice(0, 3);
-
-  if (!safePositives.length) safePositives.push('MIDIを読み込み、主な特徴を一画面で確認できる状態です。');
-  if (!safeImprovements.length) safeImprovements.push('大きく気になる偏りは見つかりませんでした。必要な所だけ詳細モードで確認してください。');
-  if (!safeActions.length) {
-    safeActions.push('まず簡易再生で全体を聴き、気になった項目を1つだけ選ぶ');
-    safeActions.push('必要なら詳細モードでKey・Melody・Rhythmの順に確認する');
-  }
+  const referenceInsights = [
+    referenceInsight('range-shape', '音域の使い方', rangeValue, '参考曲と比べる時は具体的な音程ではなく「Sectionで音域が広がるか」を見る'),
+    referenceInsight('movement-shape', '旋律の動き', movementValue, '具体的なNote列ではなく「なめらか / 跳躍が多い」の傾向として自分の曲で試す'),
+    referenceInsight('rhythm-shape', '発音位置', rhythmValue, '具体的なリズムをコピーせず「拍頭中心 / 拍外が多い」の比率感として試す'),
+    referenceInsight('repetition-shape', '反復の使い方', repetitionValue, '元フレーズをコピーせず「短い形を反復する / 変化を増やす」という方法だけ借りる'),
+  ];
 
   return Object.freeze({
     mode: 'beginner',
     melodyTrackId: melodyTrackId ?? null,
     rhythmTrackIds: Object.freeze([...rhythmTrackIds]),
     metrics: freezeList(metrics),
-    positives: Object.freeze(safePositives),
-    improvements: Object.freeze(safeImprovements),
-    nextActions: Object.freeze(safeActions),
+    observations: Object.freeze(observations),
+    nextActions: Object.freeze(nextActions.length ? nextActions : ['気になったMetricを1つ選び、元案を残したまま別案を試す']),
+    referenceInsights: freezeList(referenceInsights),
+    // Backward-compatible aliases. The wording is deliberately neutral rather than grading the music.
+    positives: Object.freeze(observations.slice(0, 3)),
+    improvements: Object.freeze(['良し悪しではなく、気になった特徴だけ別案で比較できます。']),
     evidence: Object.freeze({
       melodyNoteCount: melody.noteCount ?? 0,
       rhythmOnsetCount: rhythm.onsetCount ?? 0,
