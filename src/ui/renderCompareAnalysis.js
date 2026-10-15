@@ -1,5 +1,6 @@
 import './compareAnalysis.css';
 import { analyzePersonalTrend, compareSongs } from '../analysis/compare/index.js';
+import { compareDiagnosticSongs } from '../analysis/diagnostic/index.js';
 import { importMidiFile } from '../midi/index.js';
 
 function escapeHtml(value) {
@@ -109,6 +110,39 @@ function renderComparison(result) {
   `;
 }
 
+function renderBeforeAfter(result) {
+  if (!result) {
+    return '<p class="empty-state">修正前MIDIを比較用に選ぶと、現在のMIDIを修正後として再分析できます。</p>';
+  }
+  const changes = result.changes ?? [];
+  return `
+    <div class="compare-difference-list" data-before-after-changes>
+      ${changes.map((item) => `
+        <article class="compare-difference-card">
+          <div class="compare-difference-heading">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span class="status-pill">Before → After</span>
+          </div>
+          <p>${escapeHtml(item.meaning)}</p>
+          <small>${escapeHtml(item.evidence)}</small>
+        </article>
+      `).join('')}
+    </div>
+    ${result.priorityFollowUp?.length ? `
+      <div class="compare-difference-list">
+        ${result.priorityFollowUp.map((item) => `
+          <article class="compare-difference-card">
+            <div class="compare-difference-heading"><strong>${escapeHtml(item.title)}</strong><span class="status-pill">Recheck</span></div>
+            <p>修正前: ${escapeHtml(item.beforeEvidence)}</p>
+            <small>修正後: ${escapeHtml(item.afterEvidence)}</small>
+          </article>
+        `).join('')}
+      </div>
+    ` : ''}
+    <p class="helper-note">${escapeHtml(result.note)}</p>
+  `;
+}
+
 function renderTrend(result) {
   if (!result || !result.count || !result.trend) {
     return `<p class="empty-state">${escapeHtml(result?.note ?? '保存済みMIDIから傾向を読み込みます。')}</p>`;
@@ -133,6 +167,7 @@ function renderTrend(result) {
 export function mountCompareAnalysis(root, currentSong, options = {}) {
   if (!root) return null;
   let comparison = null;
+  let beforeAfter = null;
   let compareStatus = '';
   let trend = null;
 
@@ -142,12 +177,16 @@ export function mountCompareAnalysis(root, currentSong, options = {}) {
         <section class="compare-subsection">
           <div class="compare-heading"><h3>参考曲 vs 現在のMIDI</h3><span class="status-pill">2 MIDI</span></div>
           <label class="compare-file-field">
-            <span>参考曲MIDI</span>
+            <span>参考曲 / 修正前MIDI</span>
             <input type="file" accept=".mid,.midi,audio/midi,audio/x-midi" data-compare-file>
-            <small>この比較用MIDIは自動保存しません。</small>
+            <small>この比較用MIDIは自動保存しません。修正版の確認では「修正前」をここへ選びます。</small>
           </label>
           ${compareStatus ? `<p class="compare-status">${escapeHtml(compareStatus)}</p>` : ''}
           ${renderComparison(comparison)}
+        </section>
+        <section class="compare-subsection">
+          <div class="compare-heading"><h3>修正前 → 修正後の再分析</h3><span class="status-pill">v0.24</span></div>
+          ${renderBeforeAfter(beforeAfter)}
         </section>
         <section class="compare-subsection">
           <div class="compare-heading"><h3>自分の作曲傾向</h3><span class="status-pill">保存済みMIDI</span></div>
@@ -178,9 +217,11 @@ export function mountCompareAnalysis(root, currentSong, options = {}) {
     try {
       const imported = await importMidiFile(file, { origin: 'midi' });
       comparison = compareSongs(imported.song, currentSong);
-      compareStatus = '比較完了';
+      beforeAfter = compareDiagnosticSongs(imported.song, currentSong);
+      compareStatus = '比較・再分析完了';
     } catch (error) {
       comparison = null;
+      beforeAfter = null;
       compareStatus = `比較できませんでした: ${error.message}`;
     }
     render();
@@ -192,6 +233,7 @@ export function mountCompareAnalysis(root, currentSong, options = {}) {
   return Object.freeze({
     refreshTrend,
     getComparison: () => comparison,
+    getBeforeAfter: () => beforeAfter,
     getTrend: () => trend,
   });
 }
