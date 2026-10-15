@@ -21,25 +21,11 @@ function makeSong(pitches) {
 }
 
 function chordSegment(candidate, endTick = 3840) {
-  return [{
-    id: 'bar-1',
-    startTick: 0,
-    endTick,
-    candidates: [candidate],
-    effectiveCandidate: candidate,
-    selectionSource: 'candidate',
-  }];
+  return [{ id: 'bar-1', startTick: 0, endTick, candidates: [candidate], effectiveCandidate: candidate, selectionSource: 'candidate' }];
 }
 
 function segment(id, startTick, endTick, candidate) {
-  return {
-    id,
-    startTick,
-    endTick,
-    candidates: [candidate],
-    effectiveCandidate: candidate,
-    selectionSource: 'candidate',
-  };
+  return { id, startTick, endTick, candidates: [candidate], effectiveCandidate: candidate, selectionSource: 'candidate' };
 }
 
 const cMajor = { value: 'C', root: 0, quality: 'major', confidence: 0.9 };
@@ -54,12 +40,7 @@ test('key labels used by Key Analyzer can be parsed for scale-tone analysis', ()
 
 test('Chord Tone and Scale Tone are classified independently', () => {
   const c7 = { value: 'C7', root: 0, quality: '7', confidence: 0.9 };
-  const song = makeSong([60, 62, 64, 70]);
-  const result = analyzeNoteFunctions(song, {
-    keyValue: 'C major',
-    chordSegments: chordSegment(c7),
-  });
-
+  const result = analyzeNoteFunctions(makeSong([60, 62, 64, 70]), { keyValue: 'C major', chordSegments: chordSegment(c7) });
   assert.equal(result.scaleTone.evaluated, 4);
   assert.equal(result.scaleTone.tone, 3);
   assert.equal(result.scaleTone.nonScaleTone, 1);
@@ -68,22 +49,13 @@ test('Chord Tone and Scale Tone are classified independently', () => {
   assert.equal(result.chordTone.tone, 3);
   assert.equal(result.chordTone.nonChordTone, 1);
   assert.equal(result.chordTone.ratio, 0.75);
-  assert.deepEqual(result.relationship, {
-    evaluated: 4,
-    both: 2,
-    scaleOnly: 1,
-    chordOnly: 1,
-    outsideBoth: 0,
-  });
+  assert.deepEqual(result.relationship, { evaluated: 4, both: 2, scaleOnly: 1, chordOnly: 1, outsideBoth: 0 });
   assert.equal(result.notes[1].relation, 'scale-only');
   assert.equal(result.notes[3].relation, 'chord-only');
 });
 
 test('a chromatic non-chord note can be outside both without being treated as an error', () => {
-  const result = analyzeNoteFunctions(makeSong([66]), {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor),
-  });
+  const result = analyzeNoteFunctions(makeSong([66]), { keyValue: 'C major', chordSegments: chordSegment(cMajor) });
   assert.equal(result.relationship.outsideBoth, 1);
   assert.equal(result.notes[0].scaleTone, false);
   assert.equal(result.notes[0].chordTone, false);
@@ -108,10 +80,7 @@ test('same-onset melody notes use one representative note like the basic Melody 
 });
 
 test('stepwise non-chord note between two chord tones remains a passing candidate and gains resolution evidence', () => {
-  const result = analyzeNoteFunctions(makeSong([60, 62, 64]), {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor),
-  });
+  const result = analyzeNoteFunctions(makeSong([60, 62, 64]), { keyValue: 'C major', chordSegments: chordSegment(cMajor) });
   assert.equal(result.notes[1].functionCandidate, 'passing-candidate');
   assert.equal(result.nonChordFunction.passing, 1);
   assert.equal(result.resolution.resolved, 1);
@@ -121,29 +90,20 @@ test('stepwise non-chord note between two chord tones remains a passing candidat
 });
 
 test('departure and return by step remains a neighbor candidate', () => {
-  const result = analyzeNoteFunctions(makeSong([60, 62, 60]), {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor),
-  });
+  const result = analyzeNoteFunctions(makeSong([60, 62, 60]), { keyValue: 'C major', chordSegments: chordSegment(cMajor) });
   assert.equal(result.notes[1].functionCandidate, 'neighbor-candidate');
   assert.equal(result.nonChordFunction.neighbor, 1);
 });
 
 test('step into a following chord tone remains an approach candidate', () => {
-  const result = analyzeNoteFunctions(makeSong([62, 66, 67]), {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor),
-  });
+  const result = analyzeNoteFunctions(makeSong([62, 66, 67]), { keyValue: 'C major', chordSegments: chordSegment(cMajor) });
   assert.equal(result.notes[1].functionCandidate, 'approach-candidate');
   assert.equal(result.nonChordFunction.approach, 1);
   assert.equal(result.notes[1].resolutionCandidate.targetPitch, 67);
 });
 
 test('a nearby non-chord note that does not return to a chord tone is not marked resolved', () => {
-  const result = analyzeNoteFunctions(makeSong([60, 62, 66]), {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor),
-  });
+  const result = analyzeNoteFunctions(makeSong([60, 62, 66]), { keyValue: 'C major', chordSegments: chordSegment(cMajor) });
   assert.equal(result.resolution.evaluated, 1);
   assert.equal(result.resolution.resolved, 0);
   assert.equal(result.resolution.unresolved, 1);
@@ -155,10 +115,7 @@ test('widely spaced melody events are not forced into temporal non-chord labels 
   song.notes[1].startTick = 2400;
   song.notes[2].startTick = 4800;
   song.lengthTicks = 5760;
-  const result = analyzeNoteFunctions(song, {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor, 5760),
-  });
+  const result = analyzeNoteFunctions(song, { keyValue: 'C major', chordSegments: chordSegment(cMajor, 5760) });
   assert.equal(result.notes[1].functionCandidate, 'other-non-chord');
   assert.equal(result.notes[1].resolutionCandidate, null);
 });
@@ -179,10 +136,7 @@ test('4/4 strong and weak beat context is reported without grading the note', ()
   const song = makeSong([60, 62, 64]);
   song.notes[1].startTick = 240;
   song.notes[2].startTick = 480;
-  const result = analyzeNoteFunctions(song, {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor),
-  });
+  const result = analyzeNoteFunctions(song, { keyValue: 'C major', chordSegments: chordSegment(cMajor) });
   assert.equal(result.notes[0].beatStrength, 'strong');
   assert.equal(result.notes[1].beatStrength, 'weak');
   assert.equal(result.notes[2].beatStrength, 'strong');
@@ -196,10 +150,7 @@ test('6/8 uses dotted-quarter musical beats for strong/weak context', () => {
   song.notes[1].startTick = 240;
   song.notes[2].startTick = 720;
   song.lengthTicks = 1440;
-  const result = analyzeNoteFunctions(song, {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor, 1440),
-  });
+  const result = analyzeNoteFunctions(song, { keyValue: 'C major', chordSegments: chordSegment(cMajor, 1440) });
   assert.equal(result.notes[0].beatStrength, 'strong');
   assert.equal(result.notes[1].beatStrength, 'weak');
   assert.equal(result.notes[2].beatStrength, 'strong');
@@ -212,15 +163,26 @@ test('a held old-chord tone that becomes non-chord and resolves by step is a sus
   song.notes[1] = { ...song.notes[1], startTick: 1200, durationTick: 240 };
   const result = analyzeNoteFunctions(song, {
     keyValue: 'C major',
-    chordSegments: [
-      segment('c', 0, 960, cMajor),
-      segment('g', 960, 1920, gMajor),
-    ],
+    chordSegments: [segment('c', 0, 960, cMajor), segment('g', 960, 1920, gMajor)],
   });
   assert.equal(result.suspension.candidates, 1);
   assert.equal(result.notes[0].suspensionCandidate.toChord, 'G');
   assert.equal(result.notes[0].suspensionCandidate.targetPitch, 62);
   assert.equal(result.notes[0].suspensionCandidate.direction, 'down');
+});
+
+test('suspension searches for the first representative note after the chord boundary', () => {
+  const song = makeSong([64, 60, 62]);
+  song.lengthTicks = 1920;
+  song.notes[0] = { ...song.notes[0], startTick: 240, durationTick: 960 };
+  song.notes[1] = { ...song.notes[1], startTick: 720, durationTick: 120 };
+  song.notes[2] = { ...song.notes[2], startTick: 1200, durationTick: 240 };
+  const result = analyzeNoteFunctions(song, {
+    keyValue: 'C major',
+    chordSegments: [segment('c', 0, 960, cMajor), segment('g', 960, 1920, gMajor)],
+  });
+  assert.equal(result.suspension.candidates, 1);
+  assert.equal(result.notes[0].suspensionCandidate.targetPitch, 62);
 });
 
 test('a held note that does not resolve by step is not forced into suspension', () => {
@@ -230,10 +192,7 @@ test('a held note that does not resolve by step is not forced into suspension', 
   song.notes[1] = { ...song.notes[1], startTick: 1200, durationTick: 240 };
   const result = analyzeNoteFunctions(song, {
     keyValue: 'C major',
-    chordSegments: [
-      segment('c', 0, 960, cMajor),
-      segment('g', 960, 1920, gMajor),
-    ],
+    chordSegments: [segment('c', 0, 960, cMajor), segment('g', 960, 1920, gMajor)],
   });
   assert.equal(result.suspension.evaluated, 1);
   assert.equal(result.suspension.candidates, 0);
@@ -248,10 +207,7 @@ test('a next-chord tone introduced before the boundary and held across it is an 
   song.notes[2] = { ...song.notes[2], startTick: 1200, durationTick: 240 };
   const result = analyzeNoteFunctions(song, {
     keyValue: 'C major',
-    chordSegments: [
-      segment('c', 0, 960, cMajor),
-      segment('f', 960, 1920, fMajor),
-    ],
+    chordSegments: [segment('c', 0, 960, cMajor), segment('f', 960, 1920, fMajor)],
   });
   assert.equal(result.anticipation.candidates, 1);
   assert.equal(result.notes[1].anticipationCandidate.nextChord, 'F');
@@ -264,10 +220,7 @@ test('phrase landing summary identifies long gaps and degree context', () => {
   song.notes[1] = { ...song.notes[1], startTick: 960, durationTick: 240 };
   song.notes[2] = { ...song.notes[2], startTick: 1200, durationTick: 240 };
   song.lengthTicks = 1920;
-  const result = analyzeNoteFunctions(song, {
-    keyValue: 'C major',
-    chordSegments: chordSegment(cMajor, 1920),
-  });
+  const result = analyzeNoteFunctions(song, { keyValue: 'C major', chordSegments: chordSegment(cMajor, 1920) });
   assert.ok(result.phraseLanding.count >= 2);
   const first = result.phraseLanding.landings.find((item) => item.id === 'n1');
   assert.equal(first.reason, 'phrase-gap');
