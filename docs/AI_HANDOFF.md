@@ -1,10 +1,10 @@
 # AI_HANDOFF.md
 
 現在Version:
-`v0.18-dev`
+`v0.21-dev`
 
 公開中Version:
-`v0.17-dev`
+`v0.18-dev`
 
 最新安定版:
 未作成
@@ -37,7 +37,7 @@ MIDI Archive/Analyzerの役割は2つだけ。
 MoisesをStem分離の主入口とし、Archive/AnalyzerはMoises / RipX / Audio等から受け取った素材を保存・素材化・Audio→MIDI・分析する。
 Composition / Arrangementの所有者にはならない。
 
-## v0.18-dev 初心者導線
+## 初心者導線
 
 ### 読み込み前
 
@@ -69,15 +69,52 @@ Composition / Arrangementの所有者にはならない。
 - 音の動き
 - リズム
 - 反復
-- 良いところ
-- 改善するとよいところ
-- 次に試すこと（最大3件）
+- 音の役割
+
+各項目は `Metric → Meaning → Action` で表示する。
+良い / 悪いの採点はしない。Actionは任意の比較案であり、採用を強制しない。
+
+`音の役割` では以下を区別する。
+- Chord Tone / Non-Chord Tone
+- Scale Tone / Non-Scale Tone
+- Chord外・Scale内
+- Chord内・Scale外
+- 両方の外側
+- Passing Tone候補
+- Neighbor Tone候補
+- Approach Note候補
 
 必要な場合だけ詳細13タブへ切り替える。
 解析表示設定:
 `midi-analyzer.analysis-mode.v1`
 
-詳細: `docs/BEGINNER_MODE.md`
+詳細: `docs/BEGINNER_MODE.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
+
+## v0.21-dev Note Function
+
+### Temporal Candidate
+Passing / Neighbor / Approachは**確定ラベルではなく候補**。
+
+- Step = 半音または全音
+- 前→現在 / 現在→次の発音間隔がそれぞれ2拍以内を暫定条件
+- Passing: 前後Chord Toneを同方向のStepでつなぐ
+- Neighbor: Chord ToneからStepで離れ、同じPitchへ戻る
+- Approach: 次のChord ToneへStepで入る
+- 条件不足や時間間隔が大きい場合は `other-non-chord` として保留
+
+### Minor Scale基準
+minor KeyではNote Function上のScale Tone比較基準を切替可能。
+
+- Natural Minor（初期値）
+- Harmonic Minor
+- Melodic Minor（上行基準）
+
+比較基準だけを切り替え、Key候補 / 元MIDI / Normalized Song / SongProjectは変更しない。
+
+### Piano Roll
+OverviewのPiano Rollは、Melody分析Trackが一致する場合にChord × Scale関係を色分けする。
+Passing / Neighbor / Approach候補は輪郭で補助表示する。
+Piano Rollはread-only。
 
 ## 現在実装済み主要機能
 
@@ -99,6 +136,10 @@ Composition / Arrangementの所有者にはならない。
 - Key / Scale候補
 - Chord / Degree / Chord Detail
 - Melody / Bass / Rhythm
+- Chord Tone / Scale Tone独立分析
+- Passing / Neighbor / Approach候補
+- Natural / Harmonic / Melodic Minor比較
+- Piano Roll Note Function可視化
 - Motif / Section / 転調
 - 裏メロ / Bass / Drum詳細
 - Track役割候補
@@ -148,20 +189,24 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - `midi-file` raw modelを`src/midi/`外へ漏らさない
 - 保存OFF時に元MIDI binaryを永続化しない
 - Key / Chord / Section / Motif / 転調 / Track役割を自動確定しない
+- Passing / Neighbor / Approachを正解として断定しない
 - Higher-level Metricsを品質Scoreとして扱わない
 - 外部AIへ自動送信しない
 - Mixer / Mastering / Plugin Hostingを追加しない
 - 本格Composition / Arrangement機能を追加しない
 
-## v0.18-dev 開発状態
+## v0.21-dev 開発状態
 
 開発Branch:
-`chatgpt/rename-midi-archive-analyzer-v0.18-20261015`
+`chatgpt/note-resolution-v0.21`
 
 変更前復元点:
-`restore/develop-before-midi-archive-analyzer-v0.18-20261015`
+`restore/develop-before-note-resolution-v0.21-20261015`
 
-v0.18では表示名変更と初心者スタート導線を追加する。
+変更前develop commit:
+`aaee84926f5c8e998e0a86c7eceafc2ab51854ee`
+
+v0.21ではNote Functionの時間方向候補、minor Scale比較基準、Piano Roll可視化を追加する。
 SongProject / IndexedDB / Clip / Stem Schemaは変更しない。
 
 ## Git運用
@@ -175,11 +220,12 @@ SongProject / IndexedDB / Clip / Stem Schemaは変更しない。
 
 ## 継続確認
 
-- Android実機で初心者スタートのタッチ操作
-- PWAインストール時に`MIDI Archive/Analyzer`と表示されること
+- Android実機でNote Function色分けとタッチ操作
+- PWA再起動後の表示設定
 - Moises WAV/MP3/M4A Stem Import
 - 長尺Audio / quota / Cancel / retry
 - Clip v1 / v2混在Library
 - Cubasis / Cubase実機取込
+- Temporal candidate閾値の実曲チューニング
 
 stable tagは実機確認前に作成しない。
