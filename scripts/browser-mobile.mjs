@@ -18,7 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
-    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.22-dev$/, 'Browser title must use the current app version');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.23-dev$/, 'Browser title must use the current app version');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -99,6 +99,13 @@ try {
     }
     assert.equal(await page.getByRole('tab', { name: 'Recorder', exact: true }).count(), 0, 'Recorder must stay retired from the main workflow');
 
+    await page.getByRole('tab', { name: 'Structure', exact: true }).click();
+    await page.getByRole('heading', { name: 'Phrase contour / Peak / Climax候補', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Section間 Landing比較', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '曲の特徴 Top 5', exact: true }).waitFor();
+    assert.ok(await page.locator('[data-top-characteristics] [data-top-characteristic]').count() > 0, 'Structure must expose whole-song characteristic insights');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `v0.23 Structure insight overflows at ${width}px`);
+
     await page.getByRole('tab', { name: 'Melody', exact: true }).click();
     await page.getByRole('heading', { name: 'Chord / Scale / 解決・着地候補', exact: true }).waitFor();
     await page.getByRole('heading', { name: '前後の動きから見るChord外音', exact: true }).waitFor();
@@ -161,5 +168,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / six-metric Metric→Meaning→Action / Note Function II resolution-landing / Piano Roll note roles / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px v0.23 phrase/section/top5 insight / beginner start / six-metric Metric→Meaning→Action / Note Function II resolution-landing / detail mode / handoff / storage regression passed');
 } finally { await browser.close(); }
