@@ -68,8 +68,76 @@
   overflow-wrap: anywhere;
 }
 
+.diagnostic-intent-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.diagnostic-intent-field > span {
+  font-weight: 700;
+}
+
+.diagnostic-intent-field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border, #d9dee8);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+.diagnostic-priority-card {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.diagnostic-priority-card.is-selected {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+.diagnostic-rationale {
+  padding-top: 0.45rem;
+  border-top: 1px dashed var(--border, #d9dee8);
+}
+
+.diagnostic-experiment-detail {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+  border-radius: 0.7rem;
+  background: rgba(127, 127, 127, 0.08);
+  overflow-wrap: anywhere;
+}
+
+.diagnostic-experiment-detail ul {
+  margin: 0.2rem 0;
+  padding-left: 1.25rem;
+}
+
+.diagnostic-select-button,
+.diagnostic-action-row button {
+  min-height: 44px;
+}
+
+.diagnostic-action-row {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.diagnostic-history-list .advanced-card {
+  min-width: 0;
+}
+
 @media (min-width: 720px) {
   .advanced-section-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .diagnostic-action-row {
+    grid-template-columns: 2fr 1fr 1fr;
   }
 }

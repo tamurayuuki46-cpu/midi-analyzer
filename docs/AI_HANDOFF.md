@@ -1,10 +1,10 @@
 # AI_HANDOFF.md
 
 現在Version:
-`v0.24-dev`
+`v0.25-dev`
 
 公開中Version:
-`v0.23-dev`
+`v0.24-dev`
 
 最新安定版:
 未作成
@@ -18,7 +18,8 @@
 - Repository: `tamurayuuki46-cpu/midi-analyzer`
 - 公開URL: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 - package名: `midi-analyzer`
-- IndexedDB / localStorageの既存キー
+- IndexedDBの既存DB / Store
+- SongProject v1
 
 ## 最重要の役割
 MIDI Archive/Analyzerの役割は2つだけ。
@@ -53,8 +54,7 @@ MoisesをStem分離の主入口とし、Archive/AnalyzerはMoises / RipX / Audio
 各項目は `Metric → Meaning → Action` で表示する。良い / 悪いの採点はしない。Actionは任意の比較案であり、採用を強制しない。
 
 ## v0.22-dev Note Function II
-v0.21のChord Tone / Scale Tone / Passing / Neighbor / Approachを維持し、次を追加済み。
-
+v0.21までのChord Tone / Scale Tone / Passing / Neighbor / Approachを維持し、次を追加済み。
 - Resolution candidate
 - Strong / Weak beat context
 - Suspension candidate
@@ -68,56 +68,15 @@ v0.21のChord Tone / Scale Tone / Passing / Neighbor / Approachを維持し、�
 - `docs/NOTE_FUNCTION_ANALYSIS.md`
 
 ## v0.23-dev Insight Layer
-既存AnalyzerのEvidenceをまとめ、初心者が「この曲の特徴として何を見るか」を判断しやすくするRead-only Insight Layer。
+既存AnalyzerのEvidenceをまとめ、初心者が「この曲の特徴として何を見るか」を判断しやすくするRead-only Layer。
 
-### Phrase contour / Peak / Climax
-- contour: arch / valley / ascending / descending / mixed
-- Melody最高音 / 最低音
-- 曲内位置
-- 方向転換回数
-- Pitch / Velocity / 周辺発音密度によるClimax候補
+主な内容:
+- Phrase contour / Peak / Climax候補
+- Section Landing比較
+- Reference MIDI vs Own MIDI差分説明
+- 曲全体の特徴 Top 5
 
-Climaxは候補であり、曲の品質や本当の盛り上がり位置を断定しない。
-
-### Section Landing比較
-既存Structure Section候補ごとの最後の代表Melody Noteを比較する。
-
-Evidence:
-- Pitch / Pitch name
-- Key Degree
-- Chord Tone / Scale Tone
-- Chord候補
-- strong / weak beat
-
-A/B/C等のSection候補をVerse / Chorus等へ自動確定しない。
-
-### Reference MIDI vs Own MIDI差分説明
-既存Compare数値から差が大きい特徴を最大5件だけ説明する。
-
-対象例:
-- Melody音域 / 密度 / 平均跳躍
-- Bass移動 / Root率
-- Rhythm密度 / 拍頭率
-- 全体Note密度
-- 転調候補数
-- Top Key
-- Chord集合共通度
-
-差分説明は観測であり、参考曲へ近づけるべきという指示や優劣評価には変換しない。
-
-### 曲全体の特徴 Top 5
-既存Evidenceから最大5件だけ選び、`Feature → Evidence → Meaning`で表示する。
-
-候補:
-- 最高音位置 / 音域
-- Phrase contour
-- Section landing
-- Resolution傾向
-- Section密度差
-- 転調候補
-- Chord Tone率
-
-内部weightは候補順位用であり、品質Scoreとして公開しない。
+Verse / Chorus等のSection役割は自動確定しない。内部weightは品質Scoreとして公開しない。
 
 詳細:
 - `docs/INSIGHT_ANALYSIS_SPEC.md`
@@ -125,58 +84,59 @@ A/B/C等のSection候補をVerse / Chorus等へ自動確定しない。
 ## v0.24-dev Diagnostic Loop
 v0.23までのEvidenceを、分析後の次の行動へつなげるRead-only / proposal-only Layer。
 
-### 1. Section比較
-既存Structure候補ごとに次を比較する。
-- Note密度
-- Melody音域
-- Melody Note数
-- 平均Pitch
-- Chord Tone率
-- Section終端のPitch / Degree / relation
+主な内容:
+- Section比較
+- `Evidence → Meaning`
+- 見直し候補 TOP 3
+- Arrangement Lab向けproposal-only handoff
+- Compareで修正前 → 修正後の再分析
 
-隣接Sectionの差も自然文で説明する。A/B/C等をVerse / Bメロ / Chorusへ自動確定しない。
-
-### 2. 分析値のMeaning
-数値だけで終わらせず `Evidence → Meaning` を表示する。Meaningは品質評価ではない。
-
-### 3. 見直し候補 TOP 3
-差を試した時に違いを確認しやすい観点を最大3件へ絞る。
-
-候補:
-- Section密度差
-- Section別Melody音域
-- Section終端の着地
-- Chord Tone / Non-Chord Tone比率
-- Climax候補位置
-
-内部weightは公開しない。TOP3は良し悪しのScoreではない。
-
-### 4. Arrangement Lab handoff
-ユーザーの明示操作 `Arrangement Labへ渡す` で `midi-analyzer-arrangement-handoff` JSONを生成する。
-
-- `schemaVersion: 1`
-- `mode: proposal-only`
-- source app/version/file/PPQ
-- priority / evidence / meaning / action / intent / targetSections
-- 対応端末はOS共有、未対応時はJSON Download
-
-自動Upload、自動Merge、Reharmonize自動適用はしない。
 Analyzerは観測・説明・候補提案まで。Reharmonize / Voicing / 密度・展開変更 / 編曲案生成 / 採用判断はArrangement Labの責務。
-
-### 5. 修正前 → 修正後の再分析
-Compare Tabの比較用MIDIを修正前、現在MIDIを修正後として次を再計算する。
-
-- Section間Note密度差
-- Section間Melody音域差
-- 着地Degree種類数
-- 平均Chord Tone率
-- 曲全体Melody音域
-- Climax候補位置
-
-変化量は改善度・品質Scoreではない。
 
 詳細:
 - `docs/DIAGNOSTIC_LOOP_SPEC.md`
+
+## v0.25-dev Intent-driven Experiment Loop
+v0.24を作り直さず、既存Evidenceを「今回の目的に対して何を1項目だけ試すか」へ接続するLayer。developへ統合済み。
+
+フロー:
+`目的 → Intent-aware TOP3 → 1項目実験 → Arrangement Lab → Compare再分析 → 採用/見送り記録`
+
+### 目的
+- 特徴を確認したい
+- Sectionの差を強めたい
+- サビ候補を持ち上げたい
+- 緊張感・浮遊感を試したい
+- 着地・終止感を変えたい
+- Climax位置・展開重心を調整したい
+
+目的は既存Evidenceの並び順にだけ使う。品質Score・正解判定に変換しない。
+
+### 1項目実験
+各候補は次を持つ。
+- `rationale`: なぜ今回の目的に対して比較価値があるか
+- `variable`: 今回変える1項目
+- `targetSections`
+- `keepConstant`: 変えない要素
+- `choices`: A/B/C等の比較方向
+- `verification`: 修正後に再確認する指標
+
+### Arrangement Lab handoff
+互換性を維持する。
+- `schemaVersion: 1`
+- `type: midi-analyzer-arrangement-handoff`
+- `mode: proposal-only`
+
+v0.25ではユーザーが選択したPriority 1件だけを渡す。
+追加フィールドは `userIntent / rationale / experiment`。
+自動Upload・自動Merge・自動適用はしない。
+
+### 採用 / 見送り履歴
+ユーザー明示操作でlocalStorageだけに保存する。
+SongProject / IndexedDB Schemaへは入れない。
+
+詳細:
+- `docs/INTENT_DIAGNOSTIC_LOOP_SPEC.md`
 
 ## 現在実装済み主要機能
 ### 素材を集める・保存する
@@ -207,9 +167,11 @@ Compare Tabの比較用MIDIを修正前、現在MIDIを修正後として次を�
 - 曲全体の特徴 Top 5
 - Section比較 / 隣接差分説明
 - 分析値のMeaning
-- 見直し候補 TOP 3
+- Intent-aware 見直し候補 TOP 3
+- 1項目実験 / rationale
 - Arrangement Lab proposal-only handoff
 - 修正前 / 修正後の再分析
+- 採用 / 見送りの端末内履歴
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll Note Function可視化
 - Motif / Section / 転調
@@ -236,6 +198,11 @@ Recorderは主Tabから退役済み。
 - Stem Blob
 - optional provenance
 
+### localStorage
+- beginner / detail表示設定
+- v0.25 diagnostic intent
+- v0.25 experiment history
+
 Audio BlobはSongProject JSONへ埋め込まない。
 
 ## SongProject
@@ -257,62 +224,47 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 保存OFF時に元MIDI binaryを永続化しない
 - Key / Chord / Section / Motif / 転調 / Track役割を自動確定しない
 - Note Function候補を正解として断定しない
-- Insight / Diagnostic Loopを品質Scoreとして扱わない
+- Insight / Diagnostic Loop / Intent Layerを品質Scoreとして扱わない
 - Higher-level Metricsを品質Scoreとして扱わない
 - Arrangement Labへ候補を自動適用・自動Mergeしない
 - 外部AIへ自動送信しない
 - Mixer / Mastering / Plugin Hostingを追加しない
 - 本格Composition / Arrangement機能を追加しない
 
-## v0.22-dev 統合状態
-- 実装PR: `#55`（developへ統合済み）
-- Issue: `#54`（完了）
-- 変更前復元点: `restore/develop-before-resolution-landing-v0.22-20261015`
-- v0.22統合commit: `6224947576ec3e925adb7c8881b0bbe02c41b3a7`
-- feature-complete milestone: `chatgpt/v0.22-feature-complete-milestone`
-
 ## v0.23-dev 統合・公開状態
-- Issue: `#57`（完了）
-- 実装PR: `#58`（developへ統合済み）
-- 実装前develop commit: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
-- 変更前復元点: `restore/develop-before-insight-v0.23-20261015`
-- v0.23統合commit: `41a6b0e53725aaf39fd67d4ad2085986cb00cbff`
-- feature-complete milestone: `chatgpt/v0.23-feature-complete-milestone`
+- 実装PR: `#58`
 - 公開PR: `#60`
 - 公開main commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
-- 公開前main復元点: `restore/main-before-v0.23-publish-20261015`
+- GitHub Pages Deploy: success
+
+## v0.24-dev 統合・公開状態
+- 実装PR: `#65`
+- 変更前復元点: `restore/develop-before-diagnostic-loop-v0.24-20261015`
+- feature-complete milestone: `chatgpt/v0.24-feature-complete-milestone`
+- 公開PR: `#67`
+- 公開main commit: `c323d5a3138771a9bffb226ab5d0cdb6ad02791a`
+- 公開前main復元点: `restore/main-before-v0.24-publish-20261015`
+- Main CI: success
 - GitHub Pages Deploy: success
 - Schema変更なし
 
-自動検証:
-- PR #58 Unit tests: success
+## v0.25-dev 統合状態
+- 実装前develop commit: `65667b01adc8c050c18e040c562b3aab40a937a6`
+- 変更前復元点: `restore/develop-before-intent-loop-v0.25-20261015`
+- feature branch: `chatgpt/midi-analyzer-v0.25-intent-loop`
+- final milestone: `chatgpt/v0.25-final-milestone-20261015`
+- develop integration PR: `#70`（merged）
+- develop merge commit: `b091317d4903318e2cf0ae0ee9b0c6a19815c09c`
+- feature branch CI #705: success
+- PR CI #707: success
+- develop integration CI #708: success
+- Unit tests: 158 passed / 0 failed
 - Production build: success
 - Basic Pitch local model assets: success
 - Mobile Chromium 360 / 390 / 430px regression: success
-- Structure v0.23 Insight表示: success
-- 統合後develop CI: success
-- 公開PR #60 CI: success
-- 公開main CI: success
-- GitHub Pages build / deploy: success
-
-## v0.24-dev 統合状態
-- 実装PR: `#65`（developへ統合済み）
-- 実装前develop commit: `24aa53240a3ff0ab0794569459614baa85e7335f`
-- 変更前復元点: `restore/develop-before-diagnostic-loop-v0.24-20261015`
-- feature branch: `chatgpt/diagnostic-loop-v0.24`
-- develop統合commit: `71bb387f41056bf15a489a6a2a4983775666f1c5`
-- feature-complete milestone: `chatgpt/v0.24-feature-complete-milestone`
 - Schema変更なし
 - IndexedDB Migrationなし
-- `main` / 公開版はv0.23-devのまま
-
-自動検証:
-- PR #65 Unit tests: success
-- Production build: success
-- Basic Pitch local model assets: success
-- Mobile Chromium 360 / 390 / 430px regression: success
-- v0.24 Section比較 / Meaning / TOP 3 / Before-After表示: success
-- 統合後develop CI: success
+- `main` / 公開版はv0.24-devのまま
 
 ## Git運用
 - `develop`: 開発統合
@@ -322,22 +274,13 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - mainへの公開はPR経由
 - 過去Branch / Tag / Version / Backupを削除・上書きしない
 
-## 次の開発候補
-- Appoggiatura / Escape Tone / Retardation候補
-- Climax候補の実曲チューニング
-- Section名をユーザー確定した後のVerse / Bメロ / Chorus比較
-- Reference Insightへ解決速度 / 解決方向を抽象特徴として追加
-- Arrangement Lab側でproposal-only handoffを直接受け取る導線（Analyzer側からの自動Mergeはしない）
-
 ## 継続確認
-- Android実機でv0.24 Structure / Compare / Arrangement handoff表示とタッチ操作
+- Android実機でv0.25 Structure / intent select / single-variable experiment / Arrangement handoff / historyを確認
 - Android共有メニュー / JSON Download fallback
 - 4/4 / 6/8実曲でstrong/weak境界確認
 - Suspension / Anticipation / Resolution閾値の実曲チューニング
-- PWA再起動後の表示設定
 - Moises WAV/MP3/M4A Stem Import
 - 長尺Audio / quota / Cancel / retry
-- Clip v1 / v2混在Library
 - Cubasis / Cubase実機取込
 
-`develop`はv0.24-dev、`main` / 公開Versionはv0.23-dev。stable tagはAndroid実機確認前に作成しない。
+`develop`はv0.25-dev、`main` / 公開Versionはv0.24-dev。stable tagはAndroid実機確認前に作成しない。
