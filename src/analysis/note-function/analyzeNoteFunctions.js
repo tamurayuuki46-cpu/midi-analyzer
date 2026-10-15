@@ -27,6 +27,7 @@ const CHORD_INTERVALS = Object.freeze({
   m7b5: Object.freeze([0, 3, 6, 10]),
 });
 const MINOR_SCALE_MODES = new Set(['natural-minor', 'harmonic-minor', 'melodic-minor']);
+const DEGREE_LABELS = Object.freeze(['I', '♭II', 'II', '♭III', 'III', 'IV', '♭V', 'V', '♭VI', 'VI', '♭VII', 'VII']);
 
 function mod(value, divisor) {
   return ((value % divisor) + divisor) % divisor;
@@ -74,8 +75,7 @@ function representativeMelodyNotes(song, trackId) {
     .map(([, bucket]) => [...bucket].sort((a, b) => b.velocity - a.velocity || b.durationTick - a.durationTick || b.pitch - a.pitch)[0]);
 }
 
-function chordContextAtTick(chordSegments, tick) {
-  const segment = (chordSegments ?? []).find((entry) => tick >= entry.startTick && tick < entry.endTick);
+function candidateFromSegment(segment) {
   if (!segment) return null;
   const selectedCandidate = segment.selectedCandidate
     ?? (segment.selected ? segment.candidates?.find((candidate) => candidate.value === segment.selected) : null);
@@ -84,7 +84,19 @@ function chordContextAtTick(chordSegments, tick) {
   return Object.freeze({
     candidate,
     explicit: segment.selectionSource === 'selected' || Boolean(segment.selected || selectedCandidate),
+    segment,
   });
+}
+
+function chordContextAtTick(chordSegments, tick) {
+  const segment = (chordSegments ?? []).find((entry) => tick >= entry.startTick && tick < entry.endTick);
+  return candidateFromSegment(segment);
+}
+
+function normalizedChordSegments(chordSegments) {
+  return [...(chordSegments ?? [])]
+    .filter((entry) => Number.isFinite(entry.startTick) && Number.isFinite(entry.endTick) && entry.endTick > entry.startTick)
+    .sort((a, b) => a.startTick - b.startTick || a.endTick - b.endTick);
 }
 
 function isChordTone(note, context) {
@@ -101,6 +113,41 @@ function isScaleTone(note, key, scaleBasis) {
 function isStep(interval) {
   const size = Math.abs(interval);
   return size >= 1 && size <= 2;
+}
+
+function normalizeSignatures(song) {
+  const signatures = [...(song?.timeSignatures ?? [])]
+    .filter((entry) => Number.isFinite(entry.tick) && entry.tick >= 0 && entry.numerator > 0 && entry.denominator > 0)
+    .sort((a, b) => a.tick - b.tick);
+  if (!signatures.length || signatures[0].tick > 0) {
+    signatures.unshift({ tick: 0, numerator: 4, denominator: 4, implicit: true });
+  }
+  return signatures;
+}
+
+function timingAtTick(song, tick) {
+  const ppq = Number(song?.ppq);
+  if (!Number.isFinite(ppq) || ppq <= 0) return null;
+  const signatures = normalizeSignatures(song);
+  let signature = signatures[0];
+  for (const item of signatures) {
+    if (item.tick > tick) break;
+    signature = item;
+  }
+  const unitTicks = ppq * 4 / signature.denominator;
+  const compound = signature.numerator >= 6 && signature.numerator % 3 === 0;
+  const musicalBeatTicks = compound ? unitTicks * 3 : unitTicks;
+  const barTicks = unitTicks * signature.numerator;
+  const offset = mod(tick - signature.tick, musicalBeatTicks);
+  const tolerance = Math.max(1, Math.round(ppq / 48));
+  const distanceToBoundary = Math.min(offset, musicalBeatTicks - offset);
+  return Object.freeze({
+    signature: Object.freeze({ ...signature }),
+    musicalBeatTicks,
+    barTicks,
+    onBeat: distanceToBoundary <= tolerance,
+    beatStrength: distanceToBoundary <= tolerance ? 'strong' : 'weak',
+  });
 }
 
 function isLocalMotion(previous, current, next, ppq) {
@@ -136,6 +183,257 @@ function classifyNonChordFunction(details, index, ppq) {
   }
 
   return 'other-non-chord';
+}
+
+function directionLabel(interval) {
+  if (interval > 0) return 'up';
+  if (interval < 0) return 'down';
+  return 'same';
+}
+
+function relationFrom(scaleTone, chordTone) {
+  if (scaleTone === null || chordTone === null) return 'unresolved';
+  if (scaleTone && chordTone) return 'both';
+  if (scaleTone) return 'scale-only';
+  if (chordTone) return 'chord-only';
+  return 'outside-both';
+}
+
+function nextDetailWithin(details, index, maxTick) {
+  for (let i = index + 1; i < details.length; i += 1) {
+    const detail = details[i];
+    if (detail.startTick > maxTick) break;
+    return detail;
+  }
+  return null;
+}
+
+function analyzeResolution(song, details) {
+  const summary = { evaluated: 0, resolved: 0, unresolved: 0, unknown: 0 };
+  details.forEach((detail, index) => {
+    if (detail.chordTone !== false) return;
+    const next = details[index + 1] ?? null;
+    if (!next) {
+      summary.unknown += 1;
+      return;
+    }
+    const timing = timingAtTick(song, detail.startTick);
+    const beatTicks = timing?.musicalBeatTicks ?? Math.max(1, Number(song?.ppq) || 480);
+    const deltaTick = next.startTick - detail.startTick;
+    if (!(deltaTick > 0) || deltaTick > beatTicks * 2) {
+      summary.unknown += 1;
+      return;
+    }
+    if (next.chordTone === null) {
+      summary.unknown += 1;
+      return;
+    }
+    summary.evaluated += 1;
+    if (next.chordTone !== true) {
+      summary.unresolved += 1;
+      return;
+    }
+    const intervalSemitones = next.pitch - detail.pitch;
+    detail.resolutionCandidate = {
+      targetId: next.id,
+      targetPitch: next.pitch,
+      targetTick: next.startTick,
+      deltaTick,
+      deltaBeats: round(deltaTick / beatTicks, 3),
+      intervalSemitones,
+      direction: directionLabel(intervalSemitones),
+      stepwise: isStep(intervalSemitones),
+    };
+    summary.resolved += 1;
+  });
+  return summary;
+}
+
+function analyzeBeatContext(song, details) {
+  const summary = { evaluated: 0, strong: 0, weak: 0, nonChordStrong: 0, nonChordWeak: 0 };
+  for (const detail of details) {
+    const timing = timingAtTick(song, detail.startTick);
+    detail.beatStrength = timing?.beatStrength ?? 'unknown';
+    if (!timing) continue;
+    summary.evaluated += 1;
+    if (timing.beatStrength === 'strong') summary.strong += 1;
+    else summary.weak += 1;
+    if (detail.chordTone === false) {
+      if (timing.beatStrength === 'strong') summary.nonChordStrong += 1;
+      else summary.nonChordWeak += 1;
+    }
+  }
+  return summary;
+}
+
+function analyzeSuspensions(song, notes, details, chordSegments) {
+  const segments = normalizedChordSegments(chordSegments);
+  const summary = { evaluated: 0, candidates: 0 };
+  if (segments.length < 2) return summary;
+
+  details.forEach((detail, index) => {
+    const note = notes[index];
+    if (!note) return;
+    const noteEnd = note.startTick + note.durationTick;
+    for (let segmentIndex = 0; segmentIndex < segments.length - 1; segmentIndex += 1) {
+      const left = segments[segmentIndex];
+      const right = segments[segmentIndex + 1];
+      const boundary = left.endTick;
+      if (right.startTick !== boundary) continue;
+      if (!(note.startTick < boundary && noteEnd >= boundary)) continue;
+      const oldContext = candidateFromSegment(left);
+      const newContext = candidateFromSegment(right);
+      if (!oldContext || !newContext) continue;
+      if (oldContext.candidate.value === newContext.candidate.value) continue;
+      const oldTone = isChordTone(note, oldContext);
+      const newTone = isChordTone(note, newContext);
+      if (oldTone !== true || newTone !== false) continue;
+      summary.evaluated += 1;
+      const timing = timingAtTick(song, boundary);
+      const beatTicks = timing?.musicalBeatTicks ?? Math.max(1, Number(song?.ppq) || 480);
+      const next = nextDetailWithin(details, index, boundary + beatTicks * 2);
+      if (!next || next.startTick < boundary) continue;
+      const targetTone = isChordTone({ pitch: next.pitch }, newContext);
+      const intervalSemitones = next.pitch - detail.pitch;
+      if (targetTone !== true || !isStep(intervalSemitones)) continue;
+      detail.suspensionCandidate = {
+        boundaryTick: boundary,
+        fromChord: oldContext.candidate.value,
+        toChord: newContext.candidate.value,
+        targetId: next.id,
+        targetPitch: next.pitch,
+        targetTick: next.startTick,
+        delayTick: next.startTick - boundary,
+        delayBeats: round((next.startTick - boundary) / beatTicks, 3),
+        intervalSemitones,
+        direction: directionLabel(intervalSemitones),
+      };
+      summary.candidates += 1;
+      break;
+    }
+  });
+  return summary;
+}
+
+function analyzeAnticipations(song, notes, details, chordSegments) {
+  const segments = normalizedChordSegments(chordSegments);
+  const summary = { evaluated: 0, candidates: 0 };
+  if (segments.length < 2) return summary;
+
+  details.forEach((detail, index) => {
+    if (detail.chordTone !== false) return;
+    const note = notes[index];
+    if (!note) return;
+    const segmentIndex = segments.findIndex((segment) => detail.startTick >= segment.startTick && detail.startTick < segment.endTick);
+    if (segmentIndex < 0 || segmentIndex >= segments.length - 1) return;
+    const currentSegment = segments[segmentIndex];
+    const nextSegment = segments[segmentIndex + 1];
+    if (nextSegment.startTick !== currentSegment.endTick) return;
+    const boundary = currentSegment.endTick;
+    const timing = timingAtTick(song, detail.startTick);
+    const beatTicks = timing?.musicalBeatTicks ?? Math.max(1, Number(song?.ppq) || 480);
+    const leadTick = boundary - detail.startTick;
+    if (!(leadTick > 0) || leadTick > beatTicks) return;
+    const nextContext = candidateFromSegment(nextSegment);
+    if (!nextContext || isChordTone(note, nextContext) !== true) return;
+    summary.evaluated += 1;
+
+    const noteEnd = note.startTick + note.durationTick;
+    const repeatedAfterBoundary = details.slice(index + 1).find((candidate) => (
+      candidate.startTick >= boundary
+      && candidate.startTick <= boundary + beatTicks
+      && candidate.pitch === detail.pitch
+    )) ?? null;
+    const holdsAcrossBoundary = noteEnd >= boundary;
+    if (!holdsAcrossBoundary && !repeatedAfterBoundary) return;
+
+    detail.anticipationCandidate = {
+      boundaryTick: boundary,
+      nextChord: nextContext.candidate.value,
+      leadTick,
+      leadBeats: round(leadTick / beatTicks, 3),
+      holdsAcrossBoundary,
+      repeatedAfterBoundary: Boolean(repeatedAfterBoundary),
+    };
+    summary.candidates += 1;
+  });
+  return summary;
+}
+
+function degreeForPitch(pitch, key) {
+  if (!key) return null;
+  return DEGREE_LABELS[mod(pitchClass(pitch) - key.root, 12)];
+}
+
+function analyzePhraseLandings(song, notes, details, key, scaleBasis, chordSegments, sectionBoundaries = []) {
+  const landings = [];
+  const counts = { chordTone: 0, scaleTone: 0, nonScaleTone: 0 };
+  const degreeCounts = new Map();
+  const boundaries = [...sectionBoundaries].filter(Number.isFinite).sort((a, b) => a - b);
+
+  details.forEach((detail, index) => {
+    const note = notes[index];
+    if (!note) return;
+    const noteEnd = note.startTick + note.durationTick;
+    const next = details[index + 1] ?? null;
+    const timing = timingAtTick(song, noteEnd);
+    const beatTicks = timing?.musicalBeatTicks ?? Math.max(1, Number(song?.ppq) || 480);
+    const gapTick = next ? Math.max(0, next.startTick - noteEnd) : Math.max(0, Number(song?.lengthTicks ?? noteEnd) - noteEnd);
+    const sectionBoundary = boundaries.find((boundary) => boundary >= noteEnd && (!next || boundary <= next.startTick)) ?? null;
+    const isLast = !next;
+    const hasPhraseGap = gapTick >= beatTicks;
+    if (!isLast && !hasPhraseGap && sectionBoundary === null) return;
+
+    const landingTick = Math.max(note.startTick, noteEnd - 1);
+    const chordContext = chordContextAtTick(chordSegments, landingTick);
+    const chordTone = isChordTone(note, chordContext);
+    const scaleTone = isScaleTone(note, key, scaleBasis);
+    const degree = degreeForPitch(note.pitch, key);
+    const relation = relationFrom(scaleTone, chordTone);
+    const reason = sectionBoundary !== null ? 'section-boundary' : (isLast ? 'last-note' : 'phrase-gap');
+
+    if (chordTone === true) counts.chordTone += 1;
+    if (scaleTone === true) counts.scaleTone += 1;
+    if (scaleTone === false) counts.nonScaleTone += 1;
+    if (degree) degreeCounts.set(degree, (degreeCounts.get(degree) ?? 0) + 1);
+
+    landings.push({
+      id: detail.id,
+      pitch: detail.pitch,
+      startTick: detail.startTick,
+      endTick: noteEnd,
+      gapTick,
+      gapBeats: round(gapTick / beatTicks, 3),
+      reason,
+      chord: chordContext?.candidate?.value ?? null,
+      chordTone,
+      scaleTone,
+      relation,
+      degree,
+    });
+  });
+
+  const topDegrees = [...degreeCounts.entries()]
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
+    .slice(0, 3);
+
+  return {
+    count: landings.length,
+    chordTone: counts.chordTone,
+    scaleTone: counts.scaleTone,
+    nonScaleTone: counts.nonScaleTone,
+    topDegrees,
+    landings,
+  };
+}
+
+function freezeDetail(detail) {
+  const nestedKeys = ['resolutionCandidate', 'suspensionCandidate', 'anticipationCandidate'];
+  for (const key of nestedKeys) {
+    if (detail[key]) detail[key] = Object.freeze({ ...detail[key] });
+  }
+  return Object.freeze({ ...detail });
 }
 
 export function analyzeNoteFunctions(song, options = {}) {
@@ -197,6 +495,10 @@ export function analyzeNoteFunctions(song, options = {}) {
       chord: chordContext?.candidate?.value ?? null,
       chordSource: chordContext ? (chordContext.explicit ? 'selected' : 'candidate') : null,
       functionCandidate: 'unresolved',
+      beatStrength: 'unknown',
+      resolutionCandidate: null,
+      suspensionCandidate: null,
+      anticipationCandidate: null,
     };
   });
 
@@ -219,6 +521,20 @@ export function analyzeNoteFunctions(song, options = {}) {
     else nonChordFunction.other += 1;
   });
 
+  const beatContext = analyzeBeatContext(song, details);
+  const resolution = analyzeResolution(song, details);
+  const suspension = analyzeSuspensions(song, notes, details, options.chordSegments);
+  const anticipation = analyzeAnticipations(song, notes, details, options.chordSegments);
+  const phraseLanding = analyzePhraseLandings(
+    song,
+    notes,
+    details,
+    key,
+    scaleBasis,
+    options.chordSegments,
+    options.sectionBoundaries ?? [],
+  );
+
   return Object.freeze({
     trackId: trackId ?? null,
     noteCount: notes.length,
@@ -239,8 +555,17 @@ export function analyzeNoteFunctions(song, options = {}) {
     }),
     relationship: Object.freeze({ ...relationship }),
     nonChordFunction: Object.freeze({ ...nonChordFunction }),
-    notes: Object.freeze(details.map((detail) => Object.freeze({ ...detail }))),
-    note: 'Passing / Neighbor / Approachは前後の動きから見た候補です。Chord Tone・Scale Tone・外音のどれも誤りとは判定しません。',
+    beatContext: Object.freeze({ ...beatContext }),
+    resolution: Object.freeze({ ...resolution, ratio: round(resolution.evaluated ? resolution.resolved / resolution.evaluated : 0) }),
+    suspension: Object.freeze({ ...suspension }),
+    anticipation: Object.freeze({ ...anticipation }),
+    phraseLanding: Object.freeze({
+      ...phraseLanding,
+      topDegrees: Object.freeze(phraseLanding.topDegrees.map((item) => Object.freeze({ ...item }))),
+      landings: Object.freeze(phraseLanding.landings.map((item) => Object.freeze({ ...item }))),
+    }),
+    notes: Object.freeze(details.map(freezeDetail)),
+    note: 'Passing / Neighbor / Approach / Resolution / Suspension / Anticipationは時間・拍・Chord文脈から見た候補です。Chord Tone・Scale Tone・外音のどれも誤りとは判定しません。',
   });
 }
 
