@@ -5,7 +5,7 @@ import { analyzeNoteFunctions, parseNoteFunctionKey } from '../src/analysis/note
 function makeSong(pitches) {
   return {
     ppq: 480,
-    lengthTicks: 1920,
+    lengthTicks: Math.max(1920, pitches.length * 480),
     tracks: [{ id: 'lead', name: 'Lead', roleHint: 'melody', noteCount: pitches.length, isDrums: false, channels: [0] }],
     notes: pitches.map((pitch, index) => ({
       id: `n${index + 1}`,
@@ -19,16 +19,18 @@ function makeSong(pitches) {
   };
 }
 
-function chordSegment(candidate) {
+function chordSegment(candidate, endTick = 3840) {
   return [{
     id: 'bar-1',
     startTick: 0,
-    endTick: 1920,
+    endTick,
     candidates: [candidate],
     effectiveCandidate: candidate,
     selectionSource: 'candidate',
   }];
 }
+
+const cMajor = { value: 'C', root: 0, quality: 'major', confidence: 0.9 };
 
 test('key labels used by Key Analyzer can be parsed for scale-tone analysis', () => {
   assert.deepEqual(parseNoteFunctionKey('C major'), { value: 'C major', root: 0, scale: 'major' });
@@ -66,7 +68,6 @@ test('Chord Tone and Scale Tone are classified independently', () => {
 });
 
 test('a chromatic non-chord note can be outside both without being treated as an error', () => {
-  const cMajor = { value: 'C', root: 0, quality: 'major', confidence: 0.9 };
   const song = makeSong([66]); // F♯
   const result = analyzeNoteFunctions(song, {
     keyValue: 'C major',
@@ -93,4 +94,56 @@ test('same-onset melody notes use one representative note like the basic Melody 
   const result = analyzeNoteFunctions(song, { keyValue: 'C major' });
   assert.equal(result.noteCount, 2);
   assert.deepEqual(result.notes.map((entry) => entry.pitch), [64, 67]);
+});
+
+test('stepwise non-chord note between two chord tones is a passing candidate', () => {
+  const result = analyzeNoteFunctions(makeSong([60, 62, 64]), {
+    keyValue: 'C major',
+    chordSegments: chordSegment(cMajor),
+  });
+  assert.equal(result.notes[1].functionCandidate, 'passing-candidate');
+  assert.equal(result.nonChordFunction.passing, 1);
+});
+
+test('departure and return by step is a neighbor candidate', () => {
+  const result = analyzeNoteFunctions(makeSong([60, 62, 60]), {
+    keyValue: 'C major',
+    chordSegments: chordSegment(cMajor),
+  });
+  assert.equal(result.notes[1].functionCandidate, 'neighbor-candidate');
+  assert.equal(result.nonChordFunction.neighbor, 1);
+});
+
+test('step into a following chord tone is an approach candidate when passing criteria are not met', () => {
+  const result = analyzeNoteFunctions(makeSong([62, 66, 67]), {
+    keyValue: 'C major',
+    chordSegments: chordSegment(cMajor),
+  });
+  assert.equal(result.notes[1].functionCandidate, 'approach-candidate');
+  assert.equal(result.nonChordFunction.approach, 1);
+});
+
+test('widely spaced melody events are not forced into temporal non-chord labels', () => {
+  const song = makeSong([60, 62, 64]);
+  song.notes[1].startTick = 2400;
+  song.notes[2].startTick = 4800;
+  song.lengthTicks = 5760;
+  const result = analyzeNoteFunctions(song, {
+    keyValue: 'C major',
+    chordSegments: chordSegment(cMajor, 5760),
+  });
+  assert.equal(result.notes[1].functionCandidate, 'other-non-chord');
+});
+
+test('minor scale basis can switch between natural harmonic and melodic ascending', () => {
+  const song = makeSong([68, 66]); // G♯, F♯ against A minor
+  const natural = analyzeNoteFunctions(song, { keyValue: 'A minor', scaleMode: 'natural-minor' });
+  const harmonic = analyzeNoteFunctions(song, { keyValue: 'A minor', scaleMode: 'harmonic-minor' });
+  const melodic = analyzeNoteFunctions(song, { keyValue: 'A minor', scaleMode: 'melodic-minor' });
+
+  assert.equal(natural.scaleBasis.id, 'natural-minor');
+  assert.equal(natural.scaleTone.tone, 0);
+  assert.equal(harmonic.scaleTone.tone, 1);
+  assert.equal(melodic.scaleTone.tone, 2);
+  assert.match(melodic.scaleBasis.label, /ascending/);
 });
