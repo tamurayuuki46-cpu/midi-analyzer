@@ -199,10 +199,11 @@ function relationFrom(scaleTone, chordTone) {
   return 'outside-both';
 }
 
-function nextDetailWithin(details, index, maxTick) {
+function nextDetailInRange(details, index, minTick, maxTick) {
   for (let i = index + 1; i < details.length; i += 1) {
     const detail = details[i];
     if (detail.startTick > maxTick) break;
+    if (detail.startTick < minTick) continue;
     return detail;
   }
   return null;
@@ -291,8 +292,8 @@ function analyzeSuspensions(song, notes, details, chordSegments) {
       summary.evaluated += 1;
       const timing = timingAtTick(song, boundary);
       const beatTicks = timing?.musicalBeatTicks ?? Math.max(1, Number(song?.ppq) || 480);
-      const next = nextDetailWithin(details, index, boundary + beatTicks * 2);
-      if (!next || next.startTick < boundary) continue;
+      const next = nextDetailInRange(details, index, boundary, boundary + beatTicks * 2);
+      if (!next) continue;
       const targetTone = isChordTone({ pitch: next.pitch }, newContext);
       const intervalSemitones = next.pitch - detail.pitch;
       if (targetTone !== true || !isStep(intervalSemitones)) continue;
@@ -502,13 +503,7 @@ export function analyzeNoteFunctions(song, options = {}) {
     };
   });
 
-  const nonChordFunction = {
-    evaluated: 0,
-    passing: 0,
-    neighbor: 0,
-    approach: 0,
-    other: 0,
-  };
+  const nonChordFunction = { evaluated: 0, passing: 0, neighbor: 0, approach: 0, other: 0 };
 
   details.forEach((detail, index) => {
     const functionCandidate = classifyNonChordFunction(details, index, ppq);
@@ -525,15 +520,7 @@ export function analyzeNoteFunctions(song, options = {}) {
   const resolution = analyzeResolution(song, details);
   const suspension = analyzeSuspensions(song, notes, details, options.chordSegments);
   const anticipation = analyzeAnticipations(song, notes, details, options.chordSegments);
-  const phraseLanding = analyzePhraseLandings(
-    song,
-    notes,
-    details,
-    key,
-    scaleBasis,
-    options.chordSegments,
-    options.sectionBoundaries ?? [],
-  );
+  const phraseLanding = analyzePhraseLandings(song, notes, details, key, scaleBasis, options.chordSegments, options.sectionBoundaries ?? []);
 
   return Object.freeze({
     trackId: trackId ?? null,
