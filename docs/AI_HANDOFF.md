@@ -1,7 +1,7 @@
 # AI_HANDOFF.md
 
 現在Version:
-`v0.23-dev`
+`v0.24-dev`
 
 公開中Version:
 `v0.23-dev`
@@ -122,6 +122,62 @@ A/B/C等のSection候補をVerse / Chorus等へ自動確定しない。
 詳細:
 - `docs/INSIGHT_ANALYSIS_SPEC.md`
 
+## v0.24-dev Diagnostic Loop
+v0.23までのEvidenceを、分析後の次の行動へつなげるRead-only / proposal-only Layer。
+
+### 1. Section比較
+既存Structure候補ごとに次を比較する。
+- Note密度
+- Melody音域
+- Melody Note数
+- 平均Pitch
+- Chord Tone率
+- Section終端のPitch / Degree / relation
+
+隣接Sectionの差も自然文で説明する。A/B/C等をVerse / Bメロ / Chorusへ自動確定しない。
+
+### 2. 分析値のMeaning
+数値だけで終わらせず `Evidence → Meaning` を表示する。Meaningは品質評価ではない。
+
+### 3. 見直し候補 TOP 3
+差を試した時に違いを確認しやすい観点を最大3件へ絞る。
+
+候補:
+- Section密度差
+- Section別Melody音域
+- Section終端の着地
+- Chord Tone / Non-Chord Tone比率
+- Climax候補位置
+
+内部weightは公開しない。TOP3は良し悪しのScoreではない。
+
+### 4. Arrangement Lab handoff
+ユーザーの明示操作 `Arrangement Labへ渡す` で `midi-analyzer-arrangement-handoff` JSONを生成する。
+
+- `schemaVersion: 1`
+- `mode: proposal-only`
+- source app/version/file/PPQ
+- priority / evidence / meaning / action / intent / targetSections
+- 対応端末はOS共有、未対応時はJSON Download
+
+自動Upload、自動Merge、Reharmonize自動適用はしない。
+Analyzerは観測・説明・候補提案まで。Reharmonize / Voicing / 密度・展開変更 / 編曲案生成 / 採用判断はArrangement Labの責務。
+
+### 5. 修正前 → 修正後の再分析
+Compare Tabの比較用MIDIを修正前、現在MIDIを修正後として次を再計算する。
+
+- Section間Note密度差
+- Section間Melody音域差
+- 着地Degree種類数
+- 平均Chord Tone率
+- 曲全体Melody音域
+- Climax候補位置
+
+変化量は改善度・品質Scoreではない。
+
+詳細:
+- `docs/DIAGNOSTIC_LOOP_SPEC.md`
+
 ## 現在実装済み主要機能
 ### 素材を集める・保存する
 - MIDI Import / 保存
@@ -149,6 +205,11 @@ A/B/C等のSection候補をVerse / Chorus等へ自動確定しない。
 - Phrase contour / Peak / Climax候補
 - Section Landing比較
 - 曲全体の特徴 Top 5
+- Section比較 / 隣接差分説明
+- 分析値のMeaning
+- 見直し候補 TOP 3
+- Arrangement Lab proposal-only handoff
+- 修正前 / 修正後の再分析
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll Note Function可視化
 - Motif / Section / 転調
@@ -196,8 +257,9 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 保存OFF時に元MIDI binaryを永続化しない
 - Key / Chord / Section / Motif / 転調 / Track役割を自動確定しない
 - Note Function候補を正解として断定しない
-- Insightを品質Scoreとして扱わない
+- Insight / Diagnostic Loopを品質Scoreとして扱わない
 - Higher-level Metricsを品質Scoreとして扱わない
+- Arrangement Labへ候補を自動適用・自動Mergeしない
 - 外部AIへ自動送信しない
 - Mixer / Mastering / Plugin Hostingを追加しない
 - 本格Composition / Arrangement機能を追加しない
@@ -233,6 +295,15 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 公開main CI: success
 - GitHub Pages build / deploy: success
 
+## v0.24-dev 開発状態
+- 実装PR: `#65`
+- 実装前develop commit: `24aa53240a3ff0ab0794569459614baa85e7335f`
+- 変更前復元点: `restore/develop-before-diagnostic-loop-v0.24-20261015`
+- feature branch: `chatgpt/diagnostic-loop-v0.24`
+- Schema変更なし
+- IndexedDB Migrationなし
+- `main` / 公開版はv0.23-devのまま
+
 ## Git運用
 - `develop`: 開発統合
 - `main`: CI合格版かつGitHub Pages公開元
@@ -246,9 +317,11 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - Climax候補の実曲チューニング
 - Section名をユーザー確定した後のVerse / Bメロ / Chorus比較
 - Reference Insightへ解決速度 / 解決方向を抽象特徴として追加
+- Arrangement Lab側でproposal-only handoffを直接受け取る導線（Analyzer側からの自動Mergeはしない）
 
 ## 継続確認
-- Android実機でv0.23 Structure / Compare表示とタッチ操作
+- Android実機でv0.24 Structure / Compare / Arrangement handoff表示とタッチ操作
+- Android共有メニュー / JSON Download fallback
 - 4/4 / 6/8実曲でstrong/weak境界確認
 - Suspension / Anticipation / Resolution閾値の実曲チューニング
 - PWA再起動後の表示設定
@@ -257,4 +330,4 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - Clip v1 / v2混在Library
 - Cubasis / Cubase実機取込
 
-`main` / 公開Versionはv0.23-dev。stable tagはAndroid実機確認前に作成しない。
+`develop`候補はv0.24-dev、`main` / 公開Versionはv0.23-dev。stable tagはAndroid実機確認前に作成しない。

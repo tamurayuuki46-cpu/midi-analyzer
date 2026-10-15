@@ -3,6 +3,7 @@ import { analyzeHarmonyDetails } from '../analysis/harmony/index.js';
 import { analyzeSongInsights } from '../analysis/insight/index.js';
 import { analyzeMotifs } from '../analysis/motif/index.js';
 import { analyzeStructure } from '../analysis/structure/index.js';
+import { mountDiagnosticLoop } from './renderDiagnosticLoop.js';
 
 function escapeHtml(value) {
   return String(value)
@@ -213,6 +214,7 @@ export function mountAdvancedAnalysis(root, song, options = {}) {
         <div class="advanced-subheading"><h3>曲の特徴 Top 5</h3><span class="status-pill">Evidence</span></div>
         ${renderTopCharacteristics(insight)}
       </section>
+      <div data-diagnostic-loop></div>
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>区間Key / 転調候補</h3><span class="status-pill">Timeline</span></div>
         ${renderKeyTimeline(structure)}
@@ -231,5 +233,11 @@ export function mountAdvancedAnalysis(root, song, options = {}) {
   }
 
   root.innerHTML = `<div class="advanced-analysis-stack">${blocks.join('')}</div>`;
-  return Object.freeze({ motif, structure, insight, harmony });
+  const diagnosticMount = section === 'all' || section === 'structure'
+    ? mountDiagnosticLoop(root.querySelector('[data-diagnostic-loop]'), song, {
+      onArrangementHandoff: options.onArrangementHandoff,
+      analysisOptions: { structure },
+    })
+    : null;
+  return Object.freeze({ motif, structure, insight, harmony, diagnostic: diagnosticMount?.diagnostic ?? null });
 }
