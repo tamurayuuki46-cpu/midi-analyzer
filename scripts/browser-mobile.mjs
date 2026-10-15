@@ -18,7 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
-    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.18-dev$/, 'Browser title must use the new app name');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.19-dev$/, 'Browser title must use the current app version');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -69,10 +69,12 @@ try {
     await beginnerStart.waitFor({ state: 'hidden' });
     const beginnerPanel = page.locator('.beginner-mode-panel');
     await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
-    await beginnerPanel.getByRole('heading', { name: '良いところ', exact: true }).waitFor();
-    await beginnerPanel.getByRole('heading', { name: '改善するとよいところ', exact: true }).waitFor();
-    await beginnerPanel.getByRole('heading', { name: '次に試すこと', exact: true }).waitFor();
+    await beginnerPanel.getByText('Metric', { exact: true }).first().waitFor();
+    await beginnerPanel.getByText('Meaning', { exact: true }).first().waitFor();
+    await beginnerPanel.getByRole('heading', { name: '次に試せること', exact: true }).waitFor();
+    await beginnerPanel.getByRole('heading', { name: '参考曲から借りるのは音符ではなく考え方', exact: true }).waitFor();
     assert.equal(await beginnerPanel.locator('[data-beginner-metric]').count(), 5, 'Beginner mode must show five core metrics');
+    assert.ok(await beginnerPanel.locator('[data-reference-insight]').count() > 0, 'Beginner mode must expose abstract Reference → Action insights');
     assert.equal(await page.locator('[data-analysis-tabs]').isHidden(), true, 'Detailed tabs must start hidden in beginner mode');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner mode overflows at ${width}px`);
 
@@ -137,5 +139,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / beginner analysis / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / Metric→Meaning→Action / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
 } finally { await browser.close(); }
