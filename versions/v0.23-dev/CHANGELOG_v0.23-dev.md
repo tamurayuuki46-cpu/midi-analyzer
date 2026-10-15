@@ -1,7 +1,7 @@
 # v0.23-dev
 
 更新日: 2026-10-15
-状態: Phrase / Section / Compare / Top5 Insight — develop統合済み
+状態: Phrase / Section / Compare / Top5 Insight — main公開済み
 
 ## 追加
 - Phrase contour候補（arch / valley / ascending / descending / mixed）
@@ -21,12 +21,13 @@
 - アプリ画面内Versionをv0.23-devへ更新
 - README / AI_HANDOFF / INSIGHT_ANALYSIS_SPECをv0.23へ同期
 - Mobile regressionをv0.23のStructure Insight確認へ拡張
+- `develop`から`main`へPR #60経由で公開
 
 ## 修正
 - なし
 
 ## 自動検証
-PR #58および統合後developで次を確認。
+PR #58、統合後develop、公開PR #60、公開mainで次を確認。
 - Unit tests: success
 - Production build: success
 - Basic Pitch local model assets: success
@@ -34,6 +35,7 @@ PR #58および統合後developで次を確認。
 - Mobile widths: 360 / 390 / 430px
 - Structure v0.23 Insight表示: success
 - Console error regression: success
+- GitHub Pages build / deploy: success
 
 ## 安全性
 - Normalized Song変更なし
@@ -47,10 +49,13 @@ PR #58および統合後developで次を確認。
 - stable tag未作成
 
 ## Git
-- 実装Issue: `#57`
+- 実装Issue: `#57`（完了）
 - 実装PR: `#58`（develop統合済み）
-- 統合commit: `41a6b0e53725aaf39fd67d4ad2085986cb00cbff`
+- develop統合commit: `41a6b0e53725aaf39fd67d4ad2085986cb00cbff`
+- 公開PR: `#60`
+- 公開main commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
 - 変更前復元ポイント: `restore/develop-before-insight-v0.23-20261015`
+- 公開前main復元ポイント: `restore/main-before-v0.23-publish-20261015`
 - feature-complete milestone: `chatgpt/v0.23-feature-complete-milestone`
 
 ## 未対応
@@ -60,4 +65,4 @@ PR #58および統合後developで次を確認。
 - Android実機最終確認
 - Cubasis / Cubase実機回帰
 
-`main` / 公開Versionはv0.18-devのまま。stable tagは実機確認後のみ作成する。
+`main` / 公開Versionはv0.23-dev。stable tagは実機確認後のみ作成する。
