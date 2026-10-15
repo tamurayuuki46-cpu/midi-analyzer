@@ -1,7 +1,7 @@
 # AI_HANDOFF.md
 
 現在Version:
-`v0.22-dev`
+`v0.23-dev`
 
 公開中Version:
 `v0.18-dev`
@@ -63,48 +63,70 @@ v0.21の次を維持する。
 
 v0.22では時間・拍・Chord change・着地Evidenceを追加した。
 
-### Resolution candidate
-Chord外音について、2 musicalBeat以内の次Noteを追う。次NoteがChord ToneならResolution候補。
-
-Evidence:
-- target pitch / tick
-- delta tick / musicalBeat
-- semitone interval
-- up / down / same
-- stepwise
-
-次音がChord Toneでない場合はunresolved、文脈不足や時間超過はunknownとして保留。解決率を品質Scoreにしない。
-
-### Strong / Weak beat context
-Time SignatureからmusicalBeatを計算する。
-- 4/4等: denominator単位
-- 6/8等compound meter: denominator単位3つを1 musicalBeat
-
-musicalBeat境界付近をstrong、それ以外をweakとして発音位置を観察する。アクセントの正解判定には使わない。
-
-### Suspension candidate
-次を満たす場合のみ候補。
-- NoteがChord境界をまたぐ
-- 旧ChordではChord Tone
-- 新ChordではNon-Chord Tone
-- 境界後2 musicalBeat以内に近接新Chord ToneへStep解決
-
-### Anticipation candidate
-次を満たす場合のみ候補。
-- Chord境界前1 musicalBeat以内
-- 現在ChordではNon-Chord Tone
-- 次ChordではChord Tone
-- 境界まで保持、または境界後に同Pitch再発音
-
-### Phrase Landing
-長めの休符前・曲末・任意Section境界前を着地候補として、Chord / Scale relation、Degree、gapを表示する。
-
-### Piano Roll
-v0.21のChord × Scale色分けを維持し、Passing / Neighbor / Approach / Resolution / Suspension / Anticipation候補を輪郭で補助表示する。read-only。
+- Resolution candidate
+- Strong / Weak beat context
+- Suspension candidate
+- Anticipation candidate
+- Phrase Landing / Degree summary
 
 詳細:
 - `docs/ANALYSIS_SPEC.md`
 - `docs/NOTE_FUNCTION_ANALYSIS.md`
+
+## v0.23-dev Insight Layer
+v0.23では既存AnalyzerのEvidenceをまとめ、初心者が「この曲の特徴として何を見るか」を判断しやすくするRead-only Insight Layerを追加する。
+
+### Phrase contour / Peak / Climax
+- contour: arch / valley / ascending / descending / mixed
+- Melody最高音 / 最低音
+- 曲内位置
+- 方向転換回数
+- Pitch / Velocity / 周辺発音密度によるClimax候補
+
+Climaxは候補であり、曲の品質や本当の盛り上がり位置を断定しない。
+
+### Section Landing比較
+既存Structure Section候補ごとの最後の代表Melody Noteを比較する。
+
+Evidence:
+- Pitch / Pitch name
+- Key Degree
+- Chord Tone / Scale Tone
+- Chord候補
+- strong / weak beat
+
+A/B/C等のSection候補をVerse / Chorus等へ自動確定しない。
+
+### Reference MIDI vs Own MIDI差分説明
+既存Compare数値から差が大きい特徴を最大5件だけ説明する。
+
+対象例:
+- Melody音域 / 密度 / 平均跳躍
+- Bass移動 / Root率
+- Rhythm密度 / 拍頭率
+- 全体Note密度
+- 転調候補数
+- Top Key
+- Chord集合共通度
+
+差分説明は観測であり、参考曲へ近づけるべきという指示や優劣評価には変換しない。
+
+### 曲全体の特徴 Top 5
+既存Evidenceから最大5件だけ選び、`Feature → Evidence → Meaning`で表示する。
+
+候補:
+- 最高音位置 / 音域
+- Phrase contour
+- Section landing
+- Resolution傾向
+- Section密度差
+- 転調候補
+- Chord Tone率
+
+内部weightは候補順位用であり、品質Scoreとして公開しない。
+
+詳細:
+- `docs/INSIGHT_ANALYSIS_SPEC.md`
 
 ## 現在実装済み主要機能
 ### 素材を集める・保存する
@@ -130,13 +152,16 @@ v0.21のChord × Scale色分けを維持し、Passing / Neighbor / Approach / Re
 - Resolution / Strong-Weak beat context
 - Suspension / Anticipation
 - Phrase Landing / Degree summary
+- Phrase contour / Peak / Climax候補
+- Section Landing比較
+- 曲全体の特徴 Top 5
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll Note Function可視化
 - Motif / Section / 転調
 - 裏メロ / Bass / Drum詳細
 - Track役割候補
 - Visualization / Energy / Section Map / Heatmap
-- 2 MIDI比較 / 参考曲 vs 自作曲
+- 2 MIDI比較 / 参考曲 vs 自作曲 / 差分説明Top 5
 - Personal Trend
 - Explainability / この曲から学べること
 - Higher-level Metrics 6種 + Evidence
@@ -177,35 +202,32 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - 保存OFF時に元MIDI binaryを永続化しない
 - Key / Chord / Section / Motif / 転調 / Track役割を自動確定しない
 - Note Function候補を正解として断定しない
+- Insightを品質Scoreとして扱わない
 - Higher-level Metricsを品質Scoreとして扱わない
 - 外部AIへ自動送信しない
 - Mixer / Mastering / Plugin Hostingを追加しない
 - 本格Composition / Arrangement機能を追加しない
 
 ## v0.22-dev 統合状態
-実装PR:
-`#55`（developへ統合済み）
+実装PR: `#55`（developへ統合済み）
+Issue: `#54`（完了）
+変更前復元点: `restore/develop-before-resolution-landing-v0.22-20261015`
+v0.22統合commit: `6224947576ec3e925adb7c8881b0bbe02c41b3a7`
+feature-complete milestone: `chatgpt/v0.22-feature-complete-milestone`
 
-Issue:
-`#54`
-
-実装前復元点:
-`restore/develop-before-resolution-landing-v0.22-20261015`
-
-実装前develop commit:
-`fc29b0613adb5ca826c2fff72487a1423c4658ad`
-
-v0.22統合commit:
-`6224947576ec3e925adb7c8881b0bbe02c41b3a7`
-
-自動検証:
-- Unit tests: success
-- Production build: success
-- Basic Pitch local model assets: success
-- Mobile Chromium 360 / 390 / 430px regression: success
-- 統合後develop CI: success
-
+## v0.23-dev 開発状態
+Issue: `#57`
+開発Branch: `chatgpt/insight-v0.23`
+実装前develop commit: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
+変更前復元点: `restore/develop-before-insight-v0.23-20261015`
 Schema変更なし。
+
+自動検証対象:
+- Unit tests
+- Production build
+- Basic Pitch local model assets
+- Mobile Chromium 360 / 390 / 430px
+- Structure v0.23 Insight表示
 
 ## Git運用
 - `develop`: 開発統合
@@ -216,14 +238,13 @@ Schema変更なし。
 - 過去Branch / Tag / Version / Backupを削除・上書きしない
 
 ## 次の開発候補
-v0.23以降:
 - Appoggiatura / Escape Tone / Retardation候補
-- Phrase contour / climax / peak note
-- Section間Landing比較
+- Climax候補の実曲チューニング
+- Section名をユーザー確定した後のVerse / Bメロ / Chorus比較
 - Reference Insightへ解決速度 / 解決方向を抽象特徴として追加
 
 ## 継続確認
-- Android実機でv0.22 Note Function表示とタッチ操作
+- Android実機でv0.23 Structure / Compare表示とタッチ操作
 - 4/4 / 6/8実曲でstrong/weak境界確認
 - Suspension / Anticipation / Resolution閾値の実曲チューニング
 - PWA再起動後の表示設定
@@ -232,4 +253,4 @@ v0.23以降:
 - Clip v1 / v2混在Library
 - Cubasis / Cubase実機取込
 
-`main` / 公開Versionはこのdocs同期では変更しない。stable tagはAndroid実機確認前に作成しない。
+`main` / 公開Versionはv0.18-devのまま。stable tagはAndroid実機確認前に作成しない。
