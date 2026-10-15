@@ -10,7 +10,8 @@
   gap: 10px;
   align-items: center;
 }
-.compare-heading h3 { margin: 0; }
+.compare-heading h3,
+.compare-heading h4 { margin: 0; }
 .compare-file-field {
   display: grid;
   gap: 6px;
@@ -29,7 +30,8 @@
 .compare-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .compare-song-card,
 .compare-metric-card,
-.compare-trend-grid article {
+.compare-trend-grid article,
+.compare-difference-card {
   min-width: 0;
   padding: 12px;
   border: 1px solid #e4e4e7;
@@ -50,6 +52,26 @@
   line-height: 1.5;
 }
 .compare-highlight-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.compare-difference-section,
+.compare-difference-list { display: grid; gap: 10px; }
+.compare-difference-section {
+  padding: 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  background: #fafafa;
+}
+.compare-difference-card { display: grid; gap: 6px; }
+.compare-difference-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.compare-difference-heading strong,
+.compare-difference-card p,
+.compare-difference-card small { overflow-wrap: anywhere; }
+.compare-difference-card p { margin: 0; line-height: 1.5; }
+.compare-difference-card small { color: #71717a; line-height: 1.45; }
 .compare-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .compare-metric-card { display: grid; gap: 8px; }
 .compare-metric-values {
@@ -68,6 +90,8 @@
   .compare-summary-grid,
   .compare-metric-grid { grid-template-columns: 1fr; }
   .compare-trend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .compare-difference-heading { display: grid; }
+  .compare-difference-heading .status-pill { justify-self: start; }
 }
 
 @media (max-width: 360px) {
