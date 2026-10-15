@@ -61,7 +61,7 @@ v0.21の次を維持する。
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll可視化
 
-v0.22では時間・拍・Chord change・着地Evidenceを追加する。
+v0.22では時間・拍・Chord change・着地Evidenceを追加した。
 
 ### Resolution candidate
 Chord外音について、2 musicalBeat以内の次Noteを追う。次NoteがChord ToneならResolution候補。
@@ -182,21 +182,28 @@ Demo Composer SchemaやCompositionをArchive/Analyzer都合で変更しない。
 - Mixer / Mastering / Plugin Hostingを追加しない
 - 本格Composition / Arrangement機能を追加しない
 
-## v0.22-dev 開発状態
-開発Branch:
-`chatgpt/resolution-landing-v0.22`
-
-変更前復元点:
-`restore/develop-before-resolution-landing-v0.22-20261015`
-
-変更前develop commit:
-`fc29b0613adb5ca826c2fff72487a1423c4658ad`
-
-PR:
-`#55`
+## v0.22-dev 統合状態
+実装PR:
+`#55`（developへ統合済み）
 
 Issue:
 `#54`
+
+実装前復元点:
+`restore/develop-before-resolution-landing-v0.22-20261015`
+
+実装前develop commit:
+`fc29b0613adb5ca826c2fff72487a1423c4658ad`
+
+v0.22統合commit:
+`6224947576ec3e925adb7c8881b0bbe02c41b3a7`
+
+自動検証:
+- Unit tests: success
+- Production build: success
+- Basic Pitch local model assets: success
+- Mobile Chromium 360 / 390 / 430px regression: success
+- 統合後develop CI: success
 
 Schema変更なし。
 
@@ -208,8 +215,14 @@ Schema変更なし。
 - mainへの公開はPR経由
 - 過去Branch / Tag / Version / Backupを削除・上書きしない
 
+## 次の開発候補
+v0.23以降:
+- Appoggiatura / Escape Tone / Retardation候補
+- Phrase contour / climax / peak note
+- Section間Landing比較
+- Reference Insightへ解決速度 / 解決方向を抽象特徴として追加
+
 ## 継続確認
-- PR #55のUnit Test / Production Build / regression
 - Android実機でv0.22 Note Function表示とタッチ操作
 - 4/4 / 6/8実曲でstrong/weak境界確認
 - Suspension / Anticipation / Resolution閾値の実曲チューニング
@@ -219,4 +232,4 @@ Schema変更なし。
 - Clip v1 / v2混在Library
 - Cubasis / Cubase実機取込
 
-stable tagは実機確認前に作成しない。
+`main` / 公開Versionはこのdocs同期では変更しない。stable tagはAndroid実機確認前に作成しない。
