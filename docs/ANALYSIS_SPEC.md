@@ -1,7 +1,7 @@
 # ANALYSIS_SPEC.md
 
 ## Version
-v0.20-dev
+v0.21-dev
 
 ## 共通思想
 - 分析結果は候補として表示
@@ -13,14 +13,15 @@ v0.20-dev
 - Actionは任意の実験案であり、採用・実行を強制しない
 - 参考曲は具体的なNote列 / Chord列ではなく、音域・動き・密度・反復など抽象化した特徴として扱う
 - Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを混同しない
+- Passing / Neighbor / Approachは確定ではなく候補として扱う
 - 外音を誤りや低品質として扱わない
 
 ## 0. Metric → Meaning → Action / Reference → Action
 
-v0.20-devでは初心者モードの主要Metricを、単なる数値表示で終わらせない。
+v0.21-devでは初心者モードの主要Metricを、単なる数値表示で終わらせない。
 
 ### Metric
-既存Analyzerが計算した観測値・候補値。例: Key候補、音域、平均跳躍、拍頭以外率、Motif候補数、Chord Tone率、Scale Tone率。
+既存Analyzerが計算した観測値・候補値。例: Key候補、音域、平均跳躍、拍頭以外率、Motif候補数、Chord Tone率、Scale Tone率、Passing候補数。
 
 ### Meaning
 Metricが示す音楽的な特徴を短く説明する。品質評価には変換しない。
@@ -30,6 +31,7 @@ Metricが示す音楽的な特徴を短く説明する。品質評価には変�
 - 跳躍が多い → 輪郭のアクセントになっている特徴
 - 拍頭以外が多い → 前へ引っ張る感じや細かな動きを作りやすい特徴
 - Chord外・Scale内 → 和音構成音ではないがKeyの音階には含まれる音
+- Passing候補 → 2つのChord Tone間をStepでつなぐ可能性がある音
 
 ### Action
 元案を壊さず試せる実験候補を最大2件/Metric程度示す。Actionを選ばず現在の特徴を維持すること、保留することも正式な選択肢とする。
@@ -42,6 +44,7 @@ Metricが示す音楽的な特徴を短く説明する。品質評価には変�
 - 拍頭中心 / 拍外が多い等の発音位置傾向
 - 短い形を反復する / 変化を増やす等のモチーフ運用
 - Chord ToneとScale Toneをどの比率で使うか
+- Chord外音がChord Toneへどう解決するか
 
 AnalyzerはComposition ownerではないため、ActionはDemo Composer等で人が試すための判断材料に留める。
 
@@ -110,13 +113,22 @@ v0.20追加:
 - Chord内・Scale外
 - 両方の外側
 
+v0.21追加:
+- Passing Tone候補
+- Neighbor Tone候補
+- Approach Note候補
+- Natural / Harmonic / Melodic MinorのScale基準切替
+- Piano Roll上のChord × Scale可視化
+
 初期Trackは `roleHint === "melody"` を優先。なければ非Drum Trackの平均Pitchが最も高いTrackを仮選択し、ユーザーが変更できる。
 
 同一Tickの複数Noteは代表Note 1つにまとめる。代表Noteは velocity → duration → pitch の順で優先する。
 
 Chord Tone判定はユーザー選択Chordを優先し、未選択区間はChord第1候補を仮使用する。仮使用時はUIで明示する。
 
-Scale Tone判定は選択Keyを優先し、未選択時はKey第1候補を仮使用する。majorはmajor scale、minorはnatural minorを基本基準とする。harmonic / melodic minor由来のraised 6th / 7th等を誤りとは判定しない。
+Scale Tone判定は選択Keyを優先し、未選択時はKey第1候補を仮使用する。majorはmajor scale、minorはNatural Minorを初期基準とする。v0.21ではHarmonic MinorとMelodic Minor上行形へ比較基準を切り替えられる。
+
+Passing / Neighbor / Approachは前後の代表Note、Step幅、Chord Toneへの解決だけを使う簡易候補。時間間隔が2拍を超える場合や条件不足の場合は無理に分類しない。
 
 Motifは既存Structure Analyzerで扱う。
 
@@ -157,25 +169,37 @@ Chord UIが現在のeffective candidateをBasic Analyzerへ渡す。Chord対象T
 
 詳細: `docs/BASIC_ANALYSIS_SPEC.md`
 
-## 8. Note Function: Chord Tone × Scale Tone
-
-v0.20-devではChord ToneとScale Toneを独立判定する。
+## 8. Note Function: Chord Tone × Scale Tone × Time
 
 ### Scale Tone
-現在のKey / Scale候補に含まれるPitch Classかを判定する。
+現在のKey / Scale基準に含まれるPitch Classかを判定する。
+
+minorでは以下を比較可能:
+- Natural Minor
+- Harmonic Minor
+- Melodic Minor（上行形）
 
 ### Chord Tone
 現在のChord effective candidateの構成音に含まれるPitch Classかを判定する。
 
-### 組み合わせ
+### Chord × Scale 4分類
 - **両方に含まれる**: Chord ToneかつScale Tone
 - **Chord外・Scale内**: Non-Chord ToneだがScale Tone
 - **Chord内・Scale外**: Chord ToneだがNon-Scale Tone
 - **両方の外側**: Non-Chord ToneかつNon-Scale Tone
 
-上記4分類を正誤・優劣へ変換しない。Passing / Neighbor / Approach等の機能名は、時間方向・前後関係を十分に判定できる段階までは断定しない。
+### Temporal candidate
+Chord外音に対して前後Noteを確認し、以下の候補を付ける。
+- Passing: Chord Tone → Step → Chord外音 → Step同方向 → Chord Tone
+- Neighbor: 同じChord ToneからStepで離れ、Stepで戻る
+- Approach: 次のChord Toneへ半音または全音で入る
+- Other: 条件不足または上記以外
 
-HarmonyでKey / Chord候補を選択した場合、Note Function表示を再計算する。未選択候補を仮使用した場合は、その前提をUIへ明示する。
+上記分類を正誤・優劣へ変換しない。
+
+HarmonyでKey / Chord候補を選択、Melody Track変更、minor Scale基準変更を行うとNote Function表示を再計算する。未選択候補を仮使用した場合は、その前提をUIへ明示する。
+
+Piano Rollは同じMelody Trackに対してChord × Scaleの関係を色分けし、Temporal candidateを輪郭で示す。表示のみでNoteを変更しない。
 
 詳細: `docs/NOTE_FUNCTION_ANALYSIS.md`
 
@@ -188,4 +212,5 @@ HarmonyでKey / Chord候補を選択した場合、Note Function表示を再計�
 - Melody / Bass Track fallback heuristic
 - Beat判定許容幅
 - シンコペーション候補定義
-- minor時のScale Tone表示方針（natural / harmonic / melodic minorの扱い）
+- Temporal candidateの最大発音間隔（v0.21仮値: 2拍）
+- Suspension / Anticipation等へ拡張する際の拍・Duration条件
