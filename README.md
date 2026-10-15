@@ -15,7 +15,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.23-dev`
+`v0.24-dev`
 
 公開中Version: `v0.23-dev`
 
@@ -71,6 +71,21 @@ Insightは品質Scoreではありません。Verse / Chorus等のSection役割�
 
 詳細: `docs/INSIGHT_ANALYSIS_SPEC.md`
 
+## v0.24-dev: Diagnostic Loop
+
+v0.24では、解析結果を表示して終わらせず、**観測 → 意味 → 次に比較する候補 → 再分析**までつなげます。
+
+追加内容:
+- **Section比較** — Note密度 / Melody音域 / Chord Tone率 / 着地Degreeを区間ごとに比較
+- **分析値の意味付け** — Evidenceに対して自然言語のMeaningを表示
+- **見直し候補 TOP 3** — 差を試した時に違いを確認しやすい観点だけを最大3件に絞る
+- **Arrangement Lab handoff** — proposal-only JSONをユーザーの明示操作で共有 / Download
+- **修正前 → 修正後の再分析** — Compare Tabで同じ診断指標を再計算して変化を確認
+
+TOP 3は品質・正解・人気の採点ではありません。Analyzerは観測と提案までを担当し、Reharmonize / Voicing / 密度変更 / 編曲案の採用判断はArrangement Labが担当します。
+
+詳細: `docs/DIAGNOSTIC_LOOP_SPEC.md`
+
 ## 1. 素材を集める・保存する
 
 - MIDI Import / 端末保存
@@ -115,6 +130,11 @@ Insightは品質Scoreではありません。Verse / Chorus等のSection役割�
 - Phrase Landing / Degree summary
 - Phrase contour / Peak / Climax候補
 - Section Landing比較
+- SectionごとのNote密度 / Melody音域 / Chord Tone率 / 着地Degree比較
+- 分析値のMeaning
+- 見直し候補 TOP 3
+- Arrangement Lab向けproposal-only handoff
+- 修正前 / 修正後の再分析
 - 曲全体の特徴 Top 5
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll上の音の役割可視化
@@ -135,7 +155,7 @@ Insightは品質Scoreではありません。Verse / Chorus等のSection役割�
 - Metric → Meaning → Action
 - Reference Insight → 自分の曲で試す
 
-Higher-level MetricsとInsightは品質・人気・正解の採点ではありません。理解のための候補値と根拠です。
+Higher-level Metrics、Insight、Diagnostic Loopの優先順位は品質・人気・正解の採点ではありません。理解と比較のための候補値・根拠です。
 
 ## Moisesとの役割分担
 
@@ -166,9 +186,9 @@ MIDI読み込み直後:
 - Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach / Resolution・Suspension・Anticipation / Phrase Landing / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
-- Structure: Motif / Section / Phrase contour / Peak / Climax / Section Landing比較 / 曲全体Top 5 / 区間Key / 転調候補
+- Structure: Motif / Section / Phrase contour / Peak / Climax / Section Landing比較 / 曲全体Top 5 / Section比較 / 分析値の意味 / 見直し候補TOP3 / Arrangement Lab handoff / 区間Key / 転調候補
 - Visual: Timeline / Contour / Density / Energy / Section Map / Heatmap
-- Compare: 2 MIDI比較 / Reference vs Own差分説明 / Personal Trend
+- Compare: 2 MIDI比較 / Reference vs Own差分説明 / 修正前→修正後の再分析 / Personal Trend
 - Library: 保存済みMIDI + 素材Clip Library / 出自 / タグ検索
 - Export: Analysis / Reference / Material Export
 - AI: 端末内Explainability / 学べること / AI Prompt Export
@@ -181,11 +201,13 @@ MIDI読み込み直後:
 
 v0.7で実装したPart Recorderは責務整理で**主UIから退役**しました。既存`savedTakes`は削除せず、IndexedDB Store / Migration /旧コードは互換性のため保持します。
 
-## Demo Composerとの役割分担
+## Demo Composer / Arrangement Labとの役割分担
 
-MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
+MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialと、ユーザーが明示的に選んだ見直し候補を渡します。
 
 曲そのもののChord / Melody / Bass / Drum / Counter Melodyを作る所有者はDemo Composerです。参考曲を丸ごと自分のCompositionとして扱う導線は縮小し、source typeを明確にします。
+
+Reharmonize / Voicing / 密度・展開変更 / 編曲案A/B/C / 採用判断履歴はArrangement Labの責務です。Analyzerはそれらを自動適用せず、`proposal-only`の候補として渡します。
 
 ## 保存方針
 
@@ -197,17 +219,19 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 - 既存Takeは互換性のため保持
 - Audio BlobをSong Project JSONへ直接埋め込まない
 - 解析・Explainabilityを外部へ自動送信しない
+- Arrangement Lab handoffはユーザー操作時のみ共有 / Downloadし、自動Uploadや自動Mergeをしない
 
 ## データ安全性
 
-v0.23ではSchemaを変更しません。
+v0.24ではSchemaを変更しません。
 - Normalized Song変更なし
 - SongProject v1変更なし
 - IndexedDB `midi-analyzer` version 3維持
 - Stem DB version 1維持
 - 元MIDI由来Noteを分析目的で自動修正しない
 - Candidateを自動確定しない
-- Insightの内部順位を品質Scoreとして公開しない
+- Insight / Diagnostic Loopの内部順位を品質Scoreとして公開しない
+- Arrangement Labへ自動Mergeしない
 
 ## 開発
 
@@ -231,9 +255,10 @@ plain HTML/CSS/JavaScript + Vite。
 7. `docs/BEGINNER_MODE.md`
 8. `docs/NOTE_FUNCTION_ANALYSIS.md`
 9. `docs/INSIGHT_ANALYSIS_SPEC.md`
-10. `docs/CLIP_LIBRARY_SPEC.md`
-11. `docs/STORAGE_SPEC.md`
-12. `docs/RELEASE_POLICY.md`
+10. `docs/DIAGNOSTIC_LOOP_SPEC.md`
+11. `docs/CLIP_LIBRARY_SPEC.md`
+12. `docs/STORAGE_SPEC.md`
+13. `docs/RELEASE_POLICY.md`
 
 ## v0.22復元ポイント
 
@@ -252,5 +277,13 @@ plain HTML/CSS/JavaScript + Vite。
 - 公開main commit: `e0da35b664fb5798378594cbf1606ada36a575c4`
 - 公開前main復元Branch: `restore/main-before-v0.23-publish-20261015`
 - GitHub Pages Deploy: success
+
+## v0.24復元ポイント / 開発
+
+- 変更前develop: `24aa53240a3ff0ab0794569459614baa85e7335f`
+- Restore branch: `restore/develop-before-diagnostic-loop-v0.24-20261015`
+- Feature branch: `chatgpt/diagnostic-loop-v0.24`
+- 実装PR: `#65`
+- 公開中main: `v0.23-dev`（v0.24はdevelop統合・main昇格前）
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
