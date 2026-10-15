@@ -1,5 +1,6 @@
 import './advancedAnalysis.css';
 import { analyzeHarmonyDetails } from '../analysis/harmony/index.js';
+import { analyzeSongInsights } from '../analysis/insight/index.js';
 import { analyzeMotifs } from '../analysis/motif/index.js';
 import { analyzeStructure } from '../analysis/structure/index.js';
 
@@ -109,11 +110,83 @@ function renderHarmony(result) {
   `;
 }
 
+function renderContour(insight) {
+  const contour = insight?.contour;
+  if (!contour || !contour.noteCount) return '<p class="empty-state">Phrase contourを分析できるMelody Noteがありません。</p>';
+  const climaxPosition = Math.round((contour.climaxCandidate?.positionRatio ?? 0) * 100);
+  return `
+    <div class="advanced-card-list">
+      <article class="advanced-card">
+        <div class="advanced-card-heading"><strong>Contour ${escapeHtml(contour.shape)}</strong><span class="status-pill">${contour.directionChanges} turns</span></div>
+        <p>音域 ${contour.rangeSemitones} semitone</p>
+        <small>開始 ${escapeHtml(String(contour.startPitch))} → 終了 ${escapeHtml(String(contour.endPitch))}</small>
+      </article>
+      <article class="advanced-card">
+        <div class="advanced-card-heading"><strong>最高音 ${escapeHtml(contour.peak?.pitchName ?? '—')}</strong><span class="status-pill">Peak</span></div>
+        <p>全体の約${Math.round((contour.peak?.positionRatio ?? 0) * 100)}%地点</p>
+        <small>tick ${contour.peak?.tick ?? '—'} · velocity ${contour.peak?.velocity ?? '—'}</small>
+      </article>
+      <article class="advanced-card">
+        <div class="advanced-card-heading"><strong>Climax候補 ${escapeHtml(contour.climaxCandidate?.pitchName ?? '—')}</strong><span class="status-pill">Evidence</span></div>
+        <p>全体の約${climaxPosition}%地点 · score ${contour.climaxCandidate?.score ?? '—'}</p>
+        <small>最高音・Velocity・周辺発音密度を合わせた候補</small>
+      </article>
+    </div>
+    <p class="helper-note">${escapeHtml(contour.note)}</p>
+  `;
+}
+
+function landingRelationLabel(entry) {
+  if (entry.chordTone === true && entry.scaleTone === true) return 'Chord + Scale';
+  if (entry.chordTone === true) return 'Chord Tone';
+  if (entry.scaleTone === true) return 'Scale Tone';
+  if (entry.scaleTone === false) return 'Scale外';
+  return '候補不足';
+}
+
+function renderLandingComparison(insight) {
+  const comparison = insight?.landingComparison;
+  if (!comparison?.entries?.length) return '<p class="empty-state">Section着地を比較できません。</p>';
+  return `
+    <div class="advanced-section-grid">
+      ${comparison.entries.map((entry) => `
+        <article class="advanced-card">
+          <div class="advanced-card-heading">
+            <strong>Section ${escapeHtml(entry.label)} · ${escapeHtml(entry.pitchName ?? '—')}</strong>
+            <span class="status-pill">${escapeHtml(entry.degree ?? '—')}</span>
+          </div>
+          <p>${escapeHtml(landingRelationLabel(entry))} · ${escapeHtml(entry.beatStrength)}</p>
+          <small>${entry.startBar}–${entry.endBar}小節 · Chord ${escapeHtml(entry.chord ?? '—')}</small>
+        </article>
+      `).join('')}
+    </div>
+    <p class="helper-note"><strong>${escapeHtml(comparison.summary)}</strong><br>${escapeHtml(comparison.note)}</p>
+  `;
+}
+
+function renderTopCharacteristics(insight) {
+  const items = insight?.topCharacteristics ?? [];
+  if (!items.length) return '<p class="empty-state">曲全体の特徴を要約できるEvidenceが不足しています。</p>';
+  return `
+    <div class="advanced-card-list" data-top-characteristics>
+      ${items.map((item, index) => `
+        <article class="advanced-card" data-top-characteristic="${escapeHtml(item.id)}">
+          <div class="advanced-card-heading"><strong>${index + 1}. ${escapeHtml(item.title)}</strong><span class="status-pill">Insight</span></div>
+          <p>${escapeHtml(item.evidence)}</p>
+          <small>${escapeHtml(item.meaning)}</small>
+        </article>
+      `).join('')}
+    </div>
+    <p class="helper-note">${escapeHtml(insight.note)}</p>
+  `;
+}
+
 export function mountAdvancedAnalysis(root, song, options = {}) {
   if (!root) return null;
   const section = options.section ?? 'all';
   const motif = section === 'all' || section === 'structure' ? analyzeMotifs(song) : null;
   const structure = section === 'all' || section === 'structure' ? analyzeStructure(song) : null;
+  const insight = section === 'all' || section === 'structure' ? analyzeSongInsights(song, { structure }) : null;
   const harmony = section === 'all' || section === 'harmony' ? analyzeHarmonyDetails(song) : null;
   const blocks = [];
 
@@ -127,6 +200,18 @@ export function mountAdvancedAnalysis(root, song, options = {}) {
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>Section候補</h3><span class="status-pill">4小節単位</span></div>
         ${renderSections(structure)}
+      </section>
+      <section class="advanced-subsection">
+        <div class="advanced-subheading"><h3>Phrase contour / Peak / Climax候補</h3><span class="status-pill">v0.23</span></div>
+        ${renderContour(insight)}
+      </section>
+      <section class="advanced-subsection">
+        <div class="advanced-subheading"><h3>Section間 Landing比較</h3><span class="status-pill">Degree</span></div>
+        ${renderLandingComparison(insight)}
+      </section>
+      <section class="advanced-subsection">
+        <div class="advanced-subheading"><h3>曲の特徴 Top 5</h3><span class="status-pill">Evidence</span></div>
+        ${renderTopCharacteristics(insight)}
       </section>
       <section class="advanced-subsection">
         <div class="advanced-subheading"><h3>区間Key / 転調候補</h3><span class="status-pill">Timeline</span></div>
@@ -146,5 +231,5 @@ export function mountAdvancedAnalysis(root, song, options = {}) {
   }
 
   root.innerHTML = `<div class="advanced-analysis-stack">${blocks.join('')}</div>`;
-  return Object.freeze({ motif, structure, harmony });
+  return Object.freeze({ motif, structure, insight, harmony });
 }
