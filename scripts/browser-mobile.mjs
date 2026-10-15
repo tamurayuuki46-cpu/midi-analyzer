@@ -18,7 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
-    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.24-dev$/, 'Browser title must use the current app version');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.25-dev$/, 'Browser title must use the current app version');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -104,16 +104,23 @@ try {
     await page.getByRole('heading', { name: 'Section間 Landing比較', exact: true }).waitFor();
     await page.getByRole('heading', { name: '曲の特徴 Top 5', exact: true }).waitFor();
     assert.ok(await page.locator('[data-top-characteristics] [data-top-characteristic]').count() > 0, 'Structure must expose whole-song characteristic insights');
+    await page.getByRole('heading', { name: '目的から分析する', exact: true }).waitFor();
+    const intentSelect = page.locator('[data-diagnostic-intent]');
+    await intentSelect.waitFor({ state: 'visible' });
+    assert.ok(await intentSelect.locator('option').count() >= 5, 'v0.25 must expose multiple analysis intents');
     await page.getByRole('heading', { name: 'Section比較', exact: true }).waitFor();
     await page.getByRole('heading', { name: '分析値の意味', exact: true }).waitFor();
-    await page.getByRole('heading', { name: '見直し候補 TOP 3', exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Arrangement Labへ渡す', exact: true }).waitFor();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `v0.24 Diagnostic Loop overflows at ${width}px`);
+    await page.getByRole('heading', { name: '目的に合わせた見直し候補 TOP 3', exact: true }).waitFor();
+    assert.ok(await page.locator('[data-select-priority]').count() > 0, 'v0.25 must expose at least one single-variable experiment');
+    await page.getByRole('button', { name: '選んだ1項目をArrangement Labへ渡す', exact: true }).waitFor();
+    await page.getByRole('button', { name: '採用として記録', exact: true }).waitFor();
+    await page.getByRole('button', { name: '見送りとして記録', exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `v0.25 Intent Diagnostic Loop overflows at ${width}px`);
 
     await page.getByRole('tab', { name: 'Compare', exact: true }).click();
     await page.getByRole('heading', { name: '修正前 → 修正後の再分析', exact: true }).waitFor();
     await page.getByText('修正前MIDIを比較用に選ぶと、現在のMIDIを修正後として再分析できます。', { exact: true }).waitFor();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `v0.24 Before/After compare overflows at ${width}px`);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `v0.25 Before/After compare overflows at ${width}px`);
 
     await page.getByRole('tab', { name: 'Melody', exact: true }).click();
     await page.getByRole('heading', { name: 'Chord / Scale / 解決・着地候補', exact: true }).waitFor();
@@ -177,5 +184,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('MIDI Archive/Analyzer 360/390/430px v0.24 diagnostic loop / phrase-section-top5 insight / before-after compare / beginner start / six-metric Metric→Meaning→Action / Note Function II / handoff / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px v0.25 intent-driven diagnostic / single-variable experiment / phrase-section-top5 insight / before-after compare / beginner start / six-metric Metric→Meaning→Action / Note Function II / handoff / storage regression passed');
 } finally { await browser.close(); }

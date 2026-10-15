@@ -15,9 +15,9 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.24-dev`
+`v0.25-dev`
 
-公開中Version: `v0.23-dev`
+公開中Version: `v0.24-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -86,6 +86,23 @@ TOP 3は品質・正解・人気の採点ではありません。Analyzerは観�
 
 詳細: `docs/DIAGNOSTIC_LOOP_SPEC.md`
 
+## v0.25-dev: Intent-driven Experiment Loop
+
+v0.25では新しい分析項目を増やさず、v0.24のEvidenceを**ユーザーの今回の目的 → TOP 3 → 1項目実験 → Arrangement Lab → 再分析 → 採用/見送り記録**へつなげます。
+
+追加内容:
+- **今回の目的** — 特徴確認 / Section差 / サビ候補の持ち上がり / 緊張感・浮遊感 / 着地・終止感 / Climax位置から選択
+- **Intent-aware TOP 3** — 同じEvidenceを目的に合わせて並べ替え
+- **なぜ候補か** — Evidenceと目的の関係をrationaleで説明
+- **1項目実験** — variable / targetSections / keepConstant / A/B/C比較方向 / verificationを表示
+- **1候補だけhandoff** — 選んだ実験だけをArrangement Labへproposal-onlyで渡す
+- **採用 / 見送り履歴** — localStorageへ端末内記録
+- **修正前 → 修正後** — v0.24のCompare再分析をそのまま利用
+
+目的は提案の並び順にだけ使い、品質Scoreや正解判定にはしません。Analyzerは曲を自動変更せず、Arrangement Labの編曲案生成とも責務を分離します。
+
+詳細: `docs/INTENT_DIAGNOSTIC_LOOP_SPEC.md`
+
 ## 1. 素材を集める・保存する
 
 - MIDI Import / 端末保存
@@ -132,9 +149,11 @@ TOP 3は品質・正解・人気の採点ではありません。Analyzerは観�
 - Section Landing比較
 - SectionごとのNote密度 / Melody音域 / Chord Tone率 / 着地Degree比較
 - 分析値のMeaning
-- 見直し候補 TOP 3
+- 目的に合わせた見直し候補 TOP 3
+- 1項目実験 + rationale
 - Arrangement Lab向けproposal-only handoff
 - 修正前 / 修正後の再分析
+- 採用 / 見送りの端末内履歴
 - 曲全体の特徴 Top 5
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll上の音の役割可視化
@@ -155,7 +174,7 @@ TOP 3は品質・正解・人気の採点ではありません。Analyzerは観�
 - Metric → Meaning → Action
 - Reference Insight → 自分の曲で試す
 
-Higher-level Metrics、Insight、Diagnostic Loopの優先順位は品質・人気・正解の採点ではありません。理解と比較のための候補値・根拠です。
+Higher-level Metrics、Insight、Diagnostic Loop、Intent Layerの優先順位は品質・人気・正解の採点ではありません。理解と比較のための候補値・根拠です。
 
 ## Moisesとの役割分担
 
@@ -186,7 +205,7 @@ MIDI読み込み直後:
 - Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach / Resolution・Suspension・Anticipation / Phrase Landing / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
-- Structure: Motif / Section / Phrase contour / Peak / Climax / Section Landing比較 / 曲全体Top 5 / Section比較 / 分析値の意味 / 見直し候補TOP3 / Arrangement Lab handoff / 区間Key / 転調候補
+- Structure: Motif / Section / Phrase contour / Peak / Climax / Section Landing比較 / 曲全体Top 5 / Section比較 / 分析値の意味 / 目的選択 / Intent-aware TOP3 / 1項目実験 / Arrangement Lab handoff / 採用履歴 / 区間Key / 転調候補
 - Visual: Timeline / Contour / Density / Energy / Section Map / Heatmap
 - Compare: 2 MIDI比較 / Reference vs Own差分説明 / 修正前→修正後の再分析 / Personal Trend
 - Library: 保存済みMIDI + 素材Clip Library / 出自 / タグ検索
@@ -214,6 +233,7 @@ Reharmonize / Voicing / 密度・展開変更 / 編曲案A/B/C / 採用判断履
 - MIDI Import時の端末保存は初期OFF
 - 初心者スタートでArchiveを選んだ時だけ端末保存をONにする
 - 初心者 / 詳細モードの表示設定はlocalStorageへ端末内保存
+- v0.25の目的選択 / Experiment HistoryはlocalStorageへ端末内保存
 - Clipは明示保存時のみ
 - Stemは明示Import時のみ
 - 既存Takeは互換性のため保持
@@ -223,14 +243,15 @@ Reharmonize / Voicing / 密度・展開変更 / 編曲案A/B/C / 採用判断履
 
 ## データ安全性
 
-v0.24ではSchemaを変更しません。
+v0.25でもSchemaを変更しません。
 - Normalized Song変更なし
 - SongProject v1変更なし
 - IndexedDB `midi-analyzer` version 3維持
 - Stem DB version 1維持
 - 元MIDI由来Noteを分析目的で自動修正しない
 - Candidateを自動確定しない
-- Insight / Diagnostic Loopの内部順位を品質Scoreとして公開しない
+- Insight / Diagnostic Loop / Intent Layerの内部順位を品質Scoreとして公開しない
+- Experiment HistoryはlocalStorageのみ
 - Arrangement Labへ自動Mergeしない
 
 ## 開発
@@ -256,9 +277,10 @@ plain HTML/CSS/JavaScript + Vite。
 8. `docs/NOTE_FUNCTION_ANALYSIS.md`
 9. `docs/INSIGHT_ANALYSIS_SPEC.md`
 10. `docs/DIAGNOSTIC_LOOP_SPEC.md`
-11. `docs/CLIP_LIBRARY_SPEC.md`
-12. `docs/STORAGE_SPEC.md`
-13. `docs/RELEASE_POLICY.md`
+11. `docs/INTENT_DIAGNOSTIC_LOOP_SPEC.md`
+12. `docs/CLIP_LIBRARY_SPEC.md`
+13. `docs/STORAGE_SPEC.md`
+14. `docs/RELEASE_POLICY.md`
 
 ## v0.22復元ポイント
 
@@ -278,15 +300,20 @@ plain HTML/CSS/JavaScript + Vite。
 - 公開前main復元Branch: `restore/main-before-v0.23-publish-20261015`
 - GitHub Pages Deploy: success
 
-## v0.24復元ポイント / develop統合
+## v0.24復元ポイント / 公開
 
-- 変更前develop: `24aa53240a3ff0ab0794569459614baa85e7335f`
-- Restore branch: `restore/develop-before-diagnostic-loop-v0.24-20261015`
-- Feature branch: `chatgpt/diagnostic-loop-v0.24`
-- 実装PR: `#65`
-- develop統合commit: `71bb387f41056bf15a489a6a2a4983775666f1c5`
-- develop統合後CI: success
+- v0.24開発前Restore branch: `restore/develop-before-diagnostic-loop-v0.24-20261015`
 - Feature-complete milestone: `chatgpt/v0.24-feature-complete-milestone`
-- 公開中main: `v0.23-dev`（v0.24はdevelop統合済み・main未公開）
+- 公開PR: `#67`
+- 公開main commit: `c323d5a3138771a9bffb226ab5d0cdb6ad02791a`
+- 公開前main復元Branch: `restore/main-before-v0.24-publish-20261015`
+- GitHub Pages Deploy: success
+
+## v0.25復元ポイント / 開発
+
+- 変更前develop: `65667b01adc8c050c18e040c562b3aab40a937a6`
+- Restore branch: `restore/develop-before-intent-loop-v0.25-20261015`
+- Feature branch: `chatgpt/midi-analyzer-v0.25-intent-loop`
+- main / 公開版: `v0.24-dev`のまま変更しない
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
