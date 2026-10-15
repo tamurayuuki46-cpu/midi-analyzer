@@ -15,9 +15,9 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.19-dev`
+`v0.20-dev`
 
-公開中Version: `v0.17-dev`
+公開中Version: `v0.18-dev`
 
 公開先: `https://tamurayuuki46-cpu.github.io/midi-analyzer/`
 
@@ -27,18 +27,20 @@ Repository名と公開URLのslugは互換性のため`midi-analyzer`のまま維
 
 ## 初心者モード
 
-v0.19-devでは、アプリを開いた最初の画面で次の2択を表示します。
+v0.20-devでは、アプリを開いた最初の画面で次の2択を表示します。
 
 1. **MIDIを保存・整理する** — 端末保存をONにしてArchiveとして残す。
 2. **MIDIを解析する** — 保存せず、その場で特徴を確認することもできる。
 
 初心者時はAudio→MIDI / Note Tools / Stem Referenceなどの詳細ツールを初期状態で隠し、必要な時だけ「詳細ツールを表示」で開きます。
 
-MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項目にまとめ、各項目を `Metric → Meaning → Action` の順で表示します。Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。必要になった時だけ詳細モードへ切り替え、従来の13解析タブを使えます。
+MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復に加え、**音の役割（Chord ToneとScale Tone）**を表示します。各項目を `Metric → Meaning → Action` の順で読み、Meaningは良い / 悪いの採点ではなく特徴の説明、Actionは元案を残したまま試せる任意の実験案です。必要になった時だけ詳細モードへ切り替え、従来の解析タブを使えます。
+
+v0.20-devの「音の役割」では、Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを別概念として扱います。「コード外だがスケール内」「コード内だが現在のスケール基準では外側」「両方の外側」を区別し、外音を誤りとは判定しません。
 
 参考曲の分析結果は、具体的なNote列やChord列をコピーするのではなく、音域・旋律の動き・発音位置・反復の使い方など抽象化した `Reference Insight` として「この特徴を自分の曲で試す」へつなげます。
 
-詳細: `docs/BEGINNER_MODE.md`, `docs/ANALYSIS_SPEC.md`
+詳細: `docs/BEGINNER_MODE.md`, `docs/ANALYSIS_SPEC.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
 
 ## 1. 素材を集める・保存する
 
@@ -74,6 +76,9 @@ MIDI読み込み後は、Key / 音域 / 音の動き / リズム / 反復を5項
 - Key / Scale候補
 - Chord / Degree / Chord Detail
 - Melody / Bass / Rhythm分析
+- Chord Tone / Non-Chord Tone
+- Scale Tone / Non-Scale Tone
+- Chord Tone × Scale Toneの関係
 - Motif / Section / 区間Key / 転調候補
 - 裏メロ分析
 - Track役割候補
@@ -110,7 +115,7 @@ MIDI Archive/Analyzer自身をStem分離サービスにはしません。Moises�
 - MIDI Import
 
 MIDI読み込み直後:
-- 初心者モード: Key / 音域 / 音の動き / リズム / 反復
+- 初心者モード: Key / 音域 / 音の動き / リズム / 反復 / 音の役割
 - 各MetricのMeaning
 - 任意のAction（最大3件を主表示）
 - Reference Insight（抽象特徴のみ）
@@ -119,7 +124,7 @@ MIDI読み込み直後:
 詳細モード:
 - 概要: 基本情報 / 簡易再生 / Track一覧 / Piano Roll
 - Harmony: Key / Chord / Degree / Chord Detail / Key素材化
-- Melody: 主旋律基本分析 / 裏メロ分析
+- Melody: 主旋律基本分析 / Chord Tone × Scale Tone / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
 - Structure: Motif / Section / 区間Key / 転調候補
@@ -166,7 +171,8 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 - `.mid` / `.midi` Import / Normalized Song
 - 読み込み前の初心者スタート
 - 初心者モード / 詳細モード
-- 初心者向け5項目のMetric → Meaning → Action
+- 初心者向けMetric → Meaning → Action
+- Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneの独立分析
 - Reference Insight → 自分の曲で試す
 - IndexedDB MIDI保存 / 一覧 / 削除
 - Piano Roll / Playback
@@ -209,23 +215,24 @@ plain HTML/CSS/JavaScript + Vite。
 5. `docs/PRODUCT_SPEC.md`
 6. `docs/ANALYSIS_SPEC.md`
 7. `docs/BEGINNER_MODE.md`
-8. `docs/CLIP_LIBRARY_SPEC.md`
-9. `docs/STORAGE_SPEC.md`
-10. `docs/INTEGRATION_EXPORT_SPEC.md`
-11. `docs/ROADMAP.md`
-12. `CHANGELOG_v0.19.md`
+8. `docs/NOTE_FUNCTION_ANALYSIS.md`
+9. `docs/CLIP_LIBRARY_SPEC.md`
+10. `docs/STORAGE_SPEC.md`
+11. `docs/INTEGRATION_EXPORT_SPEC.md`
+12. `docs/ROADMAP.md`
+13. `CHANGELOG_v0.20.md`
 
 重要仕様は`docs/`を正本とします。
 
-## v0.19-dev Scope
+## v0.20-dev Scope
 
-- v0.18のArchive / Analyze初心者導線を維持
-- Key / 音域 / 音の動き / リズム / 反復を5つのMetricとして表示
-- 各MetricへMeaningと任意Actionを付与
-- 「良いところ / 改善点」という採点的な見出しを主要導線から外す
-- 参考曲は具体Note / Chordのコピーではなく抽象化したReference Insightとして扱う
-- Actionは最大3件程度を主表示し、実行しない / 保留も許容する
-- 詳細13タブを削除せず、詳細モードとして保持
+- v0.19のArchive / Analyze初心者導線とMetric → Meaning → Actionを維持
+- Chord Tone / Non-Chord ToneとScale Tone / Non-Scale Toneを独立して計算
+- 「Chord外・Scale内」「Chord内・Scale外」「両方の外側」を区別
+- Melodyで選択中のTrackへ追従
+- HarmonyでKeyまたはChord候補を選択すると音の役割を再計算
+- 未選択Chordは従来どおり第1候補を仮使用し、仮定であることを表示
+- minorのScale Tone判定はnatural minorを基本基準とし、raised 6th / 7th等を誤り扱いしない
 - SongProject v1 / IndexedDB v3 / Clip / Stem / Memoとの互換性を維持
 - Schema変更なし
 - 360 / 390 / 430pxのChromium回帰をCIで継続する

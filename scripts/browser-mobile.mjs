@@ -18,7 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
-    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.19-dev$/, 'Browser title must use the current app version');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.20-dev$/, 'Browser title must use the current app version');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -73,7 +73,8 @@ try {
     await beginnerPanel.getByText('Meaning', { exact: true }).first().waitFor();
     await beginnerPanel.getByRole('heading', { name: '次に試せること', exact: true }).waitFor();
     await beginnerPanel.getByRole('heading', { name: '参考曲から借りるのは音符ではなく考え方', exact: true }).waitFor();
-    assert.equal(await beginnerPanel.locator('[data-beginner-metric]').count(), 5, 'Beginner mode must show five core metrics');
+    assert.equal(await beginnerPanel.locator('[data-beginner-metric]').count(), 6, 'Beginner mode must show five core metrics plus note function');
+    await beginnerPanel.locator('[data-beginner-metric="note-function"]').getByText(/音の役割:/).waitFor();
     assert.ok(await beginnerPanel.locator('[data-reference-insight]').count() > 0, 'Beginner mode must expose abstract Reference → Action insights');
     assert.equal(await page.locator('[data-analysis-tabs]').isHidden(), true, 'Detailed tabs must start hidden in beginner mode');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner mode overflows at ${width}px`);
@@ -95,6 +96,10 @@ try {
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name} overflows at ${width}px`);
     }
     assert.equal(await page.getByRole('tab', { name: 'Recorder', exact: true }).count(), 0, 'Recorder must stay retired from the main workflow');
+
+    await page.getByRole('tab', { name: 'Melody', exact: true }).click();
+    await page.getByRole('heading', { name: 'Chord ToneとScale Tone', exact: true }).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Note Function overflows at ${width}px`);
 
     await page.getByRole('tab', { name: 'Export', exact: true }).click();
     await page.getByRole('heading', { name: 'Demo Composerへ渡す', exact: true }).waitFor();
@@ -139,5 +144,5 @@ try {
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / Metric→Meaning→Action / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px beginner start / six-metric Metric→Meaning→Action / note function / detail mode / song-data / five-stage flow / import / 13 tabs / handoff / provenance / transpose / storage regression passed');
 } finally { await browser.close(); }
