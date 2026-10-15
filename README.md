@@ -15,7 +15,7 @@ MIDI Archive/Analyzerの役割は次の2つだけです。
 
 ## 現在Version
 
-`v0.22-dev`
+`v0.23-dev`
 
 公開中Version: `v0.18-dev`
 
@@ -54,6 +54,22 @@ Resolutionでは、target pitch / tick、解決までのtick / musicalBeat、半
 Piano Rollはread-onlyのまま、Chord × Scale色分けに加えてResolution / Suspension / Anticipation候補を輪郭で補助表示します。
 
 詳細: `docs/ANALYSIS_SPEC.md`, `docs/NOTE_FUNCTION_ANALYSIS.md`
+
+## v0.23-dev: Phrase / Section / Compare / Top5 Insight
+
+v0.23では既存Analyzerを作り直さず、そのEvidenceを「曲の特徴として何を見るか」へまとめる**Insight Layer**を追加します。
+
+追加内容:
+- **Phrase contour** — arch / valley / ascending / descending / mixed候補
+- **Peak note** — Melody最高音と曲内位置
+- **Climax candidate** — Pitch / Velocity / 周辺発音密度から候補表示
+- **Section Landing比較** — Sectionごとの着地Pitch / Degree / Chord・Scale relation
+- **Reference vs Own差分説明** — 数値差の大きい特徴を最大5件、文章で説明
+- **曲全体の特徴 Top 5** — Evidence + Meaningを最大5件だけ表示
+
+Insightは品質Scoreではありません。Verse / Chorus等のSection役割も自動確定しません。元MIDI、Normalized Song、SongProject、保存Schemaは変更しません。
+
+詳細: `docs/INSIGHT_ANALYSIS_SPEC.md`
 
 ## 1. 素材を集める・保存する
 
@@ -97,6 +113,9 @@ Piano Rollはread-onlyのまま、Chord × Scale色分けに加えてResolution 
 - Strong / Weak musicalBeat context
 - Suspension / Anticipation候補
 - Phrase Landing / Degree summary
+- Phrase contour / Peak / Climax候補
+- Section Landing比較
+- 曲全体の特徴 Top 5
 - Natural / Harmonic / Melodic Minor比較
 - Piano Roll上の音の役割可視化
 - Motif / Section / 区間Key / 転調候補
@@ -109,14 +128,14 @@ Piano Rollはread-onlyのまま、Chord × Scale色分けに加えてResolution 
 - Section Map
 - Note / Velocity Heatmap
 - 2 MIDI比較
-- 参考曲 vs 自作曲
+- 参考曲 vs 自作曲 + 差分説明Top 5
 - Personal Trend
 - Explainability / 「この曲から学べること」
 - Higher-level Metrics + Evidence
 - Metric → Meaning → Action
 - Reference Insight → 自分の曲で試す
 
-Higher-level Metricsは品質・人気・正解の採点ではありません。理解のための候補値と根拠です。
+Higher-level MetricsとInsightは品質・人気・正解の採点ではありません。理解のための候補値と根拠です。
 
 ## Moisesとの役割分担
 
@@ -147,9 +166,9 @@ MIDI読み込み直後:
 - Melody: 主旋律基本分析 / Chord × Scale / Passing・Neighbor・Approach / Resolution・Suspension・Anticipation / Phrase Landing / 裏メロ分析
 - Bass: Bass基本分析 / Bass詳細
 - Rhythm: Rhythm基本分析 / Drum詳細
-- Structure: Motif / Section / 区間Key / 転調候補
+- Structure: Motif / Section / Phrase contour / Peak / Climax / Section Landing比較 / 曲全体Top 5 / 区間Key / 転調候補
 - Visual: Timeline / Contour / Density / Energy / Section Map / Heatmap
-- Compare: 2 MIDI比較 / Personal Trend
+- Compare: 2 MIDI比較 / Reference vs Own差分説明 / Personal Trend
 - Library: 保存済みMIDI + 素材Clip Library / 出自 / タグ検索
 - Export: Analysis / Reference / Material Export
 - AI: 端末内Explainability / 学べること / AI Prompt Export
@@ -181,13 +200,14 @@ MIDI Archive/AnalyzerはAnalysis / Reference / Clip / Materialを渡します。
 
 ## データ安全性
 
-v0.22ではSchemaを変更しません。
+v0.23ではSchemaを変更しません。
 - Normalized Song変更なし
 - SongProject v1変更なし
 - IndexedDB `midi-analyzer` version 3維持
 - Stem DB version 1維持
 - 元MIDI由来Noteを分析目的で自動修正しない
 - Candidateを自動確定しない
+- Insightの内部順位を品質Scoreとして公開しない
 
 ## 開発
 
@@ -210,9 +230,10 @@ plain HTML/CSS/JavaScript + Vite。
 6. `docs/ANALYSIS_SPEC.md`
 7. `docs/BEGINNER_MODE.md`
 8. `docs/NOTE_FUNCTION_ANALYSIS.md`
-9. `docs/CLIP_LIBRARY_SPEC.md`
-10. `docs/STORAGE_SPEC.md`
-11. `docs/RELEASE_POLICY.md`
+9. `docs/INSIGHT_ANALYSIS_SPEC.md`
+10. `docs/CLIP_LIBRARY_SPEC.md`
+11. `docs/STORAGE_SPEC.md`
+12. `docs/RELEASE_POLICY.md`
 
 ## v0.22復元ポイント
 
@@ -220,5 +241,12 @@ plain HTML/CSS/JavaScript + Vite。
 - Restore branch: `restore/develop-before-resolution-landing-v0.22-20261015`
 - Feature branch: `chatgpt/resolution-landing-v0.22`
 - PR: `#55`
+
+## v0.23復元ポイント
+
+- 変更前develop: `e58fcb188e19fe5eced17bc030f2e6cb301d6a3f`
+- Restore branch: `restore/develop-before-insight-v0.23-20261015`
+- Feature branch: `chatgpt/insight-v0.23`
+- Issue: `#57`
 
 stable tagはAndroid実機と必要なCubasis/Cubase実機確認後のみ作成します。
