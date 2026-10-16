@@ -235,7 +235,17 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner return overflows at ${width}px`);
     await page.screenshot({ path: `test-results/analyzer-mobile-${width}.png` });
 
+    // Saved MIDI can be re-opened in the Analyzer without writing a second copy.
     await archiveButton.click();
+    const savedRegion = page.getByRole('region', { name: '保存済みMIDI', exact: true });
+    assert.equal(await savedRegion.locator('.saved-card').count(), 1);
+    await savedRegion.getByRole('button', { name: 'Analyzerで開く', exact: true }).click();
+    await page.locator('[data-analyzer-focus]').waitFor({ state: 'visible' });
+    assert.equal(await page.evaluate(() => document.body.dataset.appView), 'analyzer');
+    await page.locator('[data-analyzer-focus]').getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+    await archiveButton.click();
+    assert.equal(await savedRegion.locator('.saved-card').count(), 1, 'Re-opening must not duplicate the saved MIDI');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Saved card actions overflow at ${width}px`);
     await page.reload();
     assert.equal(await page.evaluate(() => document.body.dataset.appView), 'archive', 'Last used view must be restored');
     await page.getByRole('region', { name: '保存済みMIDI', exact: true }).getByText('mobile-regression.mid', { exact: true }).waitFor();

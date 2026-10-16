@@ -12,6 +12,9 @@
 - 取り込みの保存チェックは Analyzer=OFF / Archive=ON が初期値。
 - 旧「詳細ツールを表示」切替を廃止（Archive側は常に表示）。`midi-analyzer.start-mode.v1` は未使用になるだけで削除しない。
 
+### 追補: 保存済みMIDIをAnalyzerで開く
+Archiveの保存済みMIDI一覧に「Analyzerで開く」を追加。保存済みの元MIDIを同じ取り込み経路で再解析し、Analyzerへ切り替える。**再保存はしない**（Archiveの保存データは変更・複製されない）。`main.js` の取り込み処理を `runImport` に切り出して共用。
+
 ### 変更しないもの
 Normalized Song / SongProject v1 / IndexedDB `midi-analyzer` v3 / `midi-analyzer-stems` v1 / 分析エンジン / Higher-level Metrics tab / Export tab / `savedTakes`。Migrationなし。
 
@@ -19,6 +22,5 @@ Normalized Song / SongProject v1 / IndexedDB `midi-analyzer` v3 / `midi-analyzer
 `src/ui/appViews*.js|css`, `src/ui/appViewModel.js`, `src/ui/renderAnalyzerFocus.js`, `src/ui/analyzerFocusModel.js`, `src/ui/renderArchiveSong.js`, `test/appViews.test.js`。`renderDiagnosticLoop.js` は `INTENT_STORAGE_KEY` / `loadIntentId` をexportしただけ。
 
 ### 未対応（意図的）
-- 保存済みMIDIをArchive一覧から再度Analyzerで開く導線（現状は削除のみ。保存済みの再解析は未実装）。
 - Higher-level Metrics tabの縮小、Export tabのAnalysis/Material分割、AI Prompt / Personal Trendの扱い（提案書 §8 の判断待ち）。
 - Android実機（PWA）での確認。
