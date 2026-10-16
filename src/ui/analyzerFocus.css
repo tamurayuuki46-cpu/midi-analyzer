@@ -1,0 +1,24 @@
+.analyzer-focus-panel { border-color: #c7d2fe; }
+.analyzer-focus-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.analyzer-focus-head h2 { overflow-wrap: anywhere; }
+.analyzer-focus-stats { margin: 4px 0 0; color: #52525b; font-size: .86rem; }
+.analyzer-focus-intent { display: grid; gap: 6px; margin-bottom: 14px; }
+.analyzer-focus-intent > span { font-weight: 800; }
+.analyzer-focus-intent small { color: #52525b; line-height: 1.5; }
+.analyzer-focus-list { display: grid; gap: 10px; }
+.analyzer-focus-card { border: 1px solid #e4e4e7; border-radius: 14px; padding: 13px; background: #fafafa; }
+.analyzer-focus-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.analyzer-focus-card-head strong { overflow-wrap: anywhere; }
+.analyzer-focus-rank { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #4f46e5; color: #fff; font-weight: 900; }
+.analyzer-focus-card dl { display: grid; gap: 8px; margin: 0; }
+.analyzer-focus-card dl > div { display: grid; grid-template-columns: 74px 1fr; gap: 8px; }
+.analyzer-focus-card dt { font-size: .75rem; font-weight: 800; letter-spacing: .04em; color: #4338ca; padding-top: 2px; }
+.analyzer-focus-card dd { margin: 0; line-height: 1.55; overflow-wrap: anywhere; }
+.analyzer-focus-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.analyzer-focus-actions button { min-height: 48px; padding: 0 12px; border: 1px solid #a5b4fc; border-radius: 12px; background: #fff; color: #312e81; font-weight: 800; cursor: pointer; }
+.analyzer-focus-actions button:focus-visible { outline: 3px solid #4f46e5; outline-offset: 1px; }
+@media (max-width: 420px) {
+  .analyzer-focus-head { display: grid; }
+  .analyzer-focus-card dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .analyzer-focus-actions { grid-template-columns: 1fr; }
+}
