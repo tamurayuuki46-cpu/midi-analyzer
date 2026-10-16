@@ -37,7 +37,6 @@ export function renderSongSummary(root, result) {
         ${tabButton('structure', 'Structure')}
         ${tabButton('visual', 'Visual')}
         ${tabButton('compare', 'Compare')}
-        ${tabButton('library', 'Library')}
         ${tabButton('ai', 'AI')}
         ${tabButton('parts', 'Parts')}
       </div>
@@ -94,14 +93,6 @@ export function renderSongSummary(root, result) {
 
       ${panelStart('compare')}
         <section class="panel" aria-labelledby="compare-analysis-title"><div class="panel-heading"><div><p class="eyebrow">COMPARE / PERSONAL TREND</p><h2 id="compare-analysis-title">比較・自分の傾向</h2></div><span class="status-pill">比較</span></div><div data-compare-analysis-root></div></section>
-      </section>
-
-      ${panelStart('library')}
-        <div data-library-midi-root></div>
-        <section class="panel" aria-labelledby="clip-library-title">
-          <div class="panel-heading"><div><p class="eyebrow">CLIP LIBRARY</p><h2 id="clip-library-title">4小節素材を保存・検索</h2></div><span class="status-pill">v0.6</span></div>
-          <div data-clip-library-root></div>
-        </section>
       </section>
 
       ${panelStart('ai')}

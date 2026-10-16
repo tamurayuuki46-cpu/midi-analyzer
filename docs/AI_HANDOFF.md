@@ -53,6 +53,16 @@ MoisesをStem分離の主入口とし、Archive/AnalyzerはMoises / RipX / Audio
 
 各項目は `Metric → Meaning → Action` で表示する。良い / 悪いの採点はしない。Actionは任意の比較案であり、採用を強制しない。
 
+## v0.26-dev Analyzer / Archive 画面分離
+案B（`docs/ANALYZER_ARCHIVE_SPLIT_PROPOSAL.md`）の実装。同じPWA・同じDB、画面だけ分離。詳細は `CHANGELOG_v0.26.md`。
+
+- 先頭の切替で `Analyzer` / `Archive`（`#analyzer` / `#archive`）。
+- Analyzer主画面は「今見る3つ」= 既存Intent-aware見直し候補の上位最大3件。新しい分析・採点は追加していない。
+- Library tabはArchiveへ移動（Clip Library / Key変更 / 保存済みMIDI / Audio→MIDI / Stem）。
+- 保存済みMIDIは一覧の「Analyzerで開く」で再解析できる（再保存しない）。
+- 判断待ち: Higher-level Metrics tab、Export tab分割。
+- 未確認: Android実機。Schema / IndexedDB変更なし。
+
 ## v0.22-dev Note Function II
 v0.21までのChord Tone / Scale Tone / Passing / Neighbor / Approachを維持し、次を追加済み。
 - Resolution candidate

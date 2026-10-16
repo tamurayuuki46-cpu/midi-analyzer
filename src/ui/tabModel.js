@@ -7,7 +7,6 @@ export const ANALYSIS_TABS = Object.freeze([
   'structure',
   'visual',
   'compare',
-  'library',
   'export',
   'ai',
   'metrics',

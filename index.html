@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f4f4f5" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="description" content="作曲素材を集め、曲を理解するためのAndroid-first MIDI Archive/Analyzer" />
-    <title>MIDI Archive/Analyzer v0.25-dev</title>
+    <title>MIDI Archive/Analyzer v0.26-dev</title>
     <style>
       .app-flow-strip{margin:0 0 16px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
       .app-flow-step{box-sizing:border-box;border:1px solid #d4d4d8;border-radius:12px;padding:9px 8px;text-align:center;font-size:.78rem;line-height:1.35;background:#fff;color:inherit;text-decoration:none}
@@ -17,10 +17,10 @@
       @media(max-width:560px){.app-flow-strip{grid-template-columns:1fr}.app-flow-step{display:flex;align-items:center;justify-content:space-between;text-align:left}.app-flow-step.current{order:-1}}
     </style>
   </head>
-  <body>
+  <body data-app-view="analyzer">
     <main class="app-shell">
       <header class="app-header">
-        <p class="eyebrow">MIDI ARCHIVE/ANALYZER · v0.25-dev</p>
+        <p class="eyebrow">MIDI ARCHIVE/ANALYZER · v0.26-dev</p>
         <h1>素材を集める / 曲を理解する</h1>
         <p>MIDIはそのまま解析し、AudioやMoises等のStemは端末内で素材化・Audio→MIDIして分析へつなげます。</p>
       </header>
@@ -32,24 +32,34 @@
         <span class="app-flow-step"><span>④ DAWへ</span><small>Cubasis / Cubase</small></span>
       </nav>
       <p class="analysis-optional-note"><strong>① MIDI解析は必須ではありません。</strong> 参考MIDIを調べたい時だけ使い、そのまま② Demo Composerへ進んでもOKです。</p>
-      <div id="beginner-start-root"></div>
-      <div id="audio-to-midi-root"></div>
-      <div id="audio-note-tools-root"></div>
-      <div id="stem-reference-root"></div>
+      <nav class="app-view-switch" data-app-view-switch aria-label="Analyzer / Archive 切り替え">
+        <div class="app-view-switch-buttons">
+          <button class="app-view-button is-active" type="button" data-app-view-button="analyzer" aria-pressed="true"><strong>Analyzer</strong><small>曲を理解する</small></button>
+          <button class="app-view-button" type="button" data-app-view-button="archive" aria-pressed="false"><strong>Archive</strong><small>素材を保存する</small></button>
+        </div>
+        <p class="app-view-lead" data-view="analyzer">MIDIを開いて、今見る3つだけを読みます。保存はしません。</p>
+        <p class="app-view-lead" data-view="archive">MIDI・Audio・Stemを端末に保存し、Clipや別Keyの素材にします。</p>
+      </nav>
+      <div id="beginner-start-root" data-view="analyzer"></div>
       <section class="panel" aria-labelledby="import-title">
-        <div class="panel-heading"><div><p class="eyebrow">MIDI / MATERIAL IMPORT</p><h2 id="import-title">MIDIを読み込む</h2></div></div>
+        <div class="panel-heading"><div><p class="eyebrow"><span data-view="analyzer">ANALYZER · IMPORT</span><span data-view="archive">ARCHIVE · IMPORT</span></p><h2 id="import-title"><span data-view="analyzer">MIDIを開いて解析する</span><span data-view="archive">MIDIを取り込んで保存する</span></h2></div></div>
         <form id="import-form" class="form-stack">
           <div class="field"><label for="midi-file">MIDIファイル</label><input id="midi-file" name="midi-file" type="file" accept=".mid,.midi,audio/midi,audio/x-midi" required /><small>.mid / .midi を読み取ります。</small></div>
           <div class="field"><label for="midi-origin">取り込み元</label><select id="midi-origin" name="midi-origin"><option value="midi">通常のMIDI</option><option value="ripx">RipXから書き出したMIDI</option><option value="basic-pitch">Audio→MIDI (Basic Pitch)</option></select><small>素材の出所を記録するために使い、Note自体は変更しません。</small></div>
-          <label class="save-choice" for="save-midi"><input id="save-midi" name="save-midi" type="checkbox" /><span><strong>この端末に保存する</strong><small>初期値はOFFです。ONの場合だけ、元MIDIと正規化結果をIndexedDBへ保存します。</small></span></label>
+          <label class="save-choice" for="save-midi"><input id="save-midi" name="save-midi" type="checkbox" /><span><strong data-view="analyzer">解析した曲を端末にも保存する</strong><strong data-view="archive">この端末のArchiveに保存する</strong><small data-view="analyzer">Analyzerでは初期値OFFです。ONの場合だけ、元MIDIと正規化結果をIndexedDBへ保存します。</small><small data-view="archive">Archiveでは初期値ONです。元MIDIと正規化結果をIndexedDBへ保存します（外部には送信しません）。</small></span></label>
           <button id="import-button" class="primary-button" type="submit">MIDIを読み込む</button>
         </form>
         <p class="helper-note">保存したMIDI・素材Clip・Stemはこの端末内だけで扱い、外部サービスへ自動送信しません。旧Recorder Takeも互換性のため保持します。</p>
         <p id="storage-status" class="storage-status" aria-live="polite"></p>
       </section>
-      <div id="saved-midi-list"></div>
-      <div id="result" aria-live="polite"></div>
+      <div id="audio-to-midi-root" data-view="archive"></div>
+      <div id="audio-note-tools-root" data-view="archive"></div>
+      <div id="stem-reference-root" data-view="archive"></div>
+      <div id="saved-midi-list" data-view="archive"></div>
+      <div id="archive-song-root" data-view="archive"></div>
+      <div id="result" data-view="analyzer" aria-live="polite"></div>
     </main>
+    <script type="module" src="/src/ui/appViewsEntry.js"></script>
     <script type="module" src="/src/main.js"></script>
     <script type="module" src="/src/ui/beginnerStartEntry.js"></script>
     <script type="module" src="/src/ui/beginnerModeEntry.js"></script>

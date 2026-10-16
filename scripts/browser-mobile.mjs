@@ -18,7 +18,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     await page.goto(process.env.ANALYZER_URL || 'http://127.0.0.1:8081/midi-analyzer/');
-    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.25-dev$/, 'Browser title must use the current app version');
+    assert.match(await page.title(), /^MIDI Archive\/Analyzer v0\.26-dev$/, 'Browser title must use the current app version');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Import overflows at ${width}px`);
     await page.getByText('⓪ 作曲シート', { exact: true }).waitFor();
     await page.getByText('① MIDI解析', { exact: true }).waitFor();
@@ -28,27 +28,43 @@ try {
     await page.getByText('④ DAWへ', { exact: true }).waitFor();
     await page.getByText('① MIDI解析は必須ではありません。', { exact: true }).waitFor();
 
+    // --- Analyzer / Archive split (same PWA, same IndexedDB) ---
+    const viewSwitch = page.locator('[data-app-view-switch]');
+    await viewSwitch.waitFor();
+    const analyzerButton = viewSwitch.getByRole('button', { name: /^Analyzer/ });
+    const archiveButton = viewSwitch.getByRole('button', { name: /^Archive/ });
+    assert.equal(await analyzerButton.getAttribute('aria-pressed'), 'true', 'Analyzer must be the default view');
+    assert.equal(await page.evaluate(() => document.body.dataset.appView), 'analyzer');
+    for (const button of [analyzerButton, archiveButton]) {
+      const box = await button.boundingBox();
+      assert.ok(box && box.height >= 44, 'View switch buttons must be 44px+ tall');
+    }
+
     const beginnerStart = page.locator('.beginner-start-panel');
-    await beginnerStart.getByRole('heading', { name: 'まず、やりたいことを1つ選ぶ', exact: true }).waitFor();
-    await beginnerStart.getByRole('button', { name: /MIDIを保存・整理する/ }).waitFor();
-    await beginnerStart.getByRole('button', { name: /MIDIを解析する/ }).waitFor();
-    assert.equal(await page.locator('#audio-to-midi-root').evaluate((el) => el.hidden), true, 'Audio→MIDI tools must start hidden in beginner start mode');
-    assert.equal(await page.locator('#audio-note-tools-root').evaluate((el) => el.hidden), true, 'Audio note tools must start hidden in beginner start mode');
-    assert.equal(await page.locator('#stem-reference-root').evaluate((el) => el.hidden), true, 'Stem tools must start hidden in beginner start mode');
+    await beginnerStart.getByRole('heading', { name: 'MIDIを1つ開いて、今見る3つを知る', exact: true }).waitFor();
+    await beginnerStart.getByRole('button', { name: 'MIDIファイルを選ぶ', exact: true }).waitFor();
+    // Archive-only tools must not be visible in the Analyzer view.
+    for (const selector of ['#audio-to-midi-root', '#audio-note-tools-root', '#stem-reference-root', '#saved-midi-list']) {
+      assert.equal(await page.locator(selector).isVisible(), false, `${selector} must be hidden in Analyzer`);
+    }
+    assert.equal(await page.locator('#save-midi').isChecked(), false, 'Analyzer keeps device save optional (OFF)');
+    await page.getByRole('heading', { name: 'MIDIを開いて解析する', exact: true }).waitFor();
 
-    await beginnerStart.getByRole('button', { name: /MIDIを保存・整理する/ }).click();
-    assert.equal(await page.locator('#save-midi').isChecked(), true, 'Archive action must enable device save');
-    await beginnerStart.getByRole('button', { name: /MIDIを解析する/ }).click();
-    assert.equal(await page.locator('#save-midi').isChecked(), false, 'Analyze action must keep device save optional');
-
-    const detailToolsButton = beginnerStart.getByRole('button', { name: '詳細ツールを表示', exact: true });
-    await detailToolsButton.click();
-    assert.equal(await page.locator('#audio-to-midi-root').evaluate((el) => el.hidden), false, 'Detail start mode must reveal advanced tools');
-    assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.start-mode.v1') === 'detail'), 'Start detail preference must persist locally');
-    await beginnerStart.getByRole('button', { name: '詳細ツールを隠す', exact: true }).click();
-    assert.equal(await page.locator('#audio-to-midi-root').evaluate((el) => el.hidden), true, 'Returning to beginner start mode must hide advanced tools');
-    assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.start-mode.v1') === 'beginner'), 'Start beginner preference must persist locally');
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner start overflows at ${width}px`);
+    await archiveButton.click();
+    assert.equal(await archiveButton.getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => location.hash), '#archive', 'Archive must be addressable by hash');
+    assert.equal(await page.locator('#save-midi').isChecked(), true, 'Archive enables device save by default');
+    await page.getByRole('heading', { name: 'MIDIを取り込んで保存する', exact: true }).waitFor();
+    assert.equal(await beginnerStart.isVisible(), false, 'Analyzer start card must be hidden in Archive');
+    assert.equal(await page.locator('#saved-midi-list').isVisible(), true, 'Saved MIDI list belongs to Archive');
+    for (const selector of ['#audio-to-midi-root', '#audio-note-tools-root', '#stem-reference-root']) {
+      assert.equal(await page.locator(selector).evaluate((el) => el.hidden), false, `${selector} must not be force-hidden in Archive`);
+    }
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Archive start overflows at ${width}px`);
+    await page.goBack();
+    assert.equal(await page.evaluate(() => document.body.dataset.appView), 'analyzer', 'Back button must return to Analyzer');
+    assert.equal(await page.locator('#save-midi').isChecked(), false);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Analyzer start overflows at ${width}px`);
 
     const songDataTrigger = page.locator('.song-data-trigger');
     await songDataTrigger.waitFor();
@@ -67,8 +83,33 @@ try {
     await page.getByRole('button', { name: 'MIDIを読み込む', exact: true }).click();
 
     await beginnerStart.waitFor({ state: 'hidden' });
+
+    // "今見る3つ": at most three items, ordered by the chosen intent, no scoring words.
+    const focus = page.locator('[data-analyzer-focus]');
+    await focus.waitFor({ state: 'visible' });
+    await focus.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+    const focusCount = await focus.locator('[data-focus-item]').count();
+    assert.ok(focusCount <= 3, 'Analyzer focus must never show more than three items');
+    if (focusCount > 0) {
+      await focus.getByText('Evidence', { exact: true }).first().waitFor();
+      await focus.getByText('Meaning', { exact: true }).first().waitFor();
+      await focus.getByText('Action', { exact: true }).first().waitFor();
+    }
+    const focusIntent = focus.locator('[data-focus-intent]');
+    assert.ok(await focusIntent.locator('option').count() >= 5, 'Focus must expose the analysis intents');
+    await focusIntent.selectOption('climax-shape');
+    assert.ok(await focus.locator('[data-focus-item]').count() <= 3, 'Focus stays within three items after changing intent');
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('midi-analyzer:diagnostic-intent:v1'))), 'climax-shape', 'Focus intent must share the v0.25 intent preference');
+    await focusIntent.selectOption('neutral');
+    assert.equal(await page.locator('[data-analyzer-focus]').evaluate((el) => /採点|スコア|Score|[0-9]+\s*点/.test(el.textContent.replaceAll('採点しません', ''))), false, 'Focus must not present scores');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Analyzer focus overflows at ${width}px`);
+    assert.equal(await page.locator('#saved-midi-list').isVisible(), false, 'Saved list stays out of the Analyzer');
+    assert.equal(await page.locator('[data-clip-library-root]').isVisible(), false, 'Clip Library stays out of the Analyzer');
+
     const beginnerPanel = page.locator('.beginner-mode-panel');
     await beginnerPanel.getByRole('heading', { name: '初心者モード', exact: true }).waitFor();
+    assert.equal(await beginnerPanel.locator('[data-beginner-details]').evaluate((el) => el.open), false, 'Five-metric detail is folded by default');
+    await beginnerPanel.locator('[data-beginner-details] > summary').click();
     await beginnerPanel.getByText('Metric', { exact: true }).first().waitFor();
     await beginnerPanel.getByText('Meaning', { exact: true }).first().waitFor();
     await beginnerPanel.getByRole('heading', { name: '次に試せること', exact: true }).waitFor();
@@ -88,16 +129,18 @@ try {
 
     await beginnerPanel.getByRole('button', { name: '詳細モード', exact: true }).click();
     assert.equal(await page.locator('[data-analysis-tabs]').isVisible(), true, 'Detailed tabs must become visible');
+    assert.equal(await focus.isVisible(), false, 'Focus card steps aside in detail mode');
     await page.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
     assert.ok(await page.evaluate(() => localStorage.getItem('midi-analyzer.analysis-mode.v1') === 'detail'), 'Detail preference must persist locally');
 
-    const expectedTabs = ['概要', 'Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Library', 'Export', 'AI', 'Metrics', 'Parts'];
+    const expectedTabs = ['概要', 'Harmony', 'Melody', 'Bass', 'Rhythm', 'Structure', 'Visual', 'Compare', 'Export', 'AI', 'Metrics', 'Parts'];
     for (const name of expectedTabs) {
       await page.getByRole('tab', { name, exact: true }).click();
       await page.getByRole('tabpanel', { name, exact: true }).waitFor({ state: 'visible' });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${name} overflows at ${width}px`);
     }
     assert.equal(await page.getByRole('tab', { name: 'Recorder', exact: true }).count(), 0, 'Recorder must stay retired from the main workflow');
+    assert.equal(await page.getByRole('tab', { name: 'Library', exact: true }).count(), 0, 'Library is Archive-owned and must not be an Analyzer tab');
 
     await page.getByRole('tab', { name: 'Structure', exact: true }).click();
     await page.getByRole('heading', { name: 'Phrase contour / Peak / Climax候補', exact: true }).waitFor();
@@ -162,16 +205,29 @@ try {
     assert.equal(handoff.songProject.kind, 'song-project');
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Handoff guide overflows at ${width}px`);
 
-    await page.getByRole('tab', { name: 'Harmony', exact: true }).click();
+    // Key change and Clip Library moved to Archive; the same open song is used.
+    assert.equal(await page.locator('[data-midi-key-tools-root]').isVisible(), false, 'Key tools stay out of the Analyzer');
+    await archiveButton.click();
+    const archiveSong = page.locator('#archive-song-root');
+    await archiveSong.getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+    await archiveSong.getByRole('heading', { name: '4小節素材を保存・検索', exact: true }).waitFor();
+    await archiveSong.getByRole('heading', { name: 'Key変更・Song Projectへ適合', exact: true }).waitFor();
     const pending = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Target Key MIDI', exact: true }).click();
     const download = await pending;
     const output = await fs.readFile(await download.path());
     assert.equal(output.subarray(0, 4).toString(), 'MThd');
 
-    await page.getByRole('tab', { name: 'Library', exact: true }).click();
     await page.getByText('素材の出自', { exact: true }).waitFor();
-    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Material Library overflows at ${width}px`);
+    await page.getByRole('region', { name: '保存済みMIDI', exact: true }).getByText('mobile-regression.mid', { exact: true }).waitFor();
+    assert.equal(await page.locator('[data-analysis-tabs]').isVisible(), false, 'Analysis tabs stay out of the Archive');
+    assert.equal(await page.locator('[data-analyzer-focus]').isVisible(), false, 'Focus stays out of the Archive');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Archive song area overflows at ${width}px`);
+    await page.screenshot({ path: `test-results/archive-mobile-${width}.png` });
+
+    await archiveSong.getByRole('button', { name: 'この曲をAnalyzerで見る', exact: true }).click();
+    assert.equal(await page.evaluate(() => document.body.dataset.appView), 'analyzer');
+    await page.locator('[data-analysis-tabs]').waitFor({ state: 'visible' });
 
     await beginnerPanel.getByRole('button', { name: '初心者モード', exact: true }).click();
     assert.equal(await page.locator('[data-analysis-tabs]').isHidden(), true, 'Beginner mode must hide detailed tabs again');
@@ -179,10 +235,22 @@ try {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Beginner return overflows at ${width}px`);
     await page.screenshot({ path: `test-results/analyzer-mobile-${width}.png` });
 
+    // Saved MIDI can be re-opened in the Analyzer without writing a second copy.
+    await archiveButton.click();
+    const savedRegion = page.getByRole('region', { name: '保存済みMIDI', exact: true });
+    assert.equal(await savedRegion.locator('.saved-card').count(), 1);
+    await savedRegion.getByRole('button', { name: 'Analyzerで開く', exact: true }).click();
+    await page.locator('[data-analyzer-focus]').waitFor({ state: 'visible' });
+    assert.equal(await page.evaluate(() => document.body.dataset.appView), 'analyzer');
+    await page.locator('[data-analyzer-focus]').getByRole('heading', { name: 'mobile-regression.mid', exact: true }).waitFor();
+    await archiveButton.click();
+    assert.equal(await savedRegion.locator('.saved-card').count(), 1, 'Re-opening must not duplicate the saved MIDI');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Saved card actions overflow at ${width}px`);
     await page.reload();
+    assert.equal(await page.evaluate(() => document.body.dataset.appView), 'archive', 'Last used view must be restored');
     await page.getByRole('region', { name: '保存済みMIDI', exact: true }).getByText('mobile-regression.mid', { exact: true }).waitFor();
     assert.deepEqual(errors, [], 'No application console errors');
     await context.close();
   }
-  console.log('MIDI Archive/Analyzer 360/390/430px v0.25 intent-driven diagnostic / single-variable experiment / phrase-section-top5 insight / before-after compare / beginner start / six-metric Metric→Meaning→Action / Note Function II / handoff / storage regression passed');
+  console.log('MIDI Archive/Analyzer 360/390/430px v0.26 Analyzer/Archive split / focus-3 / v0.25 intent-driven diagnostic / single-variable experiment / phrase-section-top5 insight / before-after compare / beginner start / six-metric Metric→Meaning→Action / Note Function II / handoff / storage regression passed');
 } finally { await browser.close(); }
