@@ -3,6 +3,12 @@
 ## 対象
 Android Chrome / スマートフォン。
 
+## v0.26 Analyzer / Archive
+最上部で `Analyzer` / `Archive` を切り替える（hash `#analyzer` / `#archive`、44px以上）。
+- Analyzer: Import（保存OFF）→ 今回の目的 → 今見る3つ（最大3件）→ 初心者モード → 詳細モード（下記12タブ）。
+- Archive: Import（保存ON）→ Audio→MIDI / Note修正 / Stem → 保存済みMIDI → 開いている曲のClip Library・Key変更。
+- 下記の「14タブ」のうち Library はArchiveへ移動し、Analyzerの詳細タブは12個（Recorderは退役済み）。
+
 ## 画面フロー
 Import → 保存選択（初期OFF） → 解析カテゴリTabs → 各カテゴリの詳細。
 

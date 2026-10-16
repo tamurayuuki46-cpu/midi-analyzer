@@ -105,7 +105,7 @@ Migrationは非破壊。
 Normalized SongのRead-only表示 / 簡易再生。
 
 ### src/ui
-14カテゴリTab。UI stateはSongへ書き戻さない。
+Analyzer / Archiveの2画面（`appViews`）。Analyzerは12カテゴリTab、ArchiveはClip Library / Key変更 / 保存済みMIDI等。UI stateはSongへ書き戻さない。
 Export / AI / Metricsも表示・書き出しLayerとして扱う。
 
 ### bridge

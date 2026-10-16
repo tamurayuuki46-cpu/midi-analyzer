@@ -10,6 +10,8 @@ import {
   saveImportedMidi,
 } from './storage/index.js';
 import { mountAdvancedAnalysis } from './ui/renderAdvancedAnalysis.js';
+import { mountAnalyzerFocus } from './ui/renderAnalyzerFocus.js';
+import { renderArchiveSong, renderArchiveSongEmpty } from './ui/renderArchiveSong.js';
 import { mountBasicAnalysis } from './ui/renderBasicAnalysis.js';
 import { mountChordAnalysis } from './ui/renderChordAnalysis.js';
 import { mountClipLibrary } from './ui/renderClipLibrary.js';
@@ -33,6 +35,7 @@ const originSelect = document.querySelector('#midi-origin');
 const saveCheckbox = document.querySelector('#save-midi');
 const resultRoot = document.querySelector('#result');
 const savedRoot = document.querySelector('#saved-midi-list');
+const archiveSongRoot = document.querySelector('#archive-song-root');
 const storageStatus = document.querySelector('#storage-status');
 const submitButton = document.querySelector('#import-button');
 
@@ -44,25 +47,9 @@ function setStorageStatus(message, tone = 'neutral') {
   storageStatus.dataset.tone = tone;
 }
 
+// The saved-MIDI list is owned by Archive and always renders into #saved-midi-list.
 function storageTargets() {
-  const libraryRoot = resultRoot.querySelector('[data-library-midi-root]');
-  return libraryRoot ? [libraryRoot] : [savedRoot];
-}
-
-function ensureMidiKeyToolsRoot() {
-  const harmonyPanel = resultRoot.querySelector('#analysis-panel-harmony');
-  if (!harmonyPanel || harmonyPanel.querySelector('[data-midi-key-tools-root]')) return;
-  const section = document.createElement('section');
-  section.className = 'panel';
-  section.setAttribute('aria-labelledby', 'midi-key-tools-title');
-  section.innerHTML = `
-    <div class="panel-heading">
-      <div><p class="eyebrow">KEY CHANGE / MATERIAL</p><h2 id="midi-key-tools-title">Key変更・Song Projectへ適合</h2></div>
-      <span class="status-pill">Non-destructive</span>
-    </div>
-    <div data-midi-key-tools-root></div>
-  `;
-  harmonyPanel.append(section);
+  return [savedRoot];
 }
 
 async function refreshSavedMidiList() {
@@ -109,9 +96,7 @@ form.addEventListener('submit', async (event) => {
     const result = await importMidiFile(file, { origin: originSelect.value });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
-    ensureMidiKeyToolsRoot();
-    savedRoot.hidden = true;
-    savedRoot.replaceChildren();
+    renderArchiveSong(archiveSongRoot, result.song);
     const tabsRoot = resultRoot.querySelector('[data-analysis-tabs]');
     mountPostV07FeatureTabs(tabsRoot, result.song);
     mountAnalysisTabs(tabsRoot);
@@ -137,7 +122,7 @@ form.addEventListener('submit', async (event) => {
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-bass-root]'), result.song, { section: 'bass' });
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-rhythm-root]'), result.song, { section: 'rhythm' });
     mountPartDeepAnalysis(resultRoot.querySelector('[data-deep-parts-root]'), result.song, { section: 'parts' });
-    mountClipLibrary(resultRoot.querySelector('[data-clip-library-root]'), result.song);
+    mountClipLibrary(archiveSongRoot.querySelector('[data-clip-library-root]'), result.song);
 
     keyRoot?.addEventListener('key-selection-change', () => chordController?.refreshKeyContext());
     chordRoot?.addEventListener('chord-selection-change', () => {
@@ -149,6 +134,12 @@ form.addEventListener('submit', async (event) => {
       bassController?.refreshChordContext();
     });
     mountPianoRoll(resultRoot.querySelector('[data-piano-roll-root]'), result.song);
+    const focusRoot = document.createElement('section');
+    focusRoot.className = 'panel analyzer-focus-panel';
+    focusRoot.setAttribute('aria-labelledby', 'analyzer-focus-title');
+    focusRoot.dataset.analyzerFocus = '';
+    tabsRoot.before(focusRoot);
+    mountAnalyzerFocus(focusRoot, result.song);
     window.dispatchEvent(new CustomEvent('midi-analyzer-song-ready', {
       detail: {
         song: result.song,
@@ -170,8 +161,10 @@ form.addEventListener('submit', async (event) => {
       setStorageStatus('保存せずに読み込みました。ページを閉じると元MIDIデータは保持されません。', 'neutral');
     }
   } catch (error) {
-    savedRoot.hidden = false;
     renderImportError(resultRoot, error);
+    renderArchiveSongEmpty(archiveSongRoot);
+    // The error panel lives in Analyzer; also say it where the Archive view can see it.
+    setStorageStatus(`読み込めませんでした: ${error.message || 'Unknown error'}`, 'error');
     await refreshSavedMidiList();
   } finally {
     submitButton.disabled = false;
@@ -199,4 +192,18 @@ async function handleSavedMidiDelete(event) {
 
 savedRoot.addEventListener('click', handleSavedMidiDelete);
 resultRoot.addEventListener('click', handleSavedMidiDelete);
+
+// Detail mode shows every analysis tab, so the "今見る3つ" card steps aside.
+// analysis-mode-change does not bubble, so it is observed in the capture phase.
+resultRoot.addEventListener('analysis-mode-change', (event) => {
+  const focus = resultRoot.querySelector('[data-analyzer-focus]');
+  if (focus) focus.hidden = event.detail?.mode === 'detail';
+}, true);
+
+// Switching between Analyzer and Archive must not leave audio playing in the hidden view.
+window.addEventListener('midi-analyzer-view-change', () => {
+  void activePlaybackController?.stop?.();
+});
+
+renderArchiveSongEmpty(archiveSongRoot);
 refreshSavedMidiList();

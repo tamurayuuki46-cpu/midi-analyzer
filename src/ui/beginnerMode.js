@@ -81,6 +81,8 @@ export function mountBeginnerMode(root, song, options = {}) {
       <button type="button" data-analysis-mode="detail">詳細モード</button>
     </div>
     <div class="beginner-content" data-beginner-content>
+      <details class="beginner-details" data-beginner-details>
+      <summary>基本5項目・次に試せること・参考曲の見方（開いて読む）</summary>
       <div class="beginner-step"><span>1</span><div><strong>特徴を基本5項目＋音の役割に整理</strong><p>外音・広い音域・跳躍などを良い / 悪いで判定せず、曲の性格として読みます。Chord ToneとScale Toneも別々に確認します。</p></div></div>
       <div class="beginner-metric-grid">${summary.metrics.map(metricCard).join('')}</div>
       <section class="beginner-next-card" aria-labelledby="beginner-next-title">
@@ -96,6 +98,7 @@ export function mountBeginnerMode(root, song, options = {}) {
         <div class="reference-insight-grid">${summary.referenceInsights.map(referenceCard).join('')}</div>
       </section>
       <p class="beginner-disclaimer">これは曲の良し悪しを採点する機能ではありません。Metricは特徴量、Meaningは読み方、Actionは任意の実験案です。MIDIや解析結果を外部へ自動送信しません。</p>
+      </details>
     </div>
     <p class="beginner-detail-note" data-detail-note hidden>詳細モードでは、従来の全解析タブをそのまま使えます。初心者モードへ戻しても解析結果は失われません。</p>
   `;

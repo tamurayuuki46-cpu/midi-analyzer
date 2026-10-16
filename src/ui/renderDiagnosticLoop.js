@@ -4,7 +4,7 @@ import {
   buildIntentArrangementHandoff,
 } from '../analysis/diagnostic/index.js';
 
-const INTENT_STORAGE_KEY = 'midi-analyzer:diagnostic-intent:v1';
+export const INTENT_STORAGE_KEY = 'midi-analyzer:diagnostic-intent:v1';
 const HISTORY_STORAGE_KEY = 'midi-analyzer:experiment-history:v1';
 
 function escapeHtml(value) {
@@ -46,7 +46,7 @@ function writeLocalStorage(key, value) {
   }
 }
 
-function loadIntentId() {
+export function loadIntentId() {
   const stored = readLocalStorage(INTENT_STORAGE_KEY, 'neutral');
   return DIAGNOSTIC_INTENTS.some((item) => item.id === stored) ? stored : 'neutral';
 }
