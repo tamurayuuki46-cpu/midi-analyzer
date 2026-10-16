@@ -59,7 +59,8 @@ MoisesをStem分離の主入口とし、Archive/AnalyzerはMoises / RipX / Audio
 - 先頭の切替で `Analyzer` / `Archive`（`#analyzer` / `#archive`）。
 - Analyzer主画面は「今見る3つ」= 既存Intent-aware見直し候補の上位最大3件。新しい分析・採点は追加していない。
 - Library tabはArchiveへ移動（Clip Library / Key変更 / 保存済みMIDI / Audio→MIDI / Stem）。
-- 判断待ち: Higher-level Metrics tab、Export tab分割、保存済みMIDIの再解析導線。
+- 保存済みMIDIは一覧の「Analyzerで開く」で再解析できる（再保存しない）。
+- 判断待ち: Higher-level Metrics tab、Export tab分割。
 - 未確認: Android実機。Schema / IndexedDB変更なし。
 
 ## v0.22-dev Note Function II

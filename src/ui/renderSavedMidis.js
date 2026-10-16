@@ -52,7 +52,10 @@ export function renderSavedMidiList(root, items) {
               <p>${formatSavedAt(item.savedAt)} · ${item.trackCount} tracks · ${item.noteCount} notes</p>
               <small>${item.source?.origin === 'ripx' ? 'RipX' : 'MIDI'} · 端末内のみ</small>
             </div>
-            <button class="delete-button" type="button" data-delete-midi="${escapeHtml(item.id)}">削除</button>
+            <div class="saved-card-actions">
+              <button class="open-button" type="button" data-open-midi="${escapeHtml(item.id)}">Analyzerで開く</button>
+              <button class="delete-button" type="button" data-delete-midi="${escapeHtml(item.id)}">削除</button>
+            </div>
           </article>
         `).join('')}
       </div>

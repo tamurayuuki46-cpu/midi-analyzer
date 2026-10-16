@@ -75,13 +75,18 @@ async function loadSavedSongs() {
   return records.map((record) => record?.song).filter(Boolean);
 }
 
-form.addEventListener('submit', async (event) => {
+form.addEventListener('submit', (event) => {
   event.preventDefault();
   const file = fileInput.files?.[0];
   if (!file) {
     renderImportError(resultRoot, new Error('MIDIファイルを選んでください。'));
     return;
   }
+  void runImport(file, { origin: originSelect.value, save: saveCheckbox.checked });
+});
+
+// Shared by the import form and "Analyzerで開く" on a saved MIDI.
+async function runImport(file, { origin, save, unsavedMessage = '保存せずに読み込みました。ページを閉じると元MIDIデータは保持されません。' }) {
 
   if (activePlaybackController) {
     await activePlaybackController.destroy();
@@ -93,7 +98,7 @@ form.addEventListener('submit', async (event) => {
   setStorageStatus('');
 
   try {
-    const result = await importMidiFile(file, { origin: originSelect.value });
+    const result = await importMidiFile(file, { origin });
     const keyAnalysis = analyzeKeyScale(result.song);
     renderSongSummary(resultRoot, result);
     renderArchiveSong(archiveSongRoot, result.song);
@@ -148,9 +153,9 @@ form.addEventListener('submit', async (event) => {
     }));
     await refreshSavedMidiList();
 
-    if (saveCheckbox.checked) {
+    if (save) {
       try {
-        await saveImportedMidi({ file, importResult: result, origin: originSelect.value });
+        await saveImportedMidi({ file, importResult: result, origin });
         setStorageStatus('この端末に保存しました。クラウドや外部サービスには送信していません。', 'success');
         await refreshSavedMidiList();
         await activeCompareController?.refreshTrend();
@@ -158,7 +163,7 @@ form.addEventListener('submit', async (event) => {
         setStorageStatus(`MIDIは読み込めましたが、端末保存に失敗しました: ${storageError.message}`, 'error');
       }
     } else {
-      setStorageStatus('保存せずに読み込みました。ページを閉じると元MIDIデータは保持されません。', 'neutral');
+      setStorageStatus(unsavedMessage, 'neutral');
     }
   } catch (error) {
     renderImportError(resultRoot, error);
@@ -170,7 +175,25 @@ form.addEventListener('submit', async (event) => {
     submitButton.disabled = false;
     submitButton.textContent = 'MIDIを読み込む';
   }
-});
+}
+
+async function handleSavedMidiOpen(event) {
+  const button = event.target.closest('[data-open-midi]');
+  if (!button) return;
+  button.disabled = true;
+  try {
+    const record = await getSavedMidi(button.dataset.openMidi);
+    if (!record?.midiBytes) throw new Error('保存データから元MIDIを読み出せませんでした。');
+    const file = new File([record.midiBytes], record.source?.fileName ?? 'saved.mid', { type: record.source?.type ?? 'audio/midi' });
+    // Re-analysis only: it must never write a second copy into the Archive.
+    window.dispatchEvent(new CustomEvent('midi-analyzer-set-view', { detail: { view: 'analyzer' } }));
+    await runImport(file, { origin: record.source?.origin ?? 'midi', save: false, unsavedMessage: '保存済みMIDIを開きました。Archiveの保存データは変更していません。' });
+  } catch (error) {
+    setStorageStatus(`開けませんでした: ${error.message}`, 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
 
 async function handleSavedMidiDelete(event) {
   const button = event.target.closest('[data-delete-midi]');
@@ -191,6 +214,7 @@ async function handleSavedMidiDelete(event) {
 }
 
 savedRoot.addEventListener('click', handleSavedMidiDelete);
+savedRoot.addEventListener('click', handleSavedMidiOpen);
 resultRoot.addEventListener('click', handleSavedMidiDelete);
 
 // Detail mode shows every analysis tab, so the "今見る3つ" card steps aside.
